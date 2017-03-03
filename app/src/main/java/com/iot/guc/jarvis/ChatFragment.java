@@ -4,6 +4,7 @@ package com.iot.guc.jarvis;
 import java.util.ArrayList;
 import java.util.Random;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -28,9 +29,8 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         random = new Random();
         msg_edittext = (EditText) view.findViewById(R.id.messageEditText);
         msgListView = (ListView) view.findViewById(R.id.msgListView);
-        ImageButton sendButton = (ImageButton) view
-                .findViewById(R.id.sendMessageButton);
-        sendButton.setOnClickListener(this);
+        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.sendMessageButton);
+        fab.setOnClickListener(this);
 
         // ----Set autoscroll of listview when a new message arrives----//
         msgListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
