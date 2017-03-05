@@ -7,10 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ExpandableListView;
 import android.widget.ListView;
 import android.widget.TextView;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 
 /**
@@ -18,11 +21,11 @@ import java.util.ArrayList;
  */
 public class RoomsFragment extends Fragment {
 
-    ListAdapter listAdapter;
-    ArrayList<String> items;
-    boolean rooms;
-    TextView label;
-    ListView list;
+    ExpandableListAdapter listAdapter;
+    ExpandableListView expListView;
+    List<String> listDataHeader;
+    HashMap<String, List<String>> listDataChild;
+
     public RoomsFragment() {
         // Required empty public constructor
     }
@@ -33,56 +36,50 @@ public class RoomsFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view =  inflater.inflate(R.layout.fragment_manage, container, false);
-        rooms= true;
-        fillList(view);
+        // get the listview
+        expListView = (ExpandableListView) view.findViewById(R.id.exp_list);
+
+        // preparing list data
+        prepareListData();
+
+        listAdapter = new ExpandableListAdapter(getActivity(), listDataHeader, listDataChild);
+
+        // setting list adapter
+        expListView.setAdapter(listAdapter);
            return view;
     }
+    /*
+        * Preparing the list data
+        */
+    private void prepareListData() {
+        listDataHeader = new ArrayList<String>();
+        listDataChild = new HashMap<String, List<String>>();
 
-    public void fillList(final View rootView){
+        // Adding child data
+        listDataHeader.add("Bed Room");
+        listDataHeader.add("Bathroom");
+        listDataHeader.add("Kitchen");
 
-        if(rooms){
+        // Adding child data
+        List<String> kitchen = new ArrayList<String>();
+        kitchen.add("Bulb");
+        kitchen.add("Gun");
+        kitchen.add("Neon");
 
-            list =(ListView) rootView.findViewById(R.id.list);
-            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    rooms = false;
-                    fillList(rootView);
-                }
-            });
-            label =(TextView) rootView.findViewById(R.id.list_label);
 
-            label.setText("Rooms");
-            items = new ArrayList<String>();
-            items.add("Bet Room");
-            items.add("Dinning Room");
-            items.add("Living Room");
-            items.add("Kitchen");
-            listAdapter = new ListAdapter(getActivity(),items);
-            list.setAdapter(listAdapter);
+        List<String> Bedroom = new ArrayList<String>();
+        Bedroom.add("Device 1");
+        Bedroom.add("Device 2");
+        Bedroom.add("Device 3");
 
-        }
-        else {
 
-            list =(ListView) rootView.findViewById(R.id.list);
-            list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    //TODO: create Device Fragment Here
-                    fillList(rootView);
-                }
-            });
-            label =(TextView) rootView.findViewById(R.id.list_label);
+        List<String> bathroom = new ArrayList<String>();
 
-            label.setText("Devices");
-            items = new ArrayList<String>();
-            items.add("Device 1");
-            items.add("Device 2");
-            items.add("Device 3");
-            items.add("Device 4");
-            listAdapter = new ListAdapter(getActivity(),items);
-            list.setAdapter(listAdapter);
-        }
+
+        listDataChild.put(listDataHeader.get(0), Bedroom); // Header, Child data
+        listDataChild.put(listDataHeader.get(1), kitchen);
+        listDataChild.put(listDataHeader.get(2), bathroom);
     }
+
 
 }
