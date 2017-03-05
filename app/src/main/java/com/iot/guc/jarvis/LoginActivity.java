@@ -25,7 +25,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 
 public class LoginActivity extends AppCompatActivity {
-    private static String IP = "192.168.43.130", PORT = "8000", USER = "com.iot.guc.jarvis.user";
+    private static String IP = "192.168.1.122", PORT = "8000", USER = "com.iot.guc.jarvis.user";
     private final String TAG = "LoginActivity";
     private EditText username, password;
     private TextInputLayout layout_username, layout_password;
