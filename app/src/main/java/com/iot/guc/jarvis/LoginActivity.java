@@ -73,6 +73,7 @@ public class LoginActivity extends AppCompatActivity {
 
         RequestQueue queue = Volley.newRequestQueue(this);
         String url = "http://" + IP + ":" + PORT + "/api/register";
+        Log.i(TAG, "register: " + url);
         JSONObject body = new JSONObject();
         body.put("username", username);
         body.put("password", password);
@@ -96,7 +97,7 @@ public class LoginActivity extends AppCompatActivity {
             public void onErrorResponse(VolleyError error) {
                 try {
                     String err = new String(error.networkResponse.data,"UTF-8");
-                    Log.e(TAG, "onErrorResponse: " + err, error);
+                    Log.e(TAG, "onErrorResponse: ", error);
                     progressDialog.dismiss();
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
@@ -151,7 +152,8 @@ public class LoginActivity extends AppCompatActivity {
 
                 try {
                     Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                    User user = new User(response.getInt("id"), response.getString("username"), response.getString("token"), response.getString("type"));
+                    JSONObject jsonUser = response.getJSONObject("user");
+                    User user = new User(jsonUser.getInt("id"), jsonUser.getString("username"), jsonUser.getString("token"), jsonUser.getString("type"));
                     intent.putExtra(USER, user);
 
                     progressDialog.dismiss();
