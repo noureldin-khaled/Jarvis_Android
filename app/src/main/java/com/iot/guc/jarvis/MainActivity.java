@@ -143,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     return PlaceholderFragment.newInstance(position+1);
                 case 2:
-                    return PlaceholderFragment.newInstance(position+1);
+                    return new RoomsFragment();
             }
             return null;
         }
