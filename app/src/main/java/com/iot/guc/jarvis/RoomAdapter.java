@@ -14,21 +14,22 @@ import java.util.List;
 public class RoomAdapter extends BaseExpandableListAdapter {
 
 
-    private Context _context;
-    private List<String> _listDataHeader; // header titles
+    private Context context;
+    private List<String> roomsList; // header titles
     // child data in format of header title, child title
-    private HashMap<String, List<String>> _listDataChild;
+    private HashMap<String, List<String>> deviceLists;
 
     public RoomAdapter(Context context, List<String> listDataHeader,
                        HashMap<String, List<String>> listChildData) {
-        this._context = context;
-        this._listDataHeader = listDataHeader;
-        this._listDataChild = listChildData;
+        this.context = context;
+        this.roomsList = listDataHeader;
+        this.deviceLists = listChildData;
     }
+
 
     @Override
     public Object getChild(int groupPosition, int childPosition) {
-        return this._listDataChild.get(this._listDataHeader.get(groupPosition)).get(childPosition);
+        return this.deviceLists.get(this.roomsList.get(groupPosition)).get(childPosition);
     }
 
     @Override
@@ -42,7 +43,7 @@ public class RoomAdapter extends BaseExpandableListAdapter {
         String childText = (String) getChild(groupPosition, childPosition);
 
         if (convertView == null) {
-            convertView = LayoutInflater.from(_context).inflate(R.layout.list_item, parent, false);
+            convertView = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
         }
 
         TextView listChild = (TextView) convertView.findViewById(R.id.list_item);
@@ -53,17 +54,17 @@ public class RoomAdapter extends BaseExpandableListAdapter {
 
     @Override
     public int getChildrenCount(int groupPosition) {
-        return this._listDataChild.get(this._listDataHeader.get(groupPosition)).size();
+        return this.deviceLists.get(this.roomsList.get(groupPosition)).size();
     }
 
     @Override
     public Object getGroup(int groupPosition) {
-        return this._listDataHeader.get(groupPosition);
+        return this.roomsList.get(groupPosition);
     }
 
     @Override
     public int getGroupCount() {
-        return this._listDataHeader.size();
+        return this.roomsList.size();
     }
 
     @Override
@@ -75,11 +76,10 @@ public class RoomAdapter extends BaseExpandableListAdapter {
     public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         String headerTitle = (String) getGroup(groupPosition);
         if (convertView == null) {
-            convertView = LayoutInflater.from(_context).inflate(R.layout.list_group, parent,false);
+            convertView = LayoutInflater.from(context).inflate(R.layout.list_group, parent,false);
         }
 
         TextView listHeader = (TextView) convertView.findViewById(R.id.list_header);
-        listHeader.setTypeface(null, Typeface.BOLD);
         listHeader.setText(headerTitle);
 
         return convertView;

@@ -12,4 +12,20 @@ public class User implements Serializable {
         this.token = token;
         this.type = type;
     }
+
+    public int getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public String getType() {
+        return type;
+    }
 }
