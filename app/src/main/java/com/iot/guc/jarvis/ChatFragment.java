@@ -10,7 +10,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.ListView;
 
 public class ChatFragment extends Fragment implements View.OnClickListener{
@@ -53,8 +52,8 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                     message, "" + random.nextInt(1000), true);
             chatMessage.setMsgID();
             chatMessage.body = message;
-            chatMessage.Date = CommonMethods.getCurrentDate();
-            chatMessage.Time = CommonMethods.getCurrentTime();
+            chatMessage.Date = Common.getCurrentDate();
+            chatMessage.Time = Common.getCurrentTime();
             msg_edittext.setText("");
             chatAdapter.add(chatMessage);
             chatAdapter.notifyDataSetChanged();
