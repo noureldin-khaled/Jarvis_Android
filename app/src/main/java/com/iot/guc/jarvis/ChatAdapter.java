@@ -22,7 +22,6 @@ public class ChatAdapter extends BaseAdapter {
         chatMessageList = list;
         inflater = (LayoutInflater) activity
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-
     }
 
     @Override
