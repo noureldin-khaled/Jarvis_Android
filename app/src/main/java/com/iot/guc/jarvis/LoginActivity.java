@@ -29,8 +29,7 @@ import org.json.JSONObject;
 import java.io.UnsupportedEncodingException;
 
 public class LoginActivity extends AppCompatActivity {
-    private final static String IP = "192.168.1.122", PORT = "8000", USER = "com.iot.guc.jarvis.user";
-    private final String TAG = "LoginActivity";
+    private final static String USER = "com.iot.guc.jarvis.user";
     private EditText username_edit, password_edit;
     private TextInputLayout layout_username, layout_password;
     private ProgressDialog progressDialog;
@@ -84,7 +83,7 @@ public class LoginActivity extends AppCompatActivity {
 
         try {
             RequestQueue queue = Volley.newRequestQueue(this);
-            String url = "http://" + IP + ":" + PORT + "/api/register";
+            String url = "http://" + Common.getIP() + ":" + Common.getPORT() + "/api/register";
             JSONObject body = new JSONObject();
             body.put("username", username);
             body.put("password", password);
@@ -195,7 +194,7 @@ public class LoginActivity extends AppCompatActivity {
 
         try {
             RequestQueue queue = Volley.newRequestQueue(this);
-            String url = "http://" + IP + ":" + PORT + "/api/login";
+            String url = "http://" + Common.getIP() + ":" + Common.getPORT() + "/api/login";
             JSONObject body = new JSONObject();
             body.put("username", username);
             body.put("password", password);

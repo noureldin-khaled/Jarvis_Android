@@ -37,7 +37,7 @@ import java.util.Map;
  */
 public class RoomFragment extends Fragment {
 
-    private final static String IP = "192.168.1.122", PORT = "8000", USER = "com.iot.guc.jarvis.user";
+    private final static String IP = Common.getIP(), PORT = Common.getPORT(), USER = "com.iot.guc.jarvis.user";
     RoomAdapter listAdapter;
     ExpandableListView expListView;
     ArrayList<Room> Rooms;
@@ -50,9 +50,8 @@ public class RoomFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
         View view =  inflater.inflate(R.layout.fragment_room, container, false);
-        // get the listview
+
         expListView = (ExpandableListView) view.findViewById(R.id.exp_list);
         final Button addRoom = (Button) view.findViewById(R.id.button);
         addRoom.setOnClickListener(new View.OnClickListener() {
@@ -62,27 +61,28 @@ public class RoomFragment extends Fragment {
             }
         });
         roomsLabel = (TextView) view.findViewById(R.id.list_label);
-        //user = (User) getActivity().getIntent().getExtras().getSerializable(USER);
+        user = (User) getActivity().getIntent().getExtras().getSerializable(USER);
 
-        // preparing list data
+
         Rooms = new ArrayList<>();
         Devices = new ArrayList<>();
         roomList = new ArrayList<String>();
         deviceList = new HashMap<String, List<String>>();
-        //getRooms();
+        getRooms();
 
 
         listAdapter = new RoomAdapter(getActivity(), roomList, deviceList);
 
-        prepareListData();
-        // setting list adapter
+
+        //Uncomment For Dummy Data
+       // prepareListData();
         expListView.setAdapter(listAdapter);
 
         expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
             @Override
             public boolean onGroupClick(ExpandableListView expandableListView, View view, final int i, long l) {
                 Button b = (Button) view.findViewById(R.id.addDevice);
-                Log.e(getActivity().getLocalClassName(),"Entered Method");
+
                 if(expandableListView.isGroupExpanded(i)){
                     b.setVisibility(View.INVISIBLE);
                     expandableListView.collapseGroup(i);
@@ -106,26 +106,18 @@ public class RoomFragment extends Fragment {
         });
            return view;
     }
-    /*
-        * Preparing the list data
-        */
+
     private void prepareListData() {
 
 
-
-        //Categorize Devices to Rooms
-
-        // Adding child data
         roomList.add("Bed Room");
         roomList.add("Bathroom");
         roomList.add("Kitchen");
 
-        // Adding child data
         List<String> kitchen = new ArrayList<String>();
         kitchen.add("Bulb");
         kitchen.add("Gun");
         kitchen.add("Neon");
-
 
         List<String> Bedroom = new ArrayList<String>();
         Bedroom.add("Device 1");
@@ -139,7 +131,7 @@ public class RoomFragment extends Fragment {
         deviceList.put(roomList.get(0), Bedroom); // Header, Child data
         deviceList.put(roomList.get(1), kitchen);
         deviceList.put(roomList.get(2), bathroom);
-        //listAdapter.notifyDataSetChanged();
+        listAdapter.notifyDataSetChanged();
 
     }
 
@@ -150,12 +142,9 @@ public class RoomFragment extends Fragment {
         for (int i = 0; i < Rooms.size(); i++)
             hash.put(Rooms.get(i).getId(), new ArrayList<String>());
 
-        Log.e(getActivity().getLocalClassName(),"MAP SIZE: "+hash.get(5));
-        Log.e(getActivity().getLocalClassName(),"MAP SIZE: "+hash.get(6));
-        Log.e(getActivity().getLocalClassName(),"MAP SIZE: "+hash.get(7));
 
         for(Device d : Devices){
-            Log.e(getActivity().getLocalClassName(),"Room ID: "+d.getRoom_id());
+
             ArrayList<String> list = hash.get(d.getRoom_id());
             list.add(d.getName());
             hash.put(d.getRoom_id(),list);
@@ -274,7 +263,7 @@ public class RoomFragment extends Fragment {
     }
 
     public void addDevice(int roomIndex){
-        Log.e(getActivity().getLocalClassName(),"HIII!!!1");
+
     }
 
 
