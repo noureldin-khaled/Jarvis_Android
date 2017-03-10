@@ -48,7 +48,7 @@ public class LoginActivity extends AppCompatActivity {
                 fetchRooms();
                 return;
             } catch (JSONException e) {
-                new Error().create(this, "Opss.. An Error occured while trying to login automatically.\nPlease try to login manually.", "Opss").show();
+                new Error().create(this, "Opss.. An error occurred while trying to login automatically.\nPlease try to login manually.", "Opss").show();
                 if (progressDialog.isShowing())
                     progressDialog.dismiss();
             }
