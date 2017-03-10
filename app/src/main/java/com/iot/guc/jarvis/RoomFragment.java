@@ -37,7 +37,7 @@ public class RoomFragment extends Fragment {
     private ArrayList<Device> Devices;
     private List<String> roomList;
     private TextView roomsLabel;
-    private HashMap<String, List<String>> deviceList;
+    private HashMap<String, List<Device>> deviceList;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -57,79 +57,34 @@ public class RoomFragment extends Fragment {
         Rooms = Shared.getRooms();
         Devices = Shared.getDevices();
         roomList = new ArrayList<String>();
-        deviceList = new HashMap<String, List<String>>();
+        deviceList = new HashMap<String, List<Device>>();
 
         roomAdapter = new RoomAdapter(getActivity(), roomList, deviceList);
 
-        for (int i = 0; i < Rooms.size(); i++)
-            roomList.add(Rooms.get(i).getName());
-        addDataToList();
+        //for (int i = 0; i < Rooms.size(); i++)
+            //roomList.add(Rooms.get(i).getName());
+        //addDataToList();
         //Uncomment For Dummy Data
-        //prepareListData();
+        prepareDummyData();
         expListView.setAdapter(roomAdapter);
-        expListView.setOnGroupClickListener(new ExpandableListView.OnGroupClickListener() {
-            @Override
-            public boolean onGroupClick(ExpandableListView expandableListView, View view, final int i, long l) {
-                Button b = (Button) view.findViewById(R.id.add_device);
-
-                if(expandableListView.isGroupExpanded(i)){
-                    b.setVisibility(View.INVISIBLE);
-                    expandableListView.collapseGroup(i);
-                }
-                else {
-
-                    b.setVisibility(View.VISIBLE);
-                    b.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View view) {
-                            addDevice(i);
-                        }
-                    });
-                    expandableListView.expandGroup(i);
-                }
-
-                return true;
-            }
-        });
 
         return view;
     }
 
-    private void prepareListData() {
-        roomList.add("Bed Room");
-        roomList.add("Bathroom");
-        roomList.add("Kitchen");
+    private void prepareDummyData() {
 
-        List<String> kitchen = new ArrayList<String>();
-        kitchen.add("Bulb");
-        kitchen.add("Gun");
-        kitchen.add("Neon");
-
-        List<String> Bedroom = new ArrayList<String>();
-        Bedroom.add("Device 1");
-        Bedroom.add("Device 2");
-        Bedroom.add("Device 3");
-
-
-        List<String> bathroom = new ArrayList<String>();
-
-
-        deviceList.put(roomList.get(0), Bedroom); // Header, Child data
-        deviceList.put(roomList.get(1), kitchen);
-        deviceList.put(roomList.get(2), bathroom);
-        roomAdapter.notifyDataSetChanged();
 
     }
 
     private void addDataToList() {
-        HashMap<Integer,ArrayList<String>> hash = new HashMap<Integer, ArrayList<String>>();
+        HashMap<Integer,ArrayList<Device>> hash = new HashMap<Integer, ArrayList<Device>>();
 
         for (int i = 0; i < Rooms.size(); i++)
-            hash.put(Rooms.get(i).getId(), new ArrayList<String>());
+            hash.put(Rooms.get(i).getId(), new ArrayList<Device>());
 
         for(Device d : Devices){
-            ArrayList<String> list = hash.get(d.getRoom_id());
-            list.add(d.getName());
+            ArrayList<Device> list = hash.get(d.getRoom_id());
+            list.add(d);
             hash.put(d.getRoom_id(), list);
         }
 
@@ -150,4 +105,6 @@ public class RoomFragment extends Fragment {
     public void addDevice(int roomIndex){
 
     }
+
+
 }

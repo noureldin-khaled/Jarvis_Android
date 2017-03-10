@@ -88,6 +88,15 @@ public class Device {
     }
 
     public enum TYPE {
-        LIGHT_BULB, LOCK
+        LIGHT_BULB, LOCK;
+
+        @Override
+        public String toString() {
+            switch (this){
+                case LIGHT_BULB: return "Light Bulb";
+                case LOCK: return "Lock";
+                default:return "";
+            }
+        }
     }
 }

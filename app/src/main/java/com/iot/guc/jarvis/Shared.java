@@ -1,4 +1,6 @@
 package com.iot.guc.jarvis;
+import android.util.Log;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -61,5 +63,17 @@ public class Shared {
 
     public static void removeDevice(int index) {
         devices.remove(index);
+    }
+
+    public static void deleteDevice(int device_id){
+        Log.e("SHARED","Device No."+ device_id);
+    }
+
+    public static void turnOnDevice(int id) {
+        Log.e("SHARED","Handle Device No."+ id);
+    }
+
+    public static void turnOffDevice(int id) {
+        Log.e("SHARED","Handle Device No."+ id);
     }
 }
