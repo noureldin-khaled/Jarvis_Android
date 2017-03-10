@@ -55,11 +55,19 @@ public class Shared {
         rooms.remove(index);
     }
 
+    public static void clearRooms() {
+        rooms.clear();
+    }
+
     public static void addDevice(Device d) {
         devices.add(d);
     }
 
     public static void removeDevice(int index) {
         devices.remove(index);
+    }
+
+    public static void clearDevices() {
+        devices.clear();
     }
 }

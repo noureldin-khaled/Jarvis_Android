@@ -1,23 +1,42 @@
 package com.iot.guc.jarvis;
 
-import android.support.design.widget.TabLayout;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
-
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
-import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-
 import android.widget.TextView;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -77,14 +96,77 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        switch (id) {
+            case R.id.action_settings: {
+                return true;
+            }
+            case R.id.action_logout: {
+                ConnectivityManager cm = (ConnectivityManager) getApplicationContext().getSystemService(Context.CONNECTIVITY_SERVICE);
+                NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+                boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+                if (!isConnected) {
+                    new Error().create(this, "Please Check Your Internet Connection!", "Connection Error").show();
+                    return false;
+                }
+
+                new Confirmation().create(this, "Are you sure you want to logout?", "Confirmation", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
+                        String url = Shared.getServer().URL() + "/api/logout";
+
+                        final ProgressDialog progressDialog = new ProgressDialog(getApplicationContext());
+                        progressDialog.setMessage("Logging out...");
+                        progressDialog.setCancelable(false);
+
+                        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                                SharedPreferences.Editor editor = sharedPreferences.edit();
+                                editor.remove("auth");
+                                editor.commit();
+                                Shared.setAuth(null);
+                                Shared.clearRooms();
+                                Shared.clearDevices();
+
+                                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                                if (progressDialog.isShowing())
+                                    progressDialog.dismiss();
+                                startActivity(intent);
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                new Error().create(MainActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
+                                if (progressDialog.isShowing())
+                                    progressDialog.dismiss();
+                            }
+                        })
+                        {
+                            @Override
+                            public Map<String, String> getHeaders() throws AuthFailureError {
+                                HashMap<String, String> headers = new HashMap<>();
+                                headers.put("Authorization", Shared.getAuth().getToken());
+                                return headers;
+                            }
+                        };
+
+                        queue.add(request);
+                    }
+                }, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).show();
+
+                return true;
+            }
         }
 
         return super.onOptionsItemSelected(item);
