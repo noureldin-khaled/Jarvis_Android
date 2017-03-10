@@ -7,7 +7,7 @@ import java.util.Date;
 public class Common {
     private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy");
     private static DateFormat timeFormat = new SimpleDateFormat("K:mma");
-    private static String IP = "192.168.1.3";
+    private static String IP = "192.168.1.9";
     private static String PORT = "8000";
 
     public static String getCurrentTime() {
