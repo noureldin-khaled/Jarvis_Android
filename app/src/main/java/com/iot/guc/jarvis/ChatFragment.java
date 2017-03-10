@@ -15,7 +15,6 @@ import android.widget.ListView;
 public class ChatFragment extends Fragment implements View.OnClickListener{
 
     private EditText msg_edittext;
-    private String user1 = "mariam", user2 = "nour";
     private Random random;
     public static ArrayList<ChatMessage> chatlist;
     public static ChatAdapter chatAdapter;
@@ -48,12 +47,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     public void sendTextMessage(View v) {
         String message = msg_edittext.getEditableText().toString();
         if (!message.equalsIgnoreCase("")) {
-            final ChatMessage chatMessage = new ChatMessage(user2, user1,
-                    message, "" + random.nextInt(1000), true);
-            chatMessage.setMsgID();
-            chatMessage.body = message;
-            chatMessage.Date = Common.getCurrentDate();
-            chatMessage.Time = Common.getCurrentTime();
+            final ChatMessage chatMessage = new ChatMessage(message, true, Shared.getCurrentDate(), Shared.getCurrentTime());
             msg_edittext.setText("");
             chatAdapter.add(chatMessage);
             chatAdapter.notifyDataSetChanged();
@@ -65,9 +59,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         switch (v.getId()) {
             case R.id.sendMessageButton:
                 sendTextMessage(v);
-
         }
     }
-
-
 }

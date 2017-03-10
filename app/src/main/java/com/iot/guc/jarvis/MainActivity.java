@@ -64,6 +64,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onBackPressed() {
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

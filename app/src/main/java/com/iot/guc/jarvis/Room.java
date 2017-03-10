@@ -1,13 +1,13 @@
 package com.iot.guc.jarvis;
 
-/**
- * Created by Ahmed Amir on 3/7/2017.
- */
-
 public class Room {
-
     private int id;
     private String name;
+
+    public Room(int id, String name) {
+        this.id = id;
+        this.name = name;
+    }
 
     public int getId() {
         return id;
@@ -23,5 +23,13 @@ public class Room {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    @Override
+    public String toString() {
+        return "Room{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                '}';
     }
 }

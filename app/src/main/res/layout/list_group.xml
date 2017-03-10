@@ -16,7 +16,7 @@
 
     <Button
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
-        android:id="@+id/addDevice"
+        android:id="@+id/add_device"
         android:visibility="invisible"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
