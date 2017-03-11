@@ -3,11 +3,14 @@ package com.iot.guc.jarvis;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
@@ -34,15 +37,30 @@ public class LoginActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        progressDialog = new ProgressDialog(this);
+        progressDialog.setCancelable(false);
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        String authString = sharedPreferences.getString("auth", "");
+        if (!authString.isEmpty()) {
+            try {
+                JSONObject jsonUser = new JSONObject(authString);
+                Shared.setAuth(new User(jsonUser.getInt("id"), jsonUser.getString("username"), jsonUser.getString("token"), jsonUser.getString("type")));
+                fetchRooms();
+                return;
+            } catch (JSONException e) {
+                new Error().create(this, "Opss.. An error occured while trying to login automatically.\nPlease try to login manually.", "Opss").show();
+                if (progressDialog.isShowing())
+                    progressDialog.dismiss();
+            }
+        };
+
         setContentView(R.layout.activity_login);
 
         username_edit = (EditText) findViewById(R.id.username);
         layout_username = (TextInputLayout) findViewById(R.id.layout_username);
         password_edit = (EditText) findViewById(R.id.password);
         layout_password = (TextInputLayout) findViewById(R.id.layout_password);
-
-        progressDialog = new ProgressDialog(this);
-        progressDialog.setCancelable(false);
     }
 
     public void registerClicked(View view) {
@@ -210,6 +228,12 @@ public class LoginActivity extends AppCompatActivity {
                     try {
                         JSONObject jsonUser = response.getJSONObject("user");
                         Shared.setAuth(new User(jsonUser.getInt("id"), jsonUser.getString("username"), jsonUser.getString("token"), jsonUser.getString("type")));
+
+                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+                        SharedPreferences.Editor editor = sharedPreferences.edit();
+                        editor.putString("auth", jsonUser.toString());
+                        editor.commit();
+
                         fetchRooms();
                     } catch (JSONException e) {
                         new Error().create(LoginActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
@@ -303,7 +327,6 @@ public class LoginActivity extends AppCompatActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                new Error().create(LoginActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
                 if (progressDialog.isShowing())
                     progressDialog.dismiss();
             }
@@ -312,7 +335,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap<>();
-                headers.put("Authorization", Shared.getAuth().getToken() );
+                headers.put("Authorization", Shared.getAuth().getToken());
                 return headers;
             }
         };
@@ -368,7 +391,7 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
                 HashMap<String, String> headers = new HashMap<>();
-                headers.put("Authorization", Shared.getAuth().getToken() );
+                headers.put("Authorization", Shared.getAuth().getToken());
                 return headers;
             }
         };
