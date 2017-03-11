@@ -1,6 +1,4 @@
 package com.iot.guc.jarvis;
-import android.util.Log;
-
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -57,12 +55,20 @@ public class Shared {
         rooms.remove(index);
     }
 
+    public static void clearRooms() {
+        rooms.clear();
+    }
+
     public static void addDevice(Device d) {
         devices.add(d);
     }
 
     public static void removeDevice(int index) {
         devices.remove(index);
+    }
+
+    public static void clearDevices() {
+        devices.clear();
     }
 
 
