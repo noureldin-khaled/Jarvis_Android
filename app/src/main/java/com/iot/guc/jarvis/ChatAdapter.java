@@ -14,7 +14,6 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class ChatAdapter extends BaseAdapter {
-
     private static LayoutInflater inflater = null;
     ArrayList<ChatMessage> chatMessageList;
 

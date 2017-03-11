@@ -2,6 +2,8 @@ package com.iot.guc.jarvis;
 
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -11,6 +13,15 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
+import com.android.volley.AuthFailureError;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
+import org.json.JSONException;
+import org.json.JSONObject;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
 import ai.api.AIServiceException;
 import ai.api.android.AIConfiguration;
 import ai.api.model.AIRequest;
@@ -21,13 +32,18 @@ import ai.api.android.AIDataService;
 public class ChatFragment extends Fragment implements View.OnClickListener{
 
     private EditText msg_edittext;
-    public static ArrayList<ChatMessage> chatlist;
-    public static ChatAdapter chatAdapter;
-    public static AIService aiService;
+    private static ArrayList<ChatMessage> chatlist;
+    private static ChatAdapter chatAdapter;
+    private static AIService aiService;
     public static AIDataService aiDataService;
-    public static AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
+    private static AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
             AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
-    ListView msgListView;
+    private ListView msgListView;
+
+    private String resultMessage = "";
+    private String status = "none";
+    private int deviceId = 5;   // TODO: 2017-03-11 remove hardcoding after filtering on rooms
+    private ChatMessage chatMessage;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -52,14 +68,11 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
         return view;
     }
 
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-    }
 
     public void sendTextMessage(View v) {
         String message = msg_edittext.getEditableText().toString();
         if (!message.equalsIgnoreCase("")) {
-            ChatMessage chatMessage = new ChatMessage(message, true, Common.getCurrentDate(), Common.getCurrentTime());
+            chatMessage = new ChatMessage(message, true, Shared.getCurrentDate(), Shared.getCurrentTime());
             msg_edittext.setText("");
             chatAdapter.add(chatMessage);
             chatAdapter.notifyDataSetChanged();
@@ -69,13 +82,69 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     }
 
     public void receiveTextMessage(String message) {
-        ChatMessage chatMessage = new ChatMessage(message, false, Common.getCurrentDate(), Common.getCurrentTime());
-        msg_edittext.setText("");
-        chatAdapter.add(chatMessage);
-        chatAdapter.notifyDataSetChanged();
+
+        if(!status.equals("none")){
+            try{
+                RequestQueue queue = Volley.newRequestQueue(getActivity());
+                String url = Shared.getServer().URL() + "/api/device/" + deviceId;
+
+                JSONObject body = new JSONObject();
+                body.put("status", status);
+
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, body, new Response.Listener<JSONObject>() {
+
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    resultMessage = response.get("message").toString();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                                chatMessage = new ChatMessage(resultMessage, false, Shared.getCurrentDate(), Shared.getCurrentTime());
+                                msg_edittext.setText("");
+                                status = "none";
+                                chatAdapter.add(chatMessage);
+                                chatAdapter.notifyDataSetChanged();
+
+                            }
+                        }, new Response.ErrorListener() {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                resultMessage = error.toString();
+                                chatMessage = new ChatMessage(resultMessage, false, Shared.getCurrentDate(), Shared.getCurrentTime());
+                                msg_edittext.setText("");
+                                status = "none";
+                                chatAdapter.add(chatMessage);
+                                chatAdapter.notifyDataSetChanged();
+
+                            }
+                        })
+                        {
+
+                            @Override
+                            public Map<String, String> getHeaders() throws AuthFailureError {
+                                HashMap<String, String> headers = new HashMap<>();
+                                headers.put("Authorization", Shared.getAuth().getToken() );
+                                return headers;
+                            }
+                        };
+
+                queue.add(request);
+
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        else{
+            chatMessage = new ChatMessage(message, false, Shared.getCurrentDate(), Shared.getCurrentTime());
+            msg_edittext.setText("");
+            chatAdapter.add(chatMessage);
+            chatAdapter.notifyDataSetChanged();
+        }
 
     }
-
 
     @Override
     public void onClick(View v) {
@@ -85,6 +154,8 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
         }
     }
+
+
 
     private class ChatAsyncTask extends AsyncTask<String, Void, String> {
 
@@ -96,14 +167,30 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 AIRequest aiRequest = new AIRequest();
                 aiRequest.setQuery(params[0]);
                 aiService.textRequest(aiRequest);
-                final AIResponse aiResponse = aiDataService.request(aiRequest);
-                switch(aiResponse.getResult().getAction()){
-                    case "LightsOff" : return "Turning off the lights";
-                    case "LightsOn"  : return "Turning on the lights";
-                    default: return aiResponse.getResult().getFulfillment().getSpeech();
+                AIResponse aiResponse = aiDataService.request(aiRequest);
+
+                ArrayList<Device> devices = Shared.getDevices();
+                //TODO add filters on rooms
+//                for(Device device : devices){
+//                    if(device.getType()== Device.TYPE.LIGHT_BULB){
+//                        deviceId = device.getId();
+//                        break;
+//                    }
+//                }
+
+
+                if(aiResponse.getResult().getAction().equals("LightsOn")){
+                    status = "true";
+
+                }
+                else if(aiResponse.getResult().getAction().equals("LightsOff")){
+                    status = "false";
+                }
+                else{
+                    return aiResponse.getResult().getFulfillment().getSpeech();
                 }
 
-            } catch (AIServiceException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
 
@@ -112,14 +199,9 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
         @Override
         protected void onPostExecute(String result) {
-            receiveTextMessage(result);
+                receiveTextMessage(result);
         }
 
-        @Override
-        protected void onPreExecute() {}
-
-        @Override
-        protected void onProgressUpdate(Void... values) {}
     }
 
 }
