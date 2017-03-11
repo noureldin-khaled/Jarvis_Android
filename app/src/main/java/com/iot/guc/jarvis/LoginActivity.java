@@ -49,12 +49,16 @@ public class LoginActivity extends AppCompatActivity {
                 fetchRooms();
                 return;
             } catch (JSONException e) {
-                new Error().create(this, "Opss.. An error occured while trying to login automatically.\nPlease try to login manually.", "Opss").show();
+                new Error().create(this, "Opss.. An error occurred while trying to login automatically.\nPlease try to login manually.", "Opss").show();
                 if (progressDialog.isShowing())
                     progressDialog.dismiss();
             }
         };
 
+        initializeActivity();
+    }
+
+    public void initializeActivity() {
         setContentView(R.layout.activity_login);
 
         username_edit = (EditText) findViewById(R.id.username);
@@ -322,13 +326,16 @@ public class LoginActivity extends AppCompatActivity {
                     new Error().create(LoginActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
                     if (progressDialog.isShowing())
                         progressDialog.dismiss();
+                    initializeActivity();
                 }
             }
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
+                new Error().create(LoginActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
                 if (progressDialog.isShowing())
                     progressDialog.dismiss();
+                initializeActivity();
             }
         })
         {
@@ -377,6 +384,7 @@ public class LoginActivity extends AppCompatActivity {
                     new Error().create(LoginActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
                     if (progressDialog.isShowing())
                         progressDialog.dismiss();
+                    initializeActivity();
                 }
             }
         }, new Response.ErrorListener() {
@@ -385,6 +393,7 @@ public class LoginActivity extends AppCompatActivity {
                 new Error().create(LoginActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
                 if (progressDialog.isShowing())
                     progressDialog.dismiss();
+                initializeActivity();
             }
         })
         {
