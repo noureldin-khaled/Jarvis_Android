@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.iot.guc.jarvis.SettingsActivity">
+    tools:context="com.iot.guc.jarvis.SettingsActivity"
+    android:id="@+id/main_layout">
 
     <ImageView android:id="@+id/profile_pic"
         android:layout_width="135dp"

@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 
@@ -326,7 +327,6 @@ public class LoginActivity extends AppCompatActivity {
         }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
-                new Error().create(LoginActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
                 if (progressDialog.isShowing())
                     progressDialog.dismiss();
             }
