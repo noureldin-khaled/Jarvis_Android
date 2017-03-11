@@ -23,6 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.TextView;
 
 import com.android.volley.AuthFailureError;
@@ -89,7 +90,6 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -100,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
 
         switch (id) {
             case R.id.action_settings: {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
                 return true;
             }
             case R.id.action_logout: {
@@ -115,48 +117,7 @@ public class MainActivity extends AppCompatActivity {
                 new Confirmation().create(this, "Are you sure you want to logout?", "Confirmation", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        RequestQueue queue = Volley.newRequestQueue(getApplicationContext());
-                        String url = Shared.getServer().URL() + "/api/logout";
-
-                        final ProgressDialog progressDialog = new ProgressDialog(getApplicationContext());
-                        progressDialog.setMessage("Logging out...");
-                        progressDialog.setCancelable(false);
-
-                        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                                SharedPreferences.Editor editor = sharedPreferences.edit();
-                                editor.remove("auth");
-                                editor.commit();
-                                Shared.setAuth(null);
-                                Shared.clearRooms();
-                                Shared.clearDevices();
-
-                                Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                if (progressDialog.isShowing())
-                                    progressDialog.dismiss();
-                                startActivity(intent);
-                            }
-                        }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                new Error().create(MainActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
-                                if (progressDialog.isShowing())
-                                    progressDialog.dismiss();
-                            }
-                        })
-                        {
-                            @Override
-                            public Map<String, String> getHeaders() throws AuthFailureError {
-                                HashMap<String, String> headers = new HashMap<>();
-                                headers.put("Authorization", Shared.getAuth().getToken());
-                                return headers;
-                            }
-                        };
-
-                        queue.add(request);
+                        Shared.getAuth().logout(MainActivity.this);
                     }
                 }, new DialogInterface.OnClickListener() {
                     @Override
@@ -198,8 +159,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                                 Bundle savedInstanceState) {
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             TextView textView = (TextView) rootView.findViewById(R.id.section_label);
             textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
