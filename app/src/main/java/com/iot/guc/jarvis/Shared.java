@@ -65,6 +65,9 @@ public class Shared {
         devices.remove(index);
     }
 
+
+    //API REQUESTS
+
     public static void deleteDevice(int device_id){
         Log.e("SHARED","Device No."+ device_id);
     }
@@ -75,5 +78,13 @@ public class Shared {
 
     public static void turnOffDevice(int id) {
         Log.e("SHARED","Handle Device No."+ id);
+    }
+
+    public static  void addRoom(String name){
+        Log.e("SHARED","Adding "+ name);
+    }
+    public static  void addDevice(int roomIndex, String name){
+        Log.e("SHARED","Adding "+name+" into room "+roomIndex);
+
     }
 }

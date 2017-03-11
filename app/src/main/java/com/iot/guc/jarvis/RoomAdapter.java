@@ -1,13 +1,17 @@
 package com.iot.guc.jarvis;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.graphics.Typeface;
+import android.support.design.widget.TextInputLayout;
+import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -41,7 +45,7 @@ public class RoomAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getChildView(int groupPosition,  int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+    public View getChildView(final int groupPosition,  int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
 
         if(isLastChild){
             convertView = LayoutInflater.from(context).inflate(R.layout.add_device_button, parent, false);
@@ -49,44 +53,63 @@ public class RoomAdapter extends BaseExpandableListAdapter {
             b.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                   //TODO: ADD DEVICE
+                    AlertDialog.Builder builder= new AlertDialog.Builder(context);
+                    View dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_add,null);
+                    final EditText entered_name = (EditText) dialogView.findViewById(R.id.name);
+                    TextView title = (TextView) dialogView.findViewById(R.id.dialog_title);
+                    title.setText("Enter Device Name");
+                    builder.setView(dialogView);
+                    builder.setPositiveButton("Add",new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int id) {
+                            Shared.addDevice(groupPosition,entered_name.getText().toString());
+
+                        }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener(){
+
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            dialogInterface.cancel();
+                        }
+                    });
+                    AlertDialog alertDialog= builder.create();
+                    alertDialog.show();
                 }
             });
             return convertView;
         }
+        else {
+            final Device device = (Device) getChild(groupPosition, childPosition);
 
-        final Device device = (Device) getChild(groupPosition, childPosition);
-
-        if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.list_item, parent, false);
-        }
 
-        TextView deviceName = (TextView) convertView.findViewById(R.id.list_item);
 
-        deviceName.setText(device.getName());
+            TextView deviceName = (TextView) convertView.findViewById(R.id.device_name);
 
-        Switch status = (Switch) convertView.findViewById(R.id.toggle);
-        status.setChecked(device.isStatus());
-        status.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-            @Override
-            public void onCheckedChanged(CompoundButton sw, boolean isChecked) {
-                if(isChecked){
-                    Shared.turnOnDevice(device.getId());
+            deviceName.setText(device.getName());
+
+            Switch status = (Switch) convertView.findViewById(R.id.toggle);
+            status.setChecked(device.isStatus());
+            status.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton sw, boolean isChecked) {
+                    if (isChecked) {
+                        Shared.turnOnDevice(device.getId());
+                    } else Shared.turnOffDevice(device.getId());
                 }
-                else Shared.turnOffDevice(device.getId());
-            }
-        });
-        TextView deviceType = (TextView) convertView.findViewById(R.id.type);
-        deviceType.setText(device.getType().toString());
+            });
+            TextView deviceType = (TextView) convertView.findViewById(R.id.type);
+            deviceType.setText(device.getType().toString());
 
-        TextView delete = (TextView)convertView.findViewById(R.id.delete_device);
-        delete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Shared.deleteDevice(device.getId());
-            }
-        });
-        return convertView;
+            TextView delete = (TextView) convertView.findViewById(R.id.delete_device);
+            delete.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Shared.deleteDevice(device.getId());
+                }
+            });
+            return convertView;
+        }
     }
 
     @Override

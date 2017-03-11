@@ -7,7 +7,7 @@
         android:layout_weight="2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/list_item"
+        android:id="@+id/device_name"
         android:paddingLeft="?android:attr/expandableListPreferredChildPaddingLeft"/>
 
     <TextView
