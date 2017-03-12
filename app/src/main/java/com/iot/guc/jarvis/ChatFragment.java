@@ -42,8 +42,152 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
     private String resultMessage = "";
     private String status = "none";
-    private int deviceId = 5;   // TODO: 2017-03-11 remove hardcoding after filtering on rooms
+    private int deviceId = 1;   // TODO: 2017-03-11 remove hardcoding after filtering on rooms
     private ChatMessage chatMessage;
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_chat, container, false);
+        msg_edittext = (EditText) view.findViewById(R.id.messageEditText);
+        msgListView = (ListView) view.findViewById(R.id.msgListView);
+        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.sendMessageButton);
+        fab.setOnClickListener(this);
+
+        chatlist = new ArrayList<ChatMessage>();
+        chatAdapter = new ChatAdapter(getActivity(), chatlist);
+        msgListView.setAdapter(chatAdapter);
+
+        aiService = AIService.getService(getContext(), config);
+        aiDataService = new AIDataService(getContext(), config);
+
+        return view;
+    }
+
+
+    public void sendTextMessage(View v) {
+        String message = msg_edittext.getEditableText().toString();
+        if (!message.equalsIgnoreCase("")) {
+            chatMessage = new ChatMessage(message, true, Shared.getCurrentDate(), Shared.getCurrentTime());
+            msg_edittext.setText("");
+            chatAdapter.add(chatMessage);
+            chatAdapter.notifyDataSetChanged();
+
+            new ChatAsyncTask().execute(message);
+        }
+    }
+
+    public void receiveTextMessage(String message) {
+
+        if(!status.equals("none")){
+            try{
+                RequestQueue queue = Volley.newRequestQueue(getActivity());
+                String url = Shared.getServer().URL() + "/api/device/" + deviceId;
+
+                JSONObject body = new JSONObject();
+                body.put("status", status);
+
+                JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, body, new Response.Listener<JSONObject>() {
+
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    resultMessage = response.get("message").toString();
+                                    chatMessage = new ChatMessage(resultMessage, false, Shared.getCurrentDate(), Shared.getCurrentTime());
+                                    status = "none";
+                                    chatAdapter.add(chatMessage);
+                                    chatAdapter.notifyDataSetChanged();
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                resultMessage = error.toString();
+                                chatMessage = new ChatMessage(resultMessage, false, Shared.getCurrentDate(), Shared.getCurrentTime());
+                                status = "none";
+                                chatAdapter.add(chatMessage);
+                                chatAdapter.notifyDataSetChanged();
+                            }
+                        })
+                        {
+
+                            @Override
+                            public Map<String, String> getHeaders() throws AuthFailureError {
+                                HashMap<String, String> headers = new HashMap<>();
+                                headers.put("Authorization", Shared.getAuth().getToken());
+                                return headers;
+                            }
+                        };
+
+                queue.add(request);
+
+            }
+            catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+        else{
+            chatMessage = new ChatMessage(message, false, Shared.getCurrentDate(), Shared.getCurrentTime());
+            chatAdapter.notifyDataSetChanged();
+        }
+
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sendMessageButton:
+                sendTextMessage(v);
+        }
+    }
+
+
+
+    private class ChatAsyncTask extends AsyncTask<String, Void, String> {
+
+        @Override
+        protected String doInBackground(String... params) {
+            try {
+                AIRequest aiRequest = new AIRequest();
+                aiRequest.setQuery(params[0]);
+                aiService.textRequest(aiRequest);
+                AIResponse aiResponse = aiDataService.request(aiRequest);
+
+                ArrayList<Device> devices = Shared.getDevices();
+                //TODO add filters on rooms
+//                for(Device device : devices){
+//                    if(device.getType()== Device.TYPE.LIGHT_BULB){
+//                        deviceId = device.getId();
+//                        break;
+//                    }
+//                }
+
+                if(aiResponse.getResult().getAction().equals("LightsOn")){
+                    status = "true";
+
+                }
+                else if(aiResponse.getResult().getAction().equals("LightsOff")){
+                    status = "false";
+                }
+                else{
+                    return aiResponse.getResult().getFulfillment().getSpeech();
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return "";
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+                receiveTextMessage(result);
+        }
+
+    }
 
     public EditText getMsg_edittext() {
         return msg_edittext;
@@ -132,166 +276,6 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     public void setChatMessage(ChatMessage chatMessage) {
         this.chatMessage = chatMessage;
     }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_chat, container, false);
-        msg_edittext = (EditText) view.findViewById(R.id.messageEditText);
-        msgListView = (ListView) view.findViewById(R.id.msgListView);
-        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.sendMessageButton);
-        fab.setOnClickListener(this);
-
-        // ----Set autoscroll of listview when a new message arrives----//
-        msgListView.setTranscriptMode(ListView.TRANSCRIPT_MODE_ALWAYS_SCROLL);
-        msgListView.setStackFromBottom(true);
-
-        chatlist = new ArrayList<ChatMessage>();
-        chatAdapter = new ChatAdapter(getActivity(), chatlist);
-        msgListView.setAdapter(chatAdapter);
-
-        aiService = AIService.getService(getContext(), config);
-        aiDataService=new AIDataService(getContext(), config);
-
-        return view;
-    }
-
-
-    public void sendTextMessage(View v) {
-        String message = msg_edittext.getEditableText().toString();
-        if (!message.equalsIgnoreCase("")) {
-            chatMessage = new ChatMessage(message, true, Shared.getCurrentDate(), Shared.getCurrentTime());
-            msg_edittext.setText("");
-            chatAdapter.add(chatMessage);
-            chatAdapter.notifyDataSetChanged();
-
-            new ChatAsyncTask().execute(message);
-        }
-    }
-
-    public void receiveTextMessage(String message) {
-
-        if(!status.equals("none")){
-            try{
-                RequestQueue queue = Volley.newRequestQueue(getActivity());
-                String url = Shared.getServer().URL() + "/api/device/" + deviceId;
-
-                JSONObject body = new JSONObject();
-                body.put("status", status);
-
-                JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, body, new Response.Listener<JSONObject>() {
-
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-                                    resultMessage = response.get("message").toString();
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                }
-                                chatMessage = new ChatMessage(resultMessage, false, Shared.getCurrentDate(), Shared.getCurrentTime());
-                                msg_edittext.setText("");
-                                status = "none";
-                                chatAdapter.add(chatMessage);
-                                chatAdapter.notifyDataSetChanged();
-
-                            }
-                        }, new Response.ErrorListener() {
-
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                resultMessage = error.toString();
-                                chatMessage = new ChatMessage(resultMessage, false, Shared.getCurrentDate(), Shared.getCurrentTime());
-                                msg_edittext.setText("");
-                                status = "none";
-                                chatAdapter.add(chatMessage);
-                                chatAdapter.notifyDataSetChanged();
-
-                            }
-                        })
-                        {
-
-                            @Override
-                            public Map<String, String> getHeaders() throws AuthFailureError {
-                                HashMap<String, String> headers = new HashMap<>();
-                                headers.put("Authorization", Shared.getAuth().getToken() );
-                                return headers;
-                            }
-                        };
-
-                queue.add(request);
-
-            }
-            catch (Exception e){
-                e.printStackTrace();
-            }
-        }
-        else{
-            chatMessage = new ChatMessage(message, false, Shared.getCurrentDate(), Shared.getCurrentTime());
-            msg_edittext.setText("");
-            chatAdapter.add(chatMessage);
-            chatAdapter.notifyDataSetChanged();
-        }
-
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.sendMessageButton:
-                sendTextMessage(v);
-
-        }
-    }
-
-
-
-    private class ChatAsyncTask extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-
-
-            try {
-                AIRequest aiRequest = new AIRequest();
-                aiRequest.setQuery(params[0]);
-                aiService.textRequest(aiRequest);
-                AIResponse aiResponse = aiDataService.request(aiRequest);
-
-                ArrayList<Device> devices = Shared.getDevices();
-                //TODO add filters on rooms
-//                for(Device device : devices){
-//                    if(device.getType()== Device.TYPE.LIGHT_BULB){
-//                        deviceId = device.getId();
-//                        break;
-//                    }
-//                }
-
-
-                if(aiResponse.getResult().getAction().equals("LightsOn")){
-                    status = "true";
-
-                }
-                else if(aiResponse.getResult().getAction().equals("LightsOff")){
-                    status = "false";
-                }
-                else{
-                    return aiResponse.getResult().getFulfillment().getSpeech();
-                }
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            return "";
-        }
-
-        @Override
-        protected void onPostExecute(String result) {
-                receiveTextMessage(result);
-        }
-
-    }
-
 }
 
 

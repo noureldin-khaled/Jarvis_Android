@@ -151,7 +151,7 @@ public class LoginActivity extends AppCompatActivity {
                                 else if (type.equals("unique violation")) {
                                     if (field.equals("username")) {
                                         layout_username.setErrorEnabled(true);
-                                        layout_username.setError("Username is taken.");
+                                        layout_username.setError("This username is already taken.");
                                     }
                                     else {
                                         new Error().create(LoginActivity.this, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
