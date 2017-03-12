@@ -1,4 +1,6 @@
 package com.iot.guc.jarvis;
+import android.util.Log;
+
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -8,7 +10,7 @@ import java.util.Date;
 public class Shared {
     private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy");
     private static DateFormat timeFormat = new SimpleDateFormat("K:mma");
-    private static Server server = new Server("192.168.1.3", 8000);
+    private static Server server = new Server("192.168.1.206", 8000);
     private static User auth;
     private static ArrayList<Room> rooms = new ArrayList<>();
     private static ArrayList<Device> devices = new ArrayList<>();
@@ -89,6 +91,7 @@ public class Shared {
     public static  void addRoom(String name){
         Log.e("SHARED","Adding "+ name);
     }
+
     public static  void addDevice(int roomIndex, String name){
         Log.e("SHARED","Adding "+name+" into room "+roomIndex);
 
