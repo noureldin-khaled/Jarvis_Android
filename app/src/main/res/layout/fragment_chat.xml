@@ -15,7 +15,9 @@
         android:layout_alignParentTop="true"
         android:divider="@null"
         android:layout_above="@+id/sendMessageButton"
-        android:id="@+id/msgListView"/>
+        android:id="@+id/msgListView"
+        android:transcriptMode="alwaysScroll"
+        android:stackFromBottom="true"/>
 
 
     <EditText
