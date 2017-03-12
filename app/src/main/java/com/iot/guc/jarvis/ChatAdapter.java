@@ -14,7 +14,7 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 
 public class ChatAdapter extends BaseAdapter {
-    private static LayoutInflater inflater = null;
+    private LayoutInflater inflater;
     ArrayList<ChatMessage> chatMessageList;
 
     public ChatAdapter(Activity activity, ArrayList<ChatMessage> list) {
@@ -40,7 +40,7 @@ public class ChatAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        ChatMessage message = chatMessageList.get(position);
+        ChatMessage message = (ChatMessage) chatMessageList.get(position);
         View vi = convertView;
         if (convertView == null)
             vi = inflater.inflate(R.layout.chatbubble, null);

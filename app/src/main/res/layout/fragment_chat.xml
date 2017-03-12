@@ -15,7 +15,9 @@
         android:layout_alignParentTop="true"
         android:divider="@null"
         android:layout_above="@+id/sendMessageButton"
-        android:id="@+id/msgListView"/>
+        android:id="@+id/msgListView"
+        android:transcriptMode="alwaysScroll"
+        android:stackFromBottom="true"/>
 
 
     <EditText
@@ -33,7 +35,7 @@
         android:layout_height="wrap_content"
         app:srcCompat="@android:drawable/ic_menu_send"
         android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_alignParentEnd="true"/>
 
 
 </RelativeLayout>
