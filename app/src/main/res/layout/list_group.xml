@@ -14,15 +14,15 @@
         android:textAppearance="@android:style/TextAppearance.Material.Widget"
         android:textSize="18sp" />
 
-    <Button
-        style="@style/Widget.AppCompat.Button.Borderless.Colored"
-        android:id="@+id/add_device"
-        android:visibility="invisible"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:focusable="false"
-        android:layout_gravity="end"
-        android:layout_marginEnd="10dp"
-        android:text="+ Device" />
+    <!--<Button-->
+        <!--style="@style/Widget.AppCompat.Button.Borderless.Colored"-->
+        <!--android:id="@+id/add_device"-->
+        <!--android:visibility="invisible"-->
+        <!--android:layout_width="wrap_content"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:focusable="false"-->
+        <!--android:layout_gravity="end"-->
+        <!--android:layout_marginEnd="10dp"-->
+        <!--android:text="+ Device" />-->
 
 </LinearLayout>
