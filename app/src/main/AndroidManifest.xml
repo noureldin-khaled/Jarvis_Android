@@ -21,11 +21,9 @@
         <activity
             android:name=".MainActivity"
             android:label="Jarvis"
-            android:windowSoftInputMode="stateHidden"
-            android:theme="@style/AppTheme.NoActionBar">
-
-        </activity>
-
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateHidden"></activity>
+        <activity android:name=".SettingsActivity"></activity>
     </application>
 
 </manifest>

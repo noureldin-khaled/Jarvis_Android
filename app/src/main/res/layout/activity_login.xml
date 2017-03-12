@@ -9,7 +9,8 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="com.iot.guc.jarvis.LoginActivity">
+    tools:context="com.iot.guc.jarvis.LoginActivity"
+    android:focusableInTouchMode="true">
 
     <android.support.design.widget.TextInputLayout
         android:id="@+id/layout_username"

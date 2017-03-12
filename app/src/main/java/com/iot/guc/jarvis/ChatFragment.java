@@ -32,11 +32,11 @@ import ai.api.android.AIDataService;
 public class ChatFragment extends Fragment implements View.OnClickListener{
 
     private EditText msg_edittext;
-    private static ArrayList<ChatMessage> chatlist;
-    private static ChatAdapter chatAdapter;
-    private static AIService aiService;
-    public static AIDataService aiDataService;
-    private static AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
+    private ArrayList<ChatMessage> chatlist;
+    private ChatAdapter chatAdapter;
+    private AIService aiService;
+    private AIDataService aiDataService;
+    private AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
             AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
     private ListView msgListView;
 
@@ -44,6 +44,94 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     private String status = "none";
     private int deviceId = 5;   // TODO: 2017-03-11 remove hardcoding after filtering on rooms
     private ChatMessage chatMessage;
+
+    public EditText getMsg_edittext() {
+        return msg_edittext;
+    }
+
+    public void setMsg_edittext(EditText msg_edittext) {
+        this.msg_edittext = msg_edittext;
+    }
+
+    public ArrayList<ChatMessage> getChatlist() {
+        return chatlist;
+    }
+
+    public void setChatlist(ArrayList<ChatMessage> chatlist) {
+        this.chatlist = chatlist;
+    }
+
+    public ChatAdapter getChatAdapter() {
+        return chatAdapter;
+    }
+
+    public void setChatAdapter(ChatAdapter chatAdapter) {
+        this.chatAdapter = chatAdapter;
+    }
+
+    public AIService getAiService() {
+        return aiService;
+    }
+
+    public void setAiService(AIService aiService) {
+        this.aiService = aiService;
+    }
+
+    public AIDataService getAiDataService() {
+        return aiDataService;
+    }
+
+    public void setAiDataService(AIDataService aiDataService) {
+        this.aiDataService = aiDataService;
+    }
+
+    public AIConfiguration getConfig() {
+        return config;
+    }
+
+    public void setConfig(AIConfiguration config) {
+        this.config = config;
+    }
+
+    public ListView getMsgListView() {
+        return msgListView;
+    }
+
+    public void setMsgListView(ListView msgListView) {
+        this.msgListView = msgListView;
+    }
+
+    public String getResultMessage() {
+        return resultMessage;
+    }
+
+    public void setResultMessage(String resultMessage) {
+        this.resultMessage = resultMessage;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public int getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(int deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public ChatMessage getChatMessage() {
+        return chatMessage;
+    }
+
+    public void setChatMessage(ChatMessage chatMessage) {
+        this.chatMessage = chatMessage;
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,

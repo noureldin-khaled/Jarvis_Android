@@ -8,7 +8,7 @@ import java.util.Date;
 public class Shared {
     private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy");
     private static DateFormat timeFormat = new SimpleDateFormat("K:mma");
-    private static Server server = new Server("192.168.1.29", 8000);
+    private static Server server = new Server("192.168.1.122", 8000);
     private static User auth;
     private static ArrayList<Room> rooms = new ArrayList<>();
     private static ArrayList<Device> devices = new ArrayList<>();
@@ -55,11 +55,19 @@ public class Shared {
         rooms.remove(index);
     }
 
+    public static void clearRooms() {
+        rooms.clear();
+    }
+
     public static void addDevice(Device d) {
         devices.add(d);
     }
 
     public static void removeDevice(int index) {
         devices.remove(index);
+    }
+
+    public static void clearDevices() {
+        devices.clear();
     }
 }
