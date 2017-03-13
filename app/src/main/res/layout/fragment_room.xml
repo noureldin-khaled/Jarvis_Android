@@ -3,7 +3,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    tools:context="com.iot.guc.jarvis.RoomFragment">
+    tools:context="com.iot.guc.jarvis.fragments.RoomFragment">
 
     <TextView
         android:id="@+id/list_label"
@@ -18,6 +18,7 @@
         android:id="@+id/exp_list"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:focusable="true"
         android:layout_weight="8" />
 
     <Button

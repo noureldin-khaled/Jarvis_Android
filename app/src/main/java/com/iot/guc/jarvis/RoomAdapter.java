@@ -3,6 +3,7 @@ package com.iot.guc.jarvis;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
@@ -25,6 +26,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.iot.guc.jarvis.models.Device;
+import com.iot.guc.jarvis.models.Room;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -39,10 +42,12 @@ public class RoomAdapter extends BaseExpandableListAdapter {
     private Context context;
     private ArrayList<String> roomsList;
     private HashMap<String, List<Device>> devicesList;
+    private TextView roomsLabel;
 
-    public RoomAdapter(Context context, Activity activity) {
+    public RoomAdapter(Context context, Activity activity, TextView roomsLabel) {
         this.activity = activity;
         this.context = context;
+        this.roomsLabel = roomsLabel;
         refresh();
     }
 
@@ -64,6 +69,12 @@ public class RoomAdapter extends BaseExpandableListAdapter {
         for (int i = 0; i < Shared.getRooms().size(); i++)
             devicesList.put(Shared.getRooms().get(i).getName(), hm.get(Shared.getRooms().get(i).getId()));
 
+        if (Shared.getRooms().isEmpty())
+            roomsLabel.setText("No Rooms Found");
+        else
+            roomsLabel.setText("Rooms");
+
+
         notifyDataSetChanged();
     }
 
@@ -76,7 +87,7 @@ public class RoomAdapter extends BaseExpandableListAdapter {
             JSONObject body = new JSONObject();
             body.put("name", name);
             body.put("type", "Light Bulb");
-            body.put("mac", "E7:36:D8:F7:F9:A9");
+            body.put("mac", "E7:36:D8:F7:F9:A0");
             body.put("ip", "192.168.1.3");
             body.put("room_id", room.getId());
 
@@ -170,6 +181,121 @@ public class RoomAdapter extends BaseExpandableListAdapter {
         }
     }
 
+    public void editRoom(final String name, final int roomPosition, final AlertDialog dialog){
+        if (name.isEmpty()) return;
+
+        try {
+            final Room r = Shared.getRooms().get(roomPosition);
+            RequestQueue q = Volley.newRequestQueue(context);
+            String url = Shared.getServer().URL() + "/api/room/" + r.getId();
+            JSONObject body = new JSONObject();
+            body.put("name", name);
+
+            final ProgressDialog progressDialog = new ProgressDialog(activity);
+            progressDialog.setMessage("Saving Changes...");
+            progressDialog.setCancelable(false);
+            if (!progressDialog.isShowing())
+                progressDialog.show();
+
+            JsonObjectRequest req = new JsonObjectRequest(Request.Method.PUT, url, body, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Shared.editRoom(roomPosition, new Room(r.getId(), name));
+                    refresh();
+
+                    dialog.dismiss();
+                    activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+                    if (progressDialog.isShowing())
+                        progressDialog.dismiss();
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    try {
+                        if (error.networkResponse.statusCode == 404)
+                            new Error().create(activity, "The Room was not found!", "Opss").show();
+                        else
+                            new Error().create(activity, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
+
+                        if (progressDialog.isShowing())
+                            progressDialog.dismiss();
+                    } catch (Exception e) {
+                        new Error().create(activity, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
+                        if (progressDialog.isShowing())
+                            progressDialog.dismiss();
+                    }
+
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    HashMap<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", Shared.getAuth().getToken());
+                    return headers;
+                }
+            };
+
+            q.add(req);
+        } catch (JSONException e) {
+            new Error().create(activity, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
+        }
+    }
+
+    public void deleteRoom(final int roomPosition){
+        final Room r = Shared.getRooms().get(roomPosition);
+        RequestQueue q = Volley.newRequestQueue(context);
+        String url = Shared.getServer().URL() + "/api/room/"+r.getId();
+        final ProgressDialog progressDialog = new ProgressDialog(activity);
+        progressDialog.setMessage("Deleting Room...");
+        progressDialog.setCancelable(false);
+        if(!progressDialog.isShowing())
+            progressDialog.show();
+
+        JsonObjectRequest req = new JsonObjectRequest(Request.Method.DELETE, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                Shared.removeRoom(roomPosition);
+                ArrayList<Integer> indices = new ArrayList<Integer>();
+                for (int i = Shared.getDevices().size()-1; i>=0;i--)
+                    if( Shared.getDevices().get(i).getRoom_id() == r.getId())
+                        indices.add(i);
+
+                for (int i : indices)
+                    Shared.removeDevice(i);
+
+                refresh();
+                if(progressDialog.isShowing())
+                    progressDialog.dismiss();
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                try {
+                    if (error.networkResponse.statusCode == 404)
+                        new Error().create(activity, "The Room was not found!", "Opss").show();
+                    else
+                        new Error().create(activity, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
+                    if (progressDialog.isShowing())
+                        progressDialog.dismiss();
+                } catch (Exception e) {
+                    new Error().create(activity, "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
+                    if (progressDialog.isShowing())
+                        progressDialog.dismiss();
+                }
+
+            }
+        }){
+            @Override
+            public Map<String, String> getHeaders() throws AuthFailureError {
+                HashMap<String, String> headers = new HashMap<>();
+                headers.put("Authorization", Shared.getAuth().getToken());
+                return headers;
+            }
+        };
+
+        q.add(req);
+    }
+
     @Override
     public Object getChild(int groupPosition, int childPosition) {
         return this.devicesList.get(this.roomsList.get(groupPosition)).get(childPosition);
@@ -197,32 +323,32 @@ public class RoomAdapter extends BaseExpandableListAdapter {
                     final EditText name = (EditText) dialogView.findViewById(R.id.name);
                     name.setHint("Device Name");
 
-                    final AlertDialog dialog = new Popup().create(activity, dialogView, "Add");
-                    dialog.show();
-
-                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            if (name.getText().toString().isEmpty()) {
-                                layout.setErrorEnabled(true);
-                                layout.setError("Please Enter a Device Name");
-                            }
-                            else {
-                                layout.setErrorEnabled(false);
-                                layout.setError(null);
-                            }
-
-                            addDevice(name.getText().toString(), layout, dialog, room);
-                        }
-                    });
-
-                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-                            dialog.dismiss();
-                        }
-                    });
+//                    final AlertDialog dialog = new Popup().create(activity, dialogView, "Add");
+//                    dialog.show();
+//
+//                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            if (name.getText().toString().isEmpty()) {
+//                                layout.setErrorEnabled(true);
+//                                layout.setError("Please Enter a Device Name");
+//                            }
+//                            else {
+//                                layout.setErrorEnabled(false);
+//                                layout.setError(null);
+//                            }
+//
+//                            addDevice(name.getText().toString(), layout, dialog, room);
+//                        }
+//                    });
+//
+//                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+//                        @Override
+//                        public void onClick(View v) {
+//                            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+//                            dialog.dismiss();
+//                        }
+//                    });
                 }
             });
         }
@@ -280,11 +406,72 @@ public class RoomAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getGroupView(int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
+    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
         String headerTitle = (String) getGroup(groupPosition);
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.list_group, parent,false);
         }
+
+        Button delete  = (Button) convertView.findViewById(R.id.delete);
+
+        delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                new Confirmation().create(activity, "Are you sure you want to delete this room?", "Confirmation", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        deleteRoom(groupPosition);
+                    }
+                }, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).show();
+            }
+        });
+
+        Button edit = (Button) convertView.findViewById(R.id.edit);
+        edit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                View dialogView = activity.getLayoutInflater().inflate(R.layout.dialog_add,null);
+
+                final TextView title = (TextView) dialogView.findViewById(R.id.dialog_title);
+                title.setText("Edit Room");
+                final TextInputLayout layout = (TextInputLayout) dialogView.findViewById(R.id.layout_name);
+                final EditText name = (EditText) dialogView.findViewById(R.id.name);
+                name.setHint("Room Name");
+//                final AlertDialog dialog = new Popup().create(activity,dialogView,"Save");
+//
+//                dialog.show();
+//
+//                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        if (name.getText().toString().isEmpty()) {
+//                            layout.setErrorEnabled(true);
+//                            layout.setError("Please Enter a Room Name");
+//                        }
+//                        else {
+//                            layout.setErrorEnabled(false);
+//                            layout.setError(null);
+//                        }
+//
+//                        editRoom(name.getText().toString(), groupPosition, dialog);
+//                    }
+//                });
+//
+//                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+//                        dialog.dismiss();
+//                    }
+//                });
+
+            }
+        });
 
         TextView listHeader = (TextView) convertView.findViewById(R.id.list_header);
         listHeader.setText(headerTitle);

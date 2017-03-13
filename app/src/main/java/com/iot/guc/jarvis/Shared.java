@@ -1,16 +1,40 @@
 package com.iot.guc.jarvis;
-import android.util.Log;
 
+import android.app.Activity;
+import android.app.Fragment;
+import android.content.Context;
+import android.util.Log;
+import android.view.View;
+import android.view.WindowManager;
+import android.view.inputmethod.InputMethodManager;
+
+import com.android.volley.AuthFailureError;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+import com.iot.guc.jarvis.models.Device;
+import com.iot.guc.jarvis.models.Room;
+import com.iot.guc.jarvis.models.Server;
+import com.iot.guc.jarvis.models.User;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Shared {
     private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy");
     private static DateFormat timeFormat = new SimpleDateFormat("K:mma");
-    private static Server server = new Server("192.168.1.206", 8000);
+    private static Server server = new Server("192.168.1.3", 8000);
     private static User auth;
     private static ArrayList<Room> rooms = new ArrayList<>();
     private static ArrayList<Device> devices = new ArrayList<>();
@@ -73,6 +97,95 @@ public class Shared {
         devices.clear();
     }
 
+    public static void  editRoom(int index, Room room){
+        rooms.set(index,room);
+    }
+
+    public static void editDevice(int index, Device device){
+        devices.set(index, device);
+    }
+
+    public static void collapseKeyBoard(Activity activity) {
+        View view = activity.getCurrentFocus();
+        if (view != null) {
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(Context.INPUT_METHOD_SERVICE);
+            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+        }
+    }
+
+    public static void collapseKeyBoard(Fragment fragment) {
+        fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
+
+    public static void request(Context context, int method, String url, JSONObject body, boolean includeAuth, final HTTPResponse httpResponse) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+        JsonObjectRequest request;
+
+        if (includeAuth) {
+            request = new JsonObjectRequest(method, url, body, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    httpResponse.onSuccess(200, response);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse == null) {
+                        // The server couldn't be reached
+                        httpResponse.onFailure(Constants.SERVER_NOT_REACHED, null);
+                    }
+                    else {
+                        try {
+                            String err = new String(error.networkResponse.data, "UTF-8");
+                            JSONObject json = new JSONObject(err);
+                            httpResponse.onFailure(error.networkResponse.statusCode, json);
+                        } catch (UnsupportedEncodingException | JSONException e) {
+                            // The app failed
+                            httpResponse.onFailure(Constants.APP_FAILURE, null);
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            })
+            {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    HashMap<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", auth.getToken());
+                    return headers;
+                }
+            };
+        }
+        else {
+            request = new JsonObjectRequest(method, url, body, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    httpResponse.onSuccess(200, response);
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    if (error.networkResponse == null) {
+                        // The server couldn't be reached
+                        httpResponse.onFailure(Constants.SERVER_NOT_REACHED, null);
+                    }
+                    else {
+                        try {
+                            String err = new String(error.networkResponse.data, "UTF-8");
+                            JSONObject json = new JSONObject(err);
+                            httpResponse.onFailure(error.networkResponse.statusCode, json);
+                        } catch (UnsupportedEncodingException | JSONException e) {
+                            // The app failed
+                            httpResponse.onFailure(Constants.APP_FAILURE, null);
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
+
+        queue.add(request);
+    }
 
     //API REQUESTS
 
@@ -94,6 +207,5 @@ public class Shared {
 
     public static  void addDevice(int roomIndex, String name){
         Log.e("SHARED","Adding "+name+" into room "+roomIndex);
-
     }
 }
