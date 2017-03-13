@@ -34,11 +34,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SettingsActivity extends AppCompatActivity {
-    private TextInputLayout layout_username;
-    private EditText username_to_be_made_admin;
-    private ProgressBar progress;
-    private RelativeLayout main_layout;
-    private RelativeLayout layout_info;
+    private TextInputLayout SettingsActivity_TextInputLayout_UsernameLayout;
+    private EditText SettingsActivity_EditText_UsernameToBeMade;
+    private ProgressBar SettingsActivity_ProgressBar_Progress;
+    private RelativeLayout SettingsActivity_RelativeLayout_MainContentView;
+    private RelativeLayout SettingsActivity_RelativeLayout_InformationArea;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,117 +46,117 @@ public class SettingsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_settings);
 
         User auth = Shared.getAuth();
-        TextView username = (TextView) findViewById(R.id.username);
-        username.setText(auth.getUsername());
+        TextView SettingsActivity_TextView_Username = (TextView) findViewById(R.id.SettingsActivity_TextView_Username);
+        SettingsActivity_TextView_Username.setText(auth.getUsername());
 
-        TextView type = (TextView) findViewById(R.id.type);
-        type.setText(auth.getType());
+        TextView SettingsActivity_TextView_Type = (TextView) findViewById(R.id.SettingsActivity_TextView_Type);
+        SettingsActivity_TextView_Type.setText(auth.getType());
 
-        ImageView type_logo = (ImageView) findViewById(R.id.type_logo);
-        LinearLayout make_admin_layout = (LinearLayout) findViewById(R.id.make_admin_layout);
+        ImageView SettingsActivity_ImageView_TypeLogo = (ImageView) findViewById(R.id.SettingsActivity_ImageView_TypeLogo);
+        LinearLayout SettingsActivity_LinearLayout_MakeAdminLayout = (LinearLayout) findViewById(R.id.SettingsActivity_LinearLayout_MakeAdminLayout);
         if (auth.getType().equals("Admin")) {
-            type_logo.setImageResource(R.drawable.admin);
-            make_admin_layout.setVisibility(View.VISIBLE);
+            SettingsActivity_ImageView_TypeLogo.setImageResource(R.drawable.admin);
+            SettingsActivity_LinearLayout_MakeAdminLayout.setVisibility(View.VISIBLE);
         }
         else {
-            type_logo.setImageResource(R.drawable.normal);
-            make_admin_layout.setVisibility(View.GONE);
+            SettingsActivity_ImageView_TypeLogo.setImageResource(R.drawable.normal);
+            SettingsActivity_LinearLayout_MakeAdminLayout.setVisibility(View.GONE);
         }
 
-        layout_username = (TextInputLayout) findViewById(R.id.layout_username);
-        username_to_be_made_admin = (EditText) findViewById(R.id.username_to_be_made_admin);
-        progress = (ProgressBar) findViewById(R.id.progress);
-        main_layout = (RelativeLayout) findViewById(R.id.main_layout);
-        layout_info = (RelativeLayout) findViewById(R.id.layout_info);
+        SettingsActivity_TextInputLayout_UsernameLayout = (TextInputLayout) findViewById(R.id.SettingsActivity_TextInputLayout_UsernameLayout);
+        SettingsActivity_EditText_UsernameToBeMade = (EditText) findViewById(R.id.SettingsActivity_EditText_UsernameToBeMade);
+        SettingsActivity_ProgressBar_Progress = (ProgressBar) findViewById(R.id.SettingsActivity_ProgressBar_Progress);
+        SettingsActivity_RelativeLayout_MainContentView = (RelativeLayout) findViewById(R.id.SettingsActivity_RelativeLayout_MainContentView);
+        SettingsActivity_RelativeLayout_InformationArea = (RelativeLayout) findViewById(R.id.SettingsActivity_RelativeLayout_InformationArea);
     }
 
     public void changePasswordClicked(View view) {
         LayoutInflater inflater = getLayoutInflater();
         View contentView = inflater.inflate(R.layout.dialog_change_password, null);
 
-        final EditText old_password = (EditText) contentView.findViewById(R.id.old_password);
-        final EditText new_password = (EditText) contentView.findViewById(R.id.new_password);
-        final EditText confirm_new_password = (EditText) contentView.findViewById(R.id.confirm_new_password);
-        final TextInputLayout layout_old_password = (TextInputLayout) contentView.findViewById(R.id.layout_old_password);
-        final TextInputLayout layout_new_password = (TextInputLayout) contentView.findViewById(R.id.layout_new_password);
-        final TextInputLayout layout_confirm_new_password = (TextInputLayout) contentView.findViewById(R.id.layout_confirm_new_password);
-        final ProgressBar dialog_progress = (ProgressBar) contentView.findViewById(R.id.progress);
-        final LinearLayout change_password_form = (LinearLayout) contentView.findViewById(R.id.change_password_form);
+        final EditText ChangePasswordDialog_EditText_OldPassword = (EditText) contentView.findViewById(R.id.ChangePasswordDialog_EditText_OldPassword);
+        final EditText ChangePasswordDialog_EditText_NewPassword = (EditText) contentView.findViewById(R.id.ChangePasswordDialog_EditText_NewPassword);
+        final EditText ChangePasswordDialog_EditText_ConfirmPassword = (EditText) contentView.findViewById(R.id.ChangePasswordDialog_EditText_ConfirmPassword);
+        final TextInputLayout ChangePasswordDialog_TextInputLayout_OldPasswordLayout = (TextInputLayout) contentView.findViewById(R.id.ChangePasswordDialog_TextInputLayout_OldPasswordLayout);
+        final TextInputLayout ChangePasswordDialog_TextInputLayout_NewPasswordLayout = (TextInputLayout) contentView.findViewById(R.id.ChangePasswordDialog_TextInputLayout_NewPasswordLayout);
+        final TextInputLayout ChangePasswordDialog_TextInputLayout_ConfirmPasswordLayout = (TextInputLayout) contentView.findViewById(R.id.ChangePasswordDialog_TextInputLayout_ConfirmPasswordLayout);
+        final ProgressBar ChangePasswordDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.ChangePasswordDialog_ProgressBar_Progress);
+        final LinearLayout ChangePasswordDialog_LinearLayout_ChangePasswordForm = (LinearLayout) contentView.findViewById(R.id.ChangePasswordDialog_LinearLayout_ChangePasswordForm);
 
         new Popup().create(this, contentView, "Save", new PopupResponse() {
             @Override
             public void onPositive(final AlertDialog dialog) {
-                if (old_password.getText().toString().isEmpty()) {
-                    layout_old_password.setErrorEnabled(true);
-                    layout_old_password.setError("Please Enter Your Password");
+                if (ChangePasswordDialog_EditText_OldPassword.getText().toString().isEmpty()) {
+                    ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setErrorEnabled(true);
+                    ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setError("Please Enter Your Password");
                 }
                 else {
-                    layout_old_password.setErrorEnabled(false);
-                    layout_old_password.setError(null);
+                    ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setErrorEnabled(false);
+                    ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setError(null);
                 }
 
-                if (new_password.getText().toString().isEmpty()) {
-                    layout_new_password.setErrorEnabled(true);
-                    layout_new_password.setError("Please Enter a New Password");
+                if (ChangePasswordDialog_EditText_NewPassword.getText().toString().isEmpty()) {
+                    ChangePasswordDialog_TextInputLayout_NewPasswordLayout.setErrorEnabled(true);
+                    ChangePasswordDialog_TextInputLayout_NewPasswordLayout.setError("Please Enter a New Password");
                 }
                 else {
-                    layout_new_password.setErrorEnabled(false);
-                    layout_new_password.setError(null);
+                    ChangePasswordDialog_TextInputLayout_NewPasswordLayout.setErrorEnabled(false);
+                    ChangePasswordDialog_TextInputLayout_NewPasswordLayout.setError(null);
                 }
 
-                if (confirm_new_password.getText().toString().isEmpty()) {
-                    layout_confirm_new_password.setErrorEnabled(true);
-                    layout_confirm_new_password.setError("Please Confirm Your New Password");
+                if (ChangePasswordDialog_EditText_ConfirmPassword.getText().toString().isEmpty()) {
+                    ChangePasswordDialog_TextInputLayout_ConfirmPasswordLayout.setErrorEnabled(true);
+                    ChangePasswordDialog_TextInputLayout_ConfirmPasswordLayout.setError("Please Confirm Your New Password");
                 }
                 else {
-                    if (!new_password.getText().toString().equals(confirm_new_password.getText().toString())) {
-                        layout_confirm_new_password.setErrorEnabled(true);
-                        layout_confirm_new_password.setError("The Confirm Password has to match the New Password");
+                    if (!ChangePasswordDialog_EditText_NewPassword.getText().toString().equals(ChangePasswordDialog_EditText_ConfirmPassword.getText().toString())) {
+                        ChangePasswordDialog_TextInputLayout_ConfirmPasswordLayout.setErrorEnabled(true);
+                        ChangePasswordDialog_TextInputLayout_ConfirmPasswordLayout.setError("The Confirm Password has to match the New Password");
                     }
                     else {
-                        layout_confirm_new_password.setErrorEnabled(false);
-                        layout_confirm_new_password.setError(null);
+                        ChangePasswordDialog_TextInputLayout_ConfirmPasswordLayout.setErrorEnabled(false);
+                        ChangePasswordDialog_TextInputLayout_ConfirmPasswordLayout.setError(null);
                     }
                 }
 
-                if (!old_password.getText().toString().isEmpty() && !new_password.getText().toString().isEmpty()
-                        && !confirm_new_password.getText().toString().isEmpty() &&
-                        new_password.getText().toString().equals(confirm_new_password.getText().toString())) {
-                    dialog_progress.setVisibility(View.VISIBLE);
-                    change_password_form.setVisibility(View.GONE);
+                if (!ChangePasswordDialog_EditText_OldPassword.getText().toString().isEmpty() && !ChangePasswordDialog_EditText_NewPassword.getText().toString().isEmpty()
+                        && !ChangePasswordDialog_EditText_ConfirmPassword.getText().toString().isEmpty() &&
+                        ChangePasswordDialog_EditText_NewPassword.getText().toString().equals(ChangePasswordDialog_EditText_ConfirmPassword.getText().toString())) {
+                    ChangePasswordDialog_ProgressBar_Progress.setVisibility(View.VISIBLE);
+                    ChangePasswordDialog_LinearLayout_ChangePasswordForm.setVisibility(View.GONE);
                     dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
                     dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);
 
-                    Shared.getAuth().changePassword(getApplicationContext(), old_password.getText().toString()
-                            , new_password.getText().toString(), new HTTPResponse() {
+                    Shared.getAuth().changePassword(getApplicationContext(), ChangePasswordDialog_EditText_OldPassword.getText().toString()
+                            , ChangePasswordDialog_EditText_NewPassword.getText().toString(), new HTTPResponse() {
                                 @Override
                                 public void onSuccess(int statusCode, JSONObject body) {
                                     Shared.collapseKeyBoard(SettingsActivity.this);
                                     dialog.dismiss();
-                                    Snackbar.make(main_layout, "Password Changed Successfully", Snackbar.LENGTH_LONG).show();
+                                    Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Password Changed Successfully", Snackbar.LENGTH_LONG).show();
                                 }
 
                                 @Override
                                 public void onFailure(int statusCode, JSONObject body) {
-                                    dialog_progress.setVisibility(View.GONE);
-                                    change_password_form.setVisibility(View.VISIBLE);
+                                    ChangePasswordDialog_ProgressBar_Progress.setVisibility(View.GONE);
+                                    ChangePasswordDialog_LinearLayout_ChangePasswordForm.setVisibility(View.VISIBLE);
 
                                     switch (statusCode) {
                                         case Constants.NO_INTERNET_CONNECTION: {
                                             dialog.dismiss();
                                             Shared.collapseKeyBoard(SettingsActivity.this);
-                                            Snackbar.make(main_layout, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                            Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                                         }
                                         break;
                                         case Constants.SERVER_NOT_REACHED: {
                                             dialog.dismiss();
                                             Shared.collapseKeyBoard(SettingsActivity.this);
-                                            Snackbar.make(main_layout, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
+                                            Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
                                         }
                                         break;
                                         case 403: {
-                                            layout_old_password.setErrorEnabled(true);
-                                            layout_old_password.setError("The Password is incorrect");
+                                            ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setErrorEnabled(true);
+                                            ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setError("The Password is incorrect");
                                             dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
                                             dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
                                         }
@@ -170,12 +170,12 @@ public class SettingsActivity extends AppCompatActivity {
                                                     String field = current.getString("param");
 
                                                     if (type.equals("required") && field.equals("old_password")) {
-                                                        layout_old_password.setErrorEnabled(true);
-                                                        layout_old_password.setError("Please Enter Your Password");
+                                                        ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setErrorEnabled(true);
+                                                        ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setError("Please Enter Your Password");
                                                     }
                                                     else {
                                                         dialog.dismiss();
-                                                        Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                        Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                                         break;
                                                     }
                                                 }
@@ -185,7 +185,7 @@ public class SettingsActivity extends AppCompatActivity {
                                             } catch (JSONException e) {
                                                 dialog.dismiss();
                                                 Shared.collapseKeyBoard(SettingsActivity.this);
-                                                Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                                 e.printStackTrace();
                                             }
 
@@ -194,7 +194,7 @@ public class SettingsActivity extends AppCompatActivity {
                                         default: {
                                             dialog.dismiss();
                                             Shared.collapseKeyBoard(SettingsActivity.this);
-                                            Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                            Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                         }
                                     }
                                 }
@@ -211,43 +211,43 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public void makeAdminClicked(final View view) {
-        layout_username.setError(null);
-        layout_username.setErrorEnabled(false);
+        SettingsActivity_TextInputLayout_UsernameLayout.setError(null);
+        SettingsActivity_TextInputLayout_UsernameLayout.setErrorEnabled(false);
 
-        if (username_to_be_made_admin.getText().toString().isEmpty()) {
-            layout_username.setErrorEnabled(true);
-            layout_username.setError("Please Enter a Username");
+        if (SettingsActivity_EditText_UsernameToBeMade.getText().toString().isEmpty()) {
+            SettingsActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+            SettingsActivity_TextInputLayout_UsernameLayout.setError("Please Enter a Username");
         }
 
-        if (username_to_be_made_admin.getText().toString().equals(Shared.getAuth().getUsername())) {
-            layout_username.setErrorEnabled(true);
-            layout_username.setError("You are already an Admin!");
+        if (SettingsActivity_EditText_UsernameToBeMade.getText().toString().equals(Shared.getAuth().getUsername())) {
+            SettingsActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+            SettingsActivity_TextInputLayout_UsernameLayout.setError("You are already an Admin!");
         }
 
-        if (!username_to_be_made_admin.getText().toString().isEmpty() && !username_to_be_made_admin.getText().toString().equals(Shared.getAuth().getUsername())) {
+        if (!SettingsActivity_EditText_UsernameToBeMade.getText().toString().isEmpty() && !SettingsActivity_EditText_UsernameToBeMade.getText().toString().equals(Shared.getAuth().getUsername())) {
             Shared.collapseKeyBoard(SettingsActivity.this);
             final ProgressDialog progressDialog = new ProgressDialog(this);
             progressDialog.setCancelable(false);
             progressDialog.setMessage("Loading...");
             progressDialog.show();
 
-            Shared.getAuth().makeAdmin(getApplicationContext(), username_to_be_made_admin.getText().toString(), new HTTPResponse() {
+            Shared.getAuth().makeAdmin(getApplicationContext(), SettingsActivity_EditText_UsernameToBeMade.getText().toString(), new HTTPResponse() {
                 @Override
                 public void onSuccess(int statusCode, JSONObject body) {
                     if (progressDialog.isShowing())
                         progressDialog.dismiss();
-                    Snackbar.make(main_layout, "\'" + username_to_be_made_admin.getText().toString() + "\' is now an Admin", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "\'" + SettingsActivity_EditText_UsernameToBeMade.getText().toString() + "\' is now an Admin", Snackbar.LENGTH_LONG).show();
                 }
 
                 @Override
                 public void onFailure(int statusCode, JSONObject body) {
                     switch (statusCode) {
                         case Constants.NO_INTERNET_CONNECTION: {
-                            Snackbar.make(main_layout, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                         }
                         break;
                         case Constants.SERVER_NOT_REACHED: {
-                            Snackbar.make(main_layout, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                            Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -257,8 +257,8 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                         break;
                         case 404: {
-                            layout_username.setErrorEnabled(true);
-                            layout_username.setError("This username doesn\'t exist");
+                            SettingsActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+                            SettingsActivity_TextInputLayout_UsernameLayout.setError("This username doesn\'t exist");
                         }
                         break;
                         case 400: {
@@ -270,11 +270,11 @@ public class SettingsActivity extends AppCompatActivity {
                                     String field = current.getString("param");
 
                                     if (type.equals("required") && field.equals("username")) {
-                                        layout_username.setErrorEnabled(true);
-                                        layout_username.setError("Please Enter a Username");
+                                        SettingsActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+                                        SettingsActivity_TextInputLayout_UsernameLayout.setError("Please Enter a Username");
                                     }
                                     else {
-                                        Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                        Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                                 .setAction("RETRY", new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
@@ -285,7 +285,7 @@ public class SettingsActivity extends AppCompatActivity {
                                     }
                                 }
                             } catch (JSONException e) {
-                                Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                         .setAction("RETRY", new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
@@ -298,7 +298,7 @@ public class SettingsActivity extends AppCompatActivity {
                         }
                         break;
                         default: {
-                            Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                            Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -359,11 +359,11 @@ public class SettingsActivity extends AppCompatActivity {
                                         showProgress(false);
                                         switch (statusCode) {
                                             case Constants.NO_INTERNET_CONNECTION: {
-                                                Snackbar.make(main_layout, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
+                                                Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
                                             }
                                             break;
                                             case Constants.SERVER_NOT_REACHED: {
-                                                Snackbar.make(main_layout, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
+                                                Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
                                                         .setAction("RETRY", new View.OnClickListener() {
                                                             @Override
                                                             public void onClick(View v) {
@@ -373,7 +373,7 @@ public class SettingsActivity extends AppCompatActivity {
                                             }
                                             break;
                                             default: {
-                                                Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                                Snackbar.make(SettingsActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
                                                         .setAction("RETRY", new View.OnClickListener() {
                                                             @Override
                                                             public void onClick(View v) {
@@ -399,7 +399,7 @@ public class SettingsActivity extends AppCompatActivity {
     }
 
     public void showProgress(boolean show) {
-        progress.setVisibility(show ? View.VISIBLE : View.GONE);
-        layout_info.setVisibility(show ? View.GONE : View.VISIBLE);
+        SettingsActivity_ProgressBar_Progress.setVisibility(show ? View.VISIBLE : View.GONE);
+        SettingsActivity_RelativeLayout_InformationArea.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 }

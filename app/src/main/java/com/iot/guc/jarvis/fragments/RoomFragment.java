@@ -35,43 +35,43 @@ import java.util.HashMap;
 
 public class RoomFragment extends Fragment {
     private RoomAdapter roomAdapter;
-    private ExpandableListView expListView;
-    private TextView roomsLabel;
-    private LinearLayout main_layout;
+    private ExpandableListView RoomFragment_ExpandableListView_Rooms;
+    private TextView RoomFragment_TextView_RoomsTitle;
+    private LinearLayout RoomFragment_LinearLayout_MainContentView;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_room, container, false);
 
-        Button b = (Button) view.findViewById(R.id.add_room);
-        b.setOnClickListener(new View.OnClickListener() {
+        Button RoomFragment_Button_AddRoom = (Button) view.findViewById(R.id.RoomFragment_Button_AddRoom);
+        RoomFragment_Button_AddRoom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 LayoutInflater inflater = getActivity().getLayoutInflater();
                 View contentView = inflater.inflate(R.layout.dialog_add_room, null);
-                final TextInputLayout layout_name = (TextInputLayout) contentView.findViewById(R.id.layout_name);
-                final EditText name = (EditText) contentView.findViewById(R.id.name);
-                final ProgressBar progress = (ProgressBar) contentView.findViewById(R.id.progress);
-                final LinearLayout form_add_room = (LinearLayout) contentView.findViewById(R.id.form_add_room);
+                final TextInputLayout AddRoomDialog_TextInputLayout_RoomNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddRoomDialog_TextInputLayout_RoomNameLayout);
+                final EditText AddRoomDialog_EditText_RoomName = (EditText) contentView.findViewById(R.id.AddRoomDialog_EditText_RoomName);
+                final ProgressBar AddRoomDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.AddRoomDialog_ProgressBar_Progress);
+                final LinearLayout AddRoomDialog_LinearLayout_AddRoomForm = (LinearLayout) contentView.findViewById(R.id.AddRoomDialog_LinearLayout_AddRoomForm);
 
                 new Popup().create(getActivity(), contentView, "Add", new PopupResponse() {
                     @Override
                     public void onPositive(final AlertDialog dialog) {
-                        layout_name.setErrorEnabled(false);
-                        layout_name.setError(null);
+                        AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(false);
+                        AddRoomDialog_TextInputLayout_RoomNameLayout.setError(null);
 
-                        if (name.getText().toString().isEmpty()) {
-                            layout_name.setErrorEnabled(true);
-                            layout_name.setError("Please Enter a Room Name");
+                        if (AddRoomDialog_EditText_RoomName.getText().toString().isEmpty()) {
+                            AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(true);
+                            AddRoomDialog_TextInputLayout_RoomNameLayout.setError("Please Enter a Room Name");
                         }
 
-                        if (!name.getText().toString().isEmpty()) {
-                            progress.setVisibility(View.VISIBLE);
-                            form_add_room.setVisibility(View.GONE);
+                        if (!AddRoomDialog_EditText_RoomName.getText().toString().isEmpty()) {
+                            AddRoomDialog_ProgressBar_Progress.setVisibility(View.VISIBLE);
+                            AddRoomDialog_LinearLayout_AddRoomForm.setVisibility(View.GONE);
                             dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
                             dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);
 
-                            Room.addRoom(getContext(), name.getText().toString(), new HTTPResponse() {
+                            Room.addRoom(getContext(), AddRoomDialog_EditText_RoomName.getText().toString(), new HTTPResponse() {
                                 @Override
                                 public void onSuccess(int statusCode, JSONObject body) {
                                     Shared.collapseKeyBoard(RoomFragment.this);
@@ -81,27 +81,27 @@ public class RoomFragment extends Fragment {
                                         JSONObject jsonRoom = body.getJSONObject("room");
                                         Shared.addRoom(new Room(jsonRoom.getInt("id") , jsonRoom.getString("name")));
                                         refill();
-                                        Snackbar.make(main_layout, "Room Created Successfully", Snackbar.LENGTH_LONG).show();
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Room Created Successfully", Snackbar.LENGTH_LONG).show();
                                     } catch (JSONException e) {
-                                        Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                     }
                                 }
 
                                 @Override
                                 public void onFailure(int statusCode, JSONObject body) {
-                                    progress.setVisibility(View.GONE);
-                                    form_add_room.setVisibility(View.VISIBLE);
+                                    AddRoomDialog_ProgressBar_Progress.setVisibility(View.GONE);
+                                    AddRoomDialog_LinearLayout_AddRoomForm.setVisibility(View.VISIBLE);
                                     switch (statusCode) {
                                         case Constants.NO_INTERNET_CONNECTION: {
                                             Shared.collapseKeyBoard(RoomFragment.this);
                                             dialog.dismiss();
-                                            Snackbar.make(main_layout, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                                         }
                                         break;
                                         case Constants.SERVER_NOT_REACHED: {
                                             Shared.collapseKeyBoard(RoomFragment.this);
                                             dialog.dismiss();
-                                            Snackbar.make(main_layout, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
+                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
                                         }
                                         break;
                                         case 400: {
@@ -114,36 +114,36 @@ public class RoomFragment extends Fragment {
 
                                                     if (type.equals("required")) {
                                                         if (field.equals("name")) {
-                                                            layout_name.setErrorEnabled(true);
-                                                            layout_name.setError("Please Enter a Room Name");
+                                                            AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(true);
+                                                            AddRoomDialog_TextInputLayout_RoomNameLayout.setError("Please Enter a Room Name");
                                                             dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
                                                             dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
                                                         }
                                                         else {
                                                             Shared.collapseKeyBoard(RoomFragment.this);
                                                             dialog.dismiss();
-                                                            Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                                             break;
                                                         }
                                                     }
                                                     else if (type.equals("unique violation")) {
                                                         if (field.equals("name")) {
-                                                            layout_name.setErrorEnabled(true);
-                                                            layout_name.setError("This name is already taken.");
+                                                            AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(true);
+                                                            AddRoomDialog_TextInputLayout_RoomNameLayout.setError("This name is already taken.");
                                                             dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
                                                             dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
                                                         }
                                                         else {
                                                             Shared.collapseKeyBoard(RoomFragment.this);
                                                             dialog.dismiss();
-                                                            Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                                             break;
                                                         }
                                                     }
                                                     else {
                                                         Shared.collapseKeyBoard(RoomFragment.this);
                                                         dialog.dismiss();
-                                                        Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                                         break;
                                                     }
                                                 }
@@ -151,7 +151,7 @@ public class RoomFragment extends Fragment {
                                             } catch (JSONException e) {
                                                 Shared.collapseKeyBoard(RoomFragment.this);
                                                 dialog.dismiss();
-                                                Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                                 e.printStackTrace();
                                             }
 
@@ -160,7 +160,7 @@ public class RoomFragment extends Fragment {
                                         default: {
                                             Shared.collapseKeyBoard(RoomFragment.this);
                                             dialog.dismiss();
-                                            Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                                         }
                                     }
                                 }
@@ -177,12 +177,12 @@ public class RoomFragment extends Fragment {
             }
         });
 
-        expListView = (ExpandableListView) view.findViewById(R.id.exp_list);
-        roomsLabel = (TextView) view.findViewById(R.id.list_label);
-        main_layout = (LinearLayout) view.findViewById(R.id.main_layout);
+        RoomFragment_ExpandableListView_Rooms = (ExpandableListView) view.findViewById(R.id.RoomFragment_ExpandableListView_Rooms);
+        RoomFragment_TextView_RoomsTitle = (TextView) view.findViewById(R.id.RoomFragment_TextView_RoomsTitle);
+        RoomFragment_LinearLayout_MainContentView = (LinearLayout) view.findViewById(R.id.RoomFragment_LinearLayout_MainContentView);
         roomAdapter = new RoomAdapter(getActivity().getApplicationContext(), getActivity());
         refill();
-        expListView.setAdapter(roomAdapter);
+        RoomFragment_ExpandableListView_Rooms.setAdapter(roomAdapter);
 
         return view;
     }
@@ -206,9 +206,9 @@ public class RoomFragment extends Fragment {
             devices.put(Shared.getRooms().get(i).getName(), hm.get(Shared.getRooms().get(i).getId()));
 
         if (Shared.getRooms().isEmpty())
-            roomsLabel.setText("No Rooms Found");
+            RoomFragment_TextView_RoomsTitle.setText("No Rooms Found");
         else
-            roomsLabel.setText("Rooms");
+            RoomFragment_TextView_RoomsTitle.setText("Rooms");
 
         roomAdapter.refresh(rooms, devices);
     }

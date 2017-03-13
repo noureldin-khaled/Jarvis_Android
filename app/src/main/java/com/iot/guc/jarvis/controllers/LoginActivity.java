@@ -25,23 +25,26 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class LoginActivity extends AppCompatActivity {
-    private EditText username_edit, password_edit;
-    private TextInputLayout layout_username, layout_password;
-    private RelativeLayout activity_login, form_login;
-    private LinearLayout layout_progress;
+    private EditText LoginActivity_EditText_Username, LoginActivity_EditText_Password;
+    private TextInputLayout LoginActivity_TextInputLayout_UsernameLayout, LoginActivity_TextInputLayout_PasswordLayout;
+    private RelativeLayout LoginActivity_RelativeLayout_MainContentView, LoginActivity_RelativeLayout_LoginForm;
+    private LinearLayout LoginActivity_LinearLayout_Progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
-        username_edit = (EditText) findViewById(R.id.username);
-        layout_username = (TextInputLayout) findViewById(R.id.layout_username);
-        password_edit = (EditText) findViewById(R.id.password);
-        layout_password = (TextInputLayout) findViewById(R.id.layout_password);
-        activity_login = (RelativeLayout) findViewById(R.id.activity_login);
-        form_login = (RelativeLayout) findViewById(R.id.form_login);
-        layout_progress = (LinearLayout) findViewById(R.id.layout_progress);
+        LoginActivity_EditText_Username = (EditText) findViewById(R.id.LoginActivity_EditText_Username);
+        LoginActivity_EditText_Password = (EditText) findViewById(R.id.LoginActivity_EditText_Password);
+
+        LoginActivity_TextInputLayout_UsernameLayout = (TextInputLayout) findViewById(R.id.LoginActivity_TextInputLayout_UsernameLayout);
+        LoginActivity_TextInputLayout_PasswordLayout = (TextInputLayout) findViewById(R.id.LoginActivity_TextInputLayout_PasswordLayout);
+
+        LoginActivity_RelativeLayout_MainContentView = (RelativeLayout) findViewById(R.id.LoginActivity_RelativeLayout_MainContentView);
+        LoginActivity_RelativeLayout_LoginForm = (RelativeLayout) findViewById(R.id.LoginActivity_RelativeLayout_LoginForm);
+
+        LoginActivity_LinearLayout_Progress = (LinearLayout) findViewById(R.id.LoginActivity_LinearLayout_Progress);
 
 
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
@@ -54,7 +57,7 @@ public class LoginActivity extends AppCompatActivity {
                 fetchRooms(false);
             } catch (JSONException e) {
                 showProgress(false);
-                Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
+                Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.remove("auth");
                 editor.commit();
@@ -63,34 +66,34 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void showProgress(boolean show) {
-        layout_progress.setVisibility(show ? View.VISIBLE : View.GONE);
-        form_login.setVisibility(show ? View.GONE : View.VISIBLE);
+        LoginActivity_LinearLayout_Progress.setVisibility(show ? View.VISIBLE : View.GONE);
+        LoginActivity_RelativeLayout_LoginForm.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
     public void registerClicked(final View view) {
-        layout_username.setError(null);
-        layout_username.setErrorEnabled(false);
-        layout_password.setError(null);
-        layout_password.setErrorEnabled(false);
+        LoginActivity_TextInputLayout_UsernameLayout.setError(null);
+        LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(false);
+        LoginActivity_TextInputLayout_PasswordLayout.setError(null);
+        LoginActivity_TextInputLayout_PasswordLayout.setErrorEnabled(false);
 
-        if (username_edit.getText().toString().isEmpty()) {
-            layout_username.setErrorEnabled(true);
-            layout_username.setError("Please Enter a Username");
+        if (LoginActivity_EditText_Username.getText().toString().isEmpty()) {
+            LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+            LoginActivity_TextInputLayout_UsernameLayout.setError("Please Enter a Username");
         }
 
-        if (password_edit.getText().toString().isEmpty()) {
-            layout_password.setErrorEnabled(true);
-            layout_password.setError("Please Enter a Password");
+        if (LoginActivity_EditText_Password.getText().toString().isEmpty()) {
+            LoginActivity_TextInputLayout_PasswordLayout.setErrorEnabled(true);
+            LoginActivity_TextInputLayout_PasswordLayout.setError("Please Enter a Password");
         }
 
-        if (layout_username.getError() == null && layout_password.getError() == null) {
+        if (LoginActivity_TextInputLayout_UsernameLayout.getError() == null && LoginActivity_TextInputLayout_PasswordLayout.getError() == null) {
             Shared.collapseKeyBoard(LoginActivity.this);
             showProgress(true);
 
-            User.register(getApplicationContext(), username_edit.getText().toString(), password_edit.getText().toString(), new HTTPResponse() {
+            User.register(getApplicationContext(), LoginActivity_EditText_Username.getText().toString(), LoginActivity_EditText_Password.getText().toString(), new HTTPResponse() {
                 @Override
                 public void onSuccess(int statusCode, JSONObject body) {
-                    loginClicked(findViewById(R.id.login));
+                    loginClicked(findViewById(R.id.LoginActivity_Button_Login));
                 }
 
                 @Override
@@ -98,11 +101,11 @@ public class LoginActivity extends AppCompatActivity {
                     showProgress(false);
                     switch (statusCode) {
                         case Constants.NO_INTERNET_CONNECTION: {
-                            Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
                         }
                         break;
                         case Constants.SERVER_NOT_REACHED: {
-                            Snackbar.make(activity_login, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
                             .setAction("RETRY", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -121,15 +124,15 @@ public class LoginActivity extends AppCompatActivity {
 
                                     if (type.equals("required")) {
                                         if (field.equals("username")) {
-                                            layout_username.setErrorEnabled(true);
-                                            layout_username.setError("Please Enter a Username");
+                                            LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+                                            LoginActivity_TextInputLayout_UsernameLayout.setError("Please Enter a Username");
                                         }
                                         else if (field.equals("password")) {
-                                            layout_password.setErrorEnabled(true);
-                                            layout_password.setError("Please Enter a Password");
+                                            LoginActivity_TextInputLayout_PasswordLayout.setErrorEnabled(true);
+                                            LoginActivity_TextInputLayout_PasswordLayout.setError("Please Enter a Password");
                                         }
                                         else {
-                                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
                                             .setAction("RETRY", new View.OnClickListener() {
                                                 @Override
                                                 public void onClick(View v) {
@@ -141,11 +144,11 @@ public class LoginActivity extends AppCompatActivity {
                                     }
                                     else if (type.equals("unique violation")) {
                                         if (field.equals("username")) {
-                                            layout_username.setErrorEnabled(true);
-                                            layout_username.setError("This username is already taken.");
+                                            LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+                                            LoginActivity_TextInputLayout_UsernameLayout.setError("This username is already taken.");
                                         }
                                         else {
-                                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
                                             .setAction("RETRY", new View.OnClickListener() {
                                                 @Override
                                                 public void onClick(View v) {
@@ -156,7 +159,7 @@ public class LoginActivity extends AppCompatActivity {
                                         }
                                     }
                                     else {
-                                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
                                         .setAction("RETRY", new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
@@ -168,7 +171,7 @@ public class LoginActivity extends AppCompatActivity {
                                 }
 
                             } catch (JSONException e) {
-                                Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
                                 .setAction("RETRY", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
@@ -181,7 +184,7 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         break;
                         default: {
-                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
                             .setAction("RETRY", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
@@ -196,26 +199,26 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void loginClicked(final View view) {
-        layout_username.setError(null);
-        layout_username.setErrorEnabled(false);
-        layout_password.setError(null);
-        layout_password.setErrorEnabled(false);
+        LoginActivity_TextInputLayout_UsernameLayout.setError(null);
+        LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(false);
+        LoginActivity_TextInputLayout_PasswordLayout.setError(null);
+        LoginActivity_TextInputLayout_PasswordLayout.setErrorEnabled(false);
 
-        if (username_edit.getText().toString().isEmpty()) {
-            layout_username.setErrorEnabled(true);
-            layout_username.setError("Please Enter a Username");
+        if (LoginActivity_EditText_Username.getText().toString().isEmpty()) {
+            LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+            LoginActivity_TextInputLayout_UsernameLayout.setError("Please Enter a Username");
         }
 
-        if (password_edit.getText().toString().isEmpty()) {
-            layout_password.setErrorEnabled(true);
-            layout_password.setError("Please Enter a Password");
+        if (LoginActivity_EditText_Password.getText().toString().isEmpty()) {
+            LoginActivity_TextInputLayout_PasswordLayout.setErrorEnabled(true);
+            LoginActivity_TextInputLayout_PasswordLayout.setError("Please Enter a Password");
         }
 
-        if (layout_username.getError() == null && layout_password.getError() == null) {
+        if (LoginActivity_TextInputLayout_UsernameLayout.getError() == null && LoginActivity_TextInputLayout_PasswordLayout.getError() == null) {
             Shared.collapseKeyBoard(LoginActivity.this);
             showProgress(true);
 
-            User.login(getApplicationContext(), username_edit.getText().toString(), password_edit.getText().toString(), new HTTPResponse() {
+            User.login(getApplicationContext(), LoginActivity_EditText_Username.getText().toString(), LoginActivity_EditText_Password.getText().toString(), new HTTPResponse() {
                 @Override
                 public void onSuccess(int statusCode, JSONObject body) {
                     try {
@@ -229,7 +232,7 @@ public class LoginActivity extends AppCompatActivity {
                         fetchRooms(true);
                     } catch (JSONException e) {
                         showProgress(false);
-                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                 .setAction("RETRY", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
@@ -245,11 +248,11 @@ public class LoginActivity extends AppCompatActivity {
                     showProgress(false);
                     switch (statusCode) {
                         case Constants.NO_INTERNET_CONNECTION: {
-                            Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                         }
                         break;
                         case Constants.SERVER_NOT_REACHED: {
-                            Snackbar.make(activity_login, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -268,15 +271,15 @@ public class LoginActivity extends AppCompatActivity {
 
                                     if (type.equals("required")) {
                                         if (field.equals("username")) {
-                                            layout_username.setErrorEnabled(true);
-                                            layout_username.setError("Please Enter a Username");
+                                            LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+                                            LoginActivity_TextInputLayout_UsernameLayout.setError("Please Enter a Username");
                                         }
                                         else if (field.equals("password")) {
-                                            layout_password.setErrorEnabled(true);
-                                            layout_password.setError("Please Enter a Password");
+                                            LoginActivity_TextInputLayout_PasswordLayout.setErrorEnabled(true);
+                                            LoginActivity_TextInputLayout_PasswordLayout.setError("Please Enter a Password");
                                         }
                                         else {
-                                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                                     .setAction("RETRY", new View.OnClickListener() {
                                                         @Override
                                                         public void onClick(View v) {
@@ -287,7 +290,7 @@ public class LoginActivity extends AppCompatActivity {
                                         }
                                     }
                                     else {
-                                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                                 .setAction("RETRY", new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
@@ -299,7 +302,7 @@ public class LoginActivity extends AppCompatActivity {
                                 }
 
                             } catch (JSONException e) {
-                                Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                         .setAction("RETRY", new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
@@ -312,11 +315,11 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         break;
                         case 401: {
-                            Snackbar.make(activity_login, "Either The Username or Password is incorrect.", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Either The Username or Password is incorrect.", Snackbar.LENGTH_LONG).show();
                         }
                         break;
                         default: {
-                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -345,7 +348,7 @@ public class LoginActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     showProgress(false);
                     if (fromForm) {
-                    Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                         .setAction("RETRY", new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -354,7 +357,7 @@ public class LoginActivity extends AppCompatActivity {
                         }).show();
                     }
                     else {
-                        Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                     }
 
                     e.printStackTrace();
@@ -366,12 +369,12 @@ public class LoginActivity extends AppCompatActivity {
                 showProgress(false);
                 switch (statusCode) {
                     case Constants.NO_INTERNET_CONNECTION: {
-                        Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                     }
                     break;
                     case Constants.SERVER_NOT_REACHED: {
                         if (fromForm) {
-                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -380,13 +383,13 @@ public class LoginActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                         }
                     }
                     break;
                     default: {
                         if (fromForm) {
-                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -395,7 +398,7 @@ public class LoginActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                         }
                     }
                 }
@@ -420,7 +423,7 @@ public class LoginActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     showProgress(false);
                     if (fromForm) {
-                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                 .setAction("RETRY", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
@@ -429,7 +432,7 @@ public class LoginActivity extends AppCompatActivity {
                                 }).show();
                     }
                     else {
-                        Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                     }
 
                     e.printStackTrace();
@@ -441,12 +444,12 @@ public class LoginActivity extends AppCompatActivity {
                 showProgress(false);
                 switch (statusCode) {
                     case Constants.NO_INTERNET_CONNECTION: {
-                        Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                     }
                     break;
                     case Constants.SERVER_NOT_REACHED: {
                         if (fromForm) {
-                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -455,13 +458,13 @@ public class LoginActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                         }
                     }
                     break;
                     default: {
                         if (fromForm) {
-                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -470,7 +473,7 @@ public class LoginActivity extends AppCompatActivity {
                                     }).show();
                         }
                         else {
-                            Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
+                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                         }
                     }
                 }

@@ -1,17 +1,12 @@
 package com.iot.guc.jarvis.controllers;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.CoordinatorLayout;
-import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -25,48 +20,43 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.iot.guc.jarvis.Confirmation;
 import com.iot.guc.jarvis.Constants;
-import com.iot.guc.jarvis.Error;
 import com.iot.guc.jarvis.HTTPResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.fragments.ChatFragment;
 import com.iot.guc.jarvis.fragments.RoomFragment;
 
-import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
 public class MainActivity extends AppCompatActivity {
     private SectionsPagerAdapter mSectionsPagerAdapter;
-    private ViewPager mViewPager;
-    private CoordinatorLayout main_content;
-    private ProgressBar progressBar;
-    private TabLayout tabs;
+    private ViewPager MainActivity_ViewPager_Container;
+    private CoordinatorLayout MainActivity_CoordinatorLayout_MainContentView;
+    private ProgressBar MainActivity_ProgressBar_Progress;
+    private TabLayout MainActivity_TabLayout_Tabs;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        Toolbar MainActivity_Toolbar_Toolbar = (Toolbar) findViewById(R.id.MainActivity_Toolbar_Toolbar);
+        setSupportActionBar(MainActivity_Toolbar_Toolbar);
 
         mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
-        main_content = (CoordinatorLayout) findViewById(R.id.main_content);
-        progressBar = (ProgressBar) findViewById(R.id.progress);
-        tabs = (TabLayout) findViewById(R.id.tabs);
+        MainActivity_CoordinatorLayout_MainContentView = (CoordinatorLayout) findViewById(R.id.MainActivity_CoordinatorLayout_MainContentView);
+        MainActivity_ProgressBar_Progress = (ProgressBar) findViewById(R.id.MainActivity_ProgressBar_Progress);
+        MainActivity_TabLayout_Tabs = (TabLayout) findViewById(R.id.MainActivity_TabLayout_Tabs);
 
-        mViewPager = (ViewPager) findViewById(R.id.container);
-        mViewPager.setAdapter(mSectionsPagerAdapter);
+        MainActivity_ViewPager_Container = (ViewPager) findViewById(R.id.MainActivity_ViewPager_Container);
+        MainActivity_ViewPager_Container.setAdapter(mSectionsPagerAdapter);
 
-        TabLayout tabLayout = (TabLayout) findViewById(R.id.tabs);
-        tabLayout.setupWithViewPager(mViewPager);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.MainActivity_TabLayout_Tabs);
+        tabLayout.setupWithViewPager(MainActivity_ViewPager_Container);
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_chat);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_pattern);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_devices);
@@ -120,11 +110,11 @@ public class MainActivity extends AppCompatActivity {
                                 showProgress(false);
                                 switch (statusCode) {
                                     case Constants.NO_INTERNET_CONNECTION: {
-                                        Snackbar.make(main_content, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
+                                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
                                     }
                                     break;
                                     case Constants.SERVER_NOT_REACHED: {
-                                        Snackbar.make(main_content, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
+                                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
                                                 .setAction("RETRY", new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
@@ -134,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                     break;
                                     default: {
-                                        Snackbar.make(main_content, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
                                                 .setAction("RETRY", new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
@@ -160,9 +150,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showProgress(boolean show) {
-        progressBar.setVisibility(show ? View.VISIBLE : View.GONE);
-        tabs.setVisibility(show ? View.GONE : View.VISIBLE);
-        mViewPager.setVisibility(show ? View.GONE : View.VISIBLE);
+        MainActivity_ProgressBar_Progress.setVisibility(show ? View.VISIBLE : View.GONE);
+        MainActivity_TabLayout_Tabs.setVisibility(show ? View.GONE : View.VISIBLE);
+        MainActivity_ViewPager_Container.setVisibility(show ? View.GONE : View.VISIBLE);
     }
 
     /**
