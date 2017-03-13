@@ -22,7 +22,7 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.iot.guc.jarvis.ChatAdapter;
+import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.models.ChatMessage;

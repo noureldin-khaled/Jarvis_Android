@@ -14,6 +14,8 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
+import com.iot.guc.jarvis.fragments.ChatFragment;
+import com.iot.guc.jarvis.fragments.RoomFragment;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Server;
@@ -113,7 +115,11 @@ public class Shared {
         }
     }
 
-    public static void collapseKeyBoard(Fragment fragment) {
+    public static void collapseKeyBoard(RoomFragment fragment) {
+        fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
+
+    public static void collapseKeyBoard(ChatFragment fragment) {
         fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 

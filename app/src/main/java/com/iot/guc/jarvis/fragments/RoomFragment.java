@@ -1,45 +1,43 @@
 package com.iot.guc.jarvis.fragments;
 
-import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
-import com.iot.guc.jarvis.Error;
+import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.HTTPResponse;
 import com.iot.guc.jarvis.Popup;
+import com.iot.guc.jarvis.PopupResponse;
 import com.iot.guc.jarvis.R;
-import com.iot.guc.jarvis.RoomAdapter;
 import com.iot.guc.jarvis.Shared;
+import com.iot.guc.jarvis.adapters.RoomAdapter;
+import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class RoomFragment extends Fragment {
     private RoomAdapter roomAdapter;
     private ExpandableListView expListView;
     private TextView roomsLabel;
+    private LinearLayout main_layout;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -50,172 +48,168 @@ public class RoomFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 LayoutInflater inflater = getActivity().getLayoutInflater();
-                View contentView = inflater.inflate(R.layout.dialog_add, null);
-
-                final TextView title = (TextView) contentView.findViewById(R.id.dialog_title);
-                title.setText("Add a Room");
-                final TextInputLayout layout = (TextInputLayout) contentView.findViewById(R.id.layout_name);
+                View contentView = inflater.inflate(R.layout.dialog_add_room, null);
+                final TextInputLayout layout_name = (TextInputLayout) contentView.findViewById(R.id.layout_name);
                 final EditText name = (EditText) contentView.findViewById(R.id.name);
-                name.setHint("Room Name");
+                final ProgressBar progress = (ProgressBar) contentView.findViewById(R.id.progress);
+                final LinearLayout form_add_room = (LinearLayout) contentView.findViewById(R.id.form_add_room);
 
-//                final AlertDialog dialog = new Popup().create(getActivity(), contentView, "Add");
-//                dialog.show();
-//
-//                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        if (name.getText().toString().isEmpty()) {
-//                            layout.setErrorEnabled(true);
-//                            layout.setError("Please Enter a Room Name");
-//                        }
-//                        else {
-//                            layout.setErrorEnabled(false);
-//                            layout.setError(null);
-//                        }
-//
-//                        addRoom(name.getText().toString(), layout, dialog);
-//                    }
-//                });
-//
-//                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-//                        dialog.dismiss();
-//                    }
-//                });
+                new Popup().create(getActivity(), contentView, "Add", new PopupResponse() {
+                    @Override
+                    public void onPositive(final AlertDialog dialog) {
+                        layout_name.setErrorEnabled(false);
+                        layout_name.setError(null);
+
+                        if (name.getText().toString().isEmpty()) {
+                            layout_name.setErrorEnabled(true);
+                            layout_name.setError("Please Enter a Room Name");
+                        }
+
+                        if (!name.getText().toString().isEmpty()) {
+                            progress.setVisibility(View.VISIBLE);
+                            form_add_room.setVisibility(View.GONE);
+                            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+                            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);
+
+                            Room.addRoom(getContext(), name.getText().toString(), new HTTPResponse() {
+                                @Override
+                                public void onSuccess(int statusCode, JSONObject body) {
+                                    Shared.collapseKeyBoard(RoomFragment.this);
+                                    dialog.dismiss();
+
+                                    try {
+                                        JSONObject jsonRoom = body.getJSONObject("room");
+                                        Shared.addRoom(new Room(jsonRoom.getInt("id") , jsonRoom.getString("name")));
+                                        refill();
+                                        Snackbar.make(main_layout, "Room Created Successfully", Snackbar.LENGTH_LONG).show();
+                                    } catch (JSONException e) {
+                                        Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(int statusCode, JSONObject body) {
+                                    progress.setVisibility(View.GONE);
+                                    form_add_room.setVisibility(View.VISIBLE);
+                                    switch (statusCode) {
+                                        case Constants.NO_INTERNET_CONNECTION: {
+                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                            dialog.dismiss();
+                                            Snackbar.make(main_layout, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                        }
+                                        break;
+                                        case Constants.SERVER_NOT_REACHED: {
+                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                            dialog.dismiss();
+                                            Snackbar.make(main_layout, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
+                                        }
+                                        break;
+                                        case 400: {
+                                            try {
+                                                JSONArray arr = body.getJSONArray("errors");
+                                                for (int i = 0; i < arr.length(); i++) {
+                                                    JSONObject current = arr.getJSONObject(i);
+                                                    String type = current.getString("msg");
+                                                    String field = current.getString("param");
+
+                                                    if (type.equals("required")) {
+                                                        if (field.equals("name")) {
+                                                            layout_name.setErrorEnabled(true);
+                                                            layout_name.setError("Please Enter a Room Name");
+                                                            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
+                                                            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
+                                                        }
+                                                        else {
+                                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                                            dialog.dismiss();
+                                                            Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                            break;
+                                                        }
+                                                    }
+                                                    else if (type.equals("unique violation")) {
+                                                        if (field.equals("name")) {
+                                                            layout_name.setErrorEnabled(true);
+                                                            layout_name.setError("This name is already taken.");
+                                                            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
+                                                            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
+                                                        }
+                                                        else {
+                                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                                            dialog.dismiss();
+                                                            Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                            break;
+                                                        }
+                                                    }
+                                                    else {
+                                                        Shared.collapseKeyBoard(RoomFragment.this);
+                                                        dialog.dismiss();
+                                                        Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                        break;
+                                                    }
+                                                }
+
+                                            } catch (JSONException e) {
+                                                Shared.collapseKeyBoard(RoomFragment.this);
+                                                dialog.dismiss();
+                                                Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                e.printStackTrace();
+                                            }
+
+                                        }
+                                        break;
+                                        default: {
+                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                            dialog.dismiss();
+                                            Snackbar.make(main_layout, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                    }
+
+                    @Override
+                    public void onNegative(AlertDialog dialog) {
+                        Shared.collapseKeyBoard(RoomFragment.this);
+                        dialog.dismiss();
+                    }
+                });
             }
         });
 
         expListView = (ExpandableListView) view.findViewById(R.id.exp_list);
         roomsLabel = (TextView) view.findViewById(R.id.list_label);
-
-//        prepareDummyData();
-        roomAdapter = new RoomAdapter(getActivity().getApplicationContext(), getActivity(), roomsLabel);
+        main_layout = (LinearLayout) view.findViewById(R.id.main_layout);
+        roomAdapter = new RoomAdapter(getActivity().getApplicationContext(), getActivity());
+        refill();
         expListView.setAdapter(roomAdapter);
 
         return view;
     }
 
-//    private void prepareDummyData() {
-//        ArrayList list = new ArrayList();
-//
-//        roomList.add("Bathroom");
-//        roomList.add("Kitchen");
-//        roomList.add("Bedroom");
-//
-//        for(int i=0;i<4;i++){
-//            Device d = new Device(i,"Device"+i, Device.TYPE.LIGHT_BULB,true,"","",1);
-//            list.add(d);
-//        }
-//        deviceList.put("Bathroom",list);
-//        list = new ArrayList();
-//        for(int i=4;i<8;i++){
-//            Device d = new Device(i,"Device"+i, Device.TYPE.LIGHT_BULB,true,"","",2);
-//            list.add(d);
-//        }
-//        deviceList.put("Kitchen",list);
-//        list = new ArrayList();
-//        deviceList.put("Bedroom",list);
-//    }
-
-    public void addRoom(final String name, final TextInputLayout layout, final AlertDialog dialog) {
-        if (name.isEmpty()) return;
-
-        try {
-            RequestQueue queue = Volley.newRequestQueue(getActivity());
-            String url = Shared.getServer().URL() + "/api/room";
-            JSONObject body = new JSONObject();
-            body.put("name", name);
-
-            final ProgressDialog progressDialog = new ProgressDialog(getActivity());
-            progressDialog.setMessage("Creating Room...");
-            progressDialog.setCancelable(false);
-            if (!progressDialog.isShowing())
-                progressDialog.show();
-
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, url, body, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    try {
-                        JSONObject jsonRoom = response.getJSONObject("room");
-                        Shared.addRoom(new Room(jsonRoom.getInt("id") , jsonRoom.getString("name")));
-                        roomAdapter.refresh();
-                        dialog.dismiss();
-
-                        getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-                        Toast.makeText(getActivity(), "Room Created Successfully.", Toast.LENGTH_LONG).show();
-                    } catch (JSONException e) {
-                        new Error().create(getActivity(), "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
-                    }
-
-                    if (progressDialog.isShowing())
-                        progressDialog.dismiss();
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    try {
-                        if (error.networkResponse.statusCode == 500) {
-                            new Error().create(getActivity(), "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
-                        } else {
-                            String err = new String(error.networkResponse.data, "UTF-8");
-                            JSONObject json = new JSONObject(err);
-                            JSONArray arr = json.getJSONArray("errors");
-
-                            for (int i = 0; i < arr.length(); i++) {
-                                JSONObject current = arr.getJSONObject(i);
-                                String type = current.getString("msg");
-                                String field = current.getString("param");
-
-                                if (type.equals("required")) {
-                                    if (field.equals("name")) {
-                                        layout.setErrorEnabled(true);
-                                        layout.setError("Please Enter a Room Name");
-                                    }
-                                    else {
-                                        new Error().create(getActivity(), "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
-                                        break;
-                                    }
-                                }
-                                else if (type.equals("unique violation")) {
-                                    if (field.equals("name")) {
-                                        layout.setErrorEnabled(true);
-                                        layout.setError("This name is already taken.");
-                                    }
-                                    else {
-                                        new Error().create(getActivity(), "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
-                                        break;
-                                    }
-                                }
-                                else {
-                                    new Error().create(getActivity(), "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (progressDialog.isShowing())
-                            progressDialog.dismiss();
-                    } catch (Exception e) {
-                        new Error().create(getActivity(), "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
-                        if (progressDialog.isShowing())
-                            progressDialog.dismiss();
-                    }
-                }
-            })
-            {
-                @Override
-                public Map<String, String> getHeaders() throws AuthFailureError {
-                    HashMap<String, String> headers = new HashMap<>();
-                    headers.put("Authorization", Shared.getAuth().getToken());
-                    return headers;
-                }
-            };
-
-            queue.add(request);
-        } catch (JSONException e) {
-            new Error().create(getActivity(), "Opss.. Something Went Wrong.\nPlease type that again.", "Opss").show();
+    public void refill() {
+        ArrayList<String> rooms = new ArrayList<>();
+        HashMap<Integer, ArrayList<Device>> hm = new HashMap<>();
+        for (int i = 0; i < Shared.getRooms().size(); i++) {
+            rooms.add(Shared.getRooms().get(i).getName());
+            hm.put(Shared.getRooms().get(i).getId(), new ArrayList<Device>());
         }
+
+        HashMap<String, ArrayList<Device>> devices = new HashMap<>();
+        for (Device device : Shared.getDevices()) {
+            ArrayList<Device> list = hm.get(device.getRoom_id());
+            list.add(device);
+            hm.put(device.getRoom_id(), list);
+        }
+
+        for (int i = 0; i < Shared.getRooms().size(); i++)
+            devices.put(Shared.getRooms().get(i).getName(), hm.get(Shared.getRooms().get(i).getId()));
+
+        if (Shared.getRooms().isEmpty())
+            roomsLabel.setText("No Rooms Found");
+        else
+            roomsLabel.setText("Rooms");
+
+        roomAdapter.refresh(rooms, devices);
     }
 }

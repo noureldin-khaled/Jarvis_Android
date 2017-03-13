@@ -51,44 +51,8 @@ public class Device {
             return;
         }
 
-        RequestQueue queue = Volley.newRequestQueue(context);
         String url = Shared.getServer().URL() + "/api/device";
-
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-            @Override
-            public void onResponse(JSONObject response) {
-                httpResponse.onSuccess(200, response);
-            }
-        }, new Response.ErrorListener() {
-            @Override
-            public void onErrorResponse(VolleyError error) {
-                if (error.networkResponse == null) {
-                    // The server couldn't be reached
-                    httpResponse.onFailure(Constants.SERVER_NOT_REACHED, null);
-                }
-                else {
-                    try {
-                        String err = new String(error.networkResponse.data, "UTF-8");
-                        JSONObject json = new JSONObject(err);
-                        httpResponse.onFailure(error.networkResponse.statusCode, json);
-                    } catch (UnsupportedEncodingException | JSONException e) {
-                        // The app failed
-                        httpResponse.onFailure(Constants.APP_FAILURE, null);
-                        e.printStackTrace();
-                    }
-                }
-            }
-        })
-        {
-            @Override
-            public Map<String, String> getHeaders() throws AuthFailureError {
-                HashMap<String, String> headers = new HashMap<>();
-                headers.put("Authorization", Shared.getAuth().getToken());
-                return headers;
-            }
-        };
-
-        queue.add(request);
+        Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
 
     public int getId() {

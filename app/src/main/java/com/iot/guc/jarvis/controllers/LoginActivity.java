@@ -229,7 +229,7 @@ public class LoginActivity extends AppCompatActivity {
                         fetchRooms(true);
                     } catch (JSONException e) {
                         showProgress(false);
-                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                 .setAction("RETRY", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
@@ -245,11 +245,11 @@ public class LoginActivity extends AppCompatActivity {
                     showProgress(false);
                     switch (statusCode) {
                         case Constants.NO_INTERNET_CONNECTION: {
-                            Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
+                            Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                         }
                         break;
                         case Constants.SERVER_NOT_REACHED: {
-                            Snackbar.make(activity_login, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
+                            Snackbar.make(activity_login, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -276,7 +276,7 @@ public class LoginActivity extends AppCompatActivity {
                                             layout_password.setError("Please Enter a Password");
                                         }
                                         else {
-                                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                                     .setAction("RETRY", new View.OnClickListener() {
                                                         @Override
                                                         public void onClick(View v) {
@@ -287,7 +287,7 @@ public class LoginActivity extends AppCompatActivity {
                                         }
                                     }
                                     else {
-                                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                                 .setAction("RETRY", new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
@@ -299,7 +299,7 @@ public class LoginActivity extends AppCompatActivity {
                                 }
 
                             } catch (JSONException e) {
-                                Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                                Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                         .setAction("RETRY", new View.OnClickListener() {
                                             @Override
                                             public void onClick(View v) {
@@ -312,11 +312,11 @@ public class LoginActivity extends AppCompatActivity {
                         }
                         break;
                         case 401: {
-                            Snackbar.make(activity_login, "Either The Username or Password is incorrect.", Snackbar.LENGTH_INDEFINITE).show();
+                            Snackbar.make(activity_login, "Either The Username or Password is incorrect.", Snackbar.LENGTH_LONG).show();
                         }
                         break;
                         default: {
-                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
@@ -345,7 +345,7 @@ public class LoginActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     showProgress(false);
                     if (fromForm) {
-                    Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                    Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                         .setAction("RETRY", new View.OnClickListener() {
                             @Override
                             public void onClick(View v) {
@@ -366,41 +366,37 @@ public class LoginActivity extends AppCompatActivity {
                 showProgress(false);
                 switch (statusCode) {
                     case Constants.NO_INTERNET_CONNECTION: {
-                        Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
+                        Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                     }
                     break;
                     case Constants.SERVER_NOT_REACHED: {
-                        Snackbar snackbar = Snackbar.make(activity_login, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE);
                         if (fromForm) {
-                            snackbar.setAction("RETRY", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    fetchRooms(fromForm);
-                                }
-                            });
+                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                    .setAction("RETRY", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            fetchRooms(fromForm);
+                                        }
+                                    }).show();
                         }
                         else {
-
+                            Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                         }
-
-                        snackbar.show();
                     }
                     break;
                     default: {
-                        Snackbar snackbar = Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE);
                         if (fromForm) {
-                            snackbar.setAction("RETRY", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    fetchRooms(fromForm);
-                                }
-                            });
+                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                    .setAction("RETRY", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            fetchRooms(fromForm);
+                                        }
+                                    }).show();
                         }
                         else {
-
+                            Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                         }
-
-                        snackbar.show();
                     }
                 }
             }
@@ -424,11 +420,11 @@ public class LoginActivity extends AppCompatActivity {
                 } catch (JSONException e) {
                     showProgress(false);
                     if (fromForm) {
-                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
+                        Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
                                 .setAction("RETRY", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        fetchRooms(fromForm);
+                                        fetchDevices(fromForm);
                                     }
                                 }).show();
                     }
@@ -445,41 +441,37 @@ public class LoginActivity extends AppCompatActivity {
                 showProgress(false);
                 switch (statusCode) {
                     case Constants.NO_INTERNET_CONNECTION: {
-                        Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
+                        Snackbar.make(activity_login, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                     }
                     break;
                     case Constants.SERVER_NOT_REACHED: {
-                        Snackbar snackbar = Snackbar.make(activity_login, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE);
                         if (fromForm) {
-                            snackbar.setAction("RETRY", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    fetchDevices(fromForm);
-                                }
-                            });
+                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                    .setAction("RETRY", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            fetchDevices(fromForm);
+                                        }
+                                    }).show();
                         }
                         else {
-
+                            Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                         }
-
-                        snackbar.show();
                     }
                     break;
                     default: {
-                        Snackbar snackbar = Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE);
                         if (fromForm) {
-                            snackbar.setAction("RETRY", new View.OnClickListener() {
-                                @Override
-                                public void onClick(View v) {
-                                    fetchDevices(fromForm);
-                                }
-                            });
+                            Snackbar.make(activity_login, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                    .setAction("RETRY", new View.OnClickListener() {
+                                        @Override
+                                        public void onClick(View v) {
+                                            fetchDevices(fromForm);
+                                        }
+                                    }).show();
                         }
                         else {
-
+                            Snackbar.make(activity_login, "Automatic Login Failed!", Snackbar.LENGTH_LONG).show();
                         }
-
-                        snackbar.show();
                     }
                 }
             }
