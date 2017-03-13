@@ -40,6 +40,11 @@ public class Device {
         this.room_id = room_id;
     }
 
+    public Device(TYPE type, String mac) {
+        this.type = type;
+        this.mac = mac;
+    }
+
     public static void getDevices(Context context, final HTTPResponse httpResponse) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
@@ -52,6 +57,21 @@ public class Device {
         }
 
         String url = Shared.getServer().URL() + "/api/device";
+        Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
+    }
+
+    public static void scanDevices(Context context, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        String url = Shared.getServer().URL() + "/api/device/scan";
         Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
 
