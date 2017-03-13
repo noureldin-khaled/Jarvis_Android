@@ -11,7 +11,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ExpandableListView;
@@ -235,23 +234,10 @@ public class RoomFragment extends Fragment {
 
         final DeviceAdapter adapter = new DeviceAdapter(getActivity(), devices);
 
-        LayoutInflater inflater = getActivity().getLayoutInflater();
-        View contentView = inflater.inflate(R.layout.dialog_add_device, null);
-        ListView AddDeviceDialog_ListView_DeviceList = (ListView) contentView.findViewById(R.id.AddDeviceDialog_ListView_DeviceList);
-        TextView AddDeviceDialog_TextView_Title = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_Title);
-        AddDeviceDialog_TextView_Title.setText(devices.isEmpty() ? "No Devices Found" : "Devices Found");
+        final LayoutInflater inflater = getActivity().getLayoutInflater();
+        View contentView = inflater.inflate(R.layout.dialog_scan_devices, null);
 
-        AddDeviceDialog_ListView_DeviceList.setAdapter(adapter);
-
-        AddDeviceDialog_ListView_DeviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.i(getActivity().getLocalClassName(), "onItemClick: " + position + " : " + adapter.getItem(position));
-                // Prompt a new dialog for the name
-            }
-        });
-
-        AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView)
+        final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView)
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -261,5 +247,51 @@ public class RoomFragment extends Fragment {
                 .create();
 
         dialog.show();
+
+        ListView AddDeviceDialog_ListView_DeviceList = (ListView) contentView.findViewById(R.id.AddDeviceDialog_ListView_DeviceList);
+        TextView AddDeviceDialog_TextView_Title = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_Title);
+        AddDeviceDialog_TextView_Title.setText(devices.isEmpty() ? "No Devices Found" : "Devices Found");
+        AddDeviceDialog_ListView_DeviceList.setAdapter(adapter);
+
+        AddDeviceDialog_ListView_DeviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Device device = (Device) adapter.getItem(position);
+                Log.i(getActivity().getLocalClassName(), "onItemClick: " + position + " : " + device);
+                dialog.dismiss();
+
+                View contentView = inflater.inflate(R.layout.dialog_add_devices, null);
+                final TextView AddDeviceDialog_TextView_TitleType = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_TitleType);
+                AddDeviceDialog_TextView_TitleType.setText(device.getType().toString());
+                final TextView AddDeviceDialog_TextView_TitleMac = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_TitleMac);
+                AddDeviceDialog_TextView_TitleMac.setText(device.getMac());
+
+                final TextInputLayout AddDeviceDialog_TextInputLayout_DeviceNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddDeviceDialog_TextInputLayout_DeviceNameLayout);
+                final EditText AddDeviceDialog_EditText_DeviceName = (EditText) contentView.findViewById(R.id.AddDeviceDialog_EditText_DeviceName);
+
+                new Popup().create(getActivity(), contentView, "Add", new PopupResponse() {
+                    @Override
+                    public void onPositive(AlertDialog dialog) {
+                        AddDeviceDialog_TextInputLayout_DeviceNameLayout.setErrorEnabled(false);
+                        AddDeviceDialog_TextInputLayout_DeviceNameLayout.setError(null);
+
+                        if (AddDeviceDialog_EditText_DeviceName.getText().toString().isEmpty()) {
+                            AddDeviceDialog_TextInputLayout_DeviceNameLayout.setErrorEnabled(true);
+                            AddDeviceDialog_TextInputLayout_DeviceNameLayout.setError("Please Enter a Device Name");
+                        }
+
+                        if (!AddDeviceDialog_EditText_DeviceName.getText().toString().isEmpty()) {
+                            // Store the device
+                        }
+                    }
+
+                    @Override
+                    public void onNegative(AlertDialog dialog) {
+                        Shared.collapseKeyBoard(RoomFragment.this);
+                        dialog.dismiss();
+                    }
+                });
+            }
+        });
     }
 }
