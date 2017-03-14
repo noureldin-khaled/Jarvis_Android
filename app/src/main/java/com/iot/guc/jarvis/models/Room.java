@@ -94,7 +94,7 @@ public class Room {
             Shared.request(context,Request.Method.PUT,url,body,true,httpResponse);
 
         }catch (JSONException e){
-            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION,null);
+            httpResponse.onFailure(Constants.APP_FAILURE,null);
             e.printStackTrace();
         }
     }
