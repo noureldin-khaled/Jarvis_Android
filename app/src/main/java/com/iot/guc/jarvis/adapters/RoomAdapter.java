@@ -136,41 +136,7 @@ public class RoomAdapter extends BaseExpandableListAdapter {
         edit.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                View dialogView = activity.getLayoutInflater().inflate(R.layout.dialog_add_room,null);
-
-//                final TextView title = (TextView) dialogView.findViewById(R.id.dialog_title);
-//                title.setText("Edit Room");
-//                final TextInputLayout layout = (TextInputLayout) dialogView.findViewById(R.id.layout_name);
-//                final EditText name = (EditText) dialogView.findViewById(R.id.name);
-//                name.setHint("Room Name");
-//                final AlertDialog dialog = new Popup().create(activity,dialogView,"Save");
-//
-//                dialog.show();
-//
-//                dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        if (name.getText().toString().isEmpty()) {
-//                            layout.setErrorEnabled(true);
-//                            layout.setError("Please Enter a Room Name");
-//                        }
-//                        else {
-//                            layout.setErrorEnabled(false);
-//                            layout.setError(null);
-//                        }
-//
-//                        editRoom(name.getText().toString(), groupPosition, dialog);
-//                    }
-//                });
-//
-//                dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-//                        dialog.dismiss();
-//                    }
-//                });
-
+                fragment.editRoom(groupPosition);
             }
         });
 
