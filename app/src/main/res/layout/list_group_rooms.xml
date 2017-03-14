@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal" android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/list_header"
+        android:layout_width="0dp"
+        android:layout_weight="6"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:paddingLeft="?android:attr/expandableListPreferredItemPaddingLeft"
+        android:text="Room Name here"
+        android:textAppearance="@android:style/TextAppearance.Material.Widget"
+        android:textSize="18sp" />
+
+    <Button
+        android:id="@+id/edit"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorAccent"
+        android:focusable="false"
+        android:text="Edit" />
+
+    <Button
+        android:id="@+id/delete"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/colorAccent"
+        android:focusable="false"
+        android:text="Delete" />
+
+</LinearLayout>
