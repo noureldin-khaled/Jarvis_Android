@@ -12,17 +12,19 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".controllers.LoginActivity">
+
+        </activity>
+        <activity
+            android:name=".controllers.MainActivity"
+            android:label="Jarvis"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="stateHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".controllers.MainActivity"
-            android:label="Jarvis"
-            android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="stateHidden"></activity>
         <activity android:name=".controllers.SettingsActivity"></activity>
     </application>
 

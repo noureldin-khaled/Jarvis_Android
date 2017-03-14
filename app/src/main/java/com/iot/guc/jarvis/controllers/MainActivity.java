@@ -15,6 +15,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -57,14 +58,16 @@ public class MainActivity extends AppCompatActivity {
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.MainActivity_TabLayout_Tabs);
         tabLayout.setupWithViewPager(MainActivity_ViewPager_Container);
-        tabLayout.getTabAt(0).setIcon(R.drawable.ic_chat);
-        tabLayout.getTabAt(1).setIcon(R.drawable.ic_pattern);
+        tabLayout.getTabAt(0).setIcon(R.drawable.ic_current_chat);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_patterns);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_devices);
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
+
                 int index = tab.getPosition();
+                Log.e("MAIN","SELECT"+index);
                 switch (index){
                     case 0: tab.setIcon(R.drawable.ic_current_chat);return;
                     case 1: tab.setIcon(R.drawable.ic_current_patterns);return;
@@ -75,10 +78,12 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
+
                 int index = tab.getPosition();
+                Log.e("MAIN","UNSELECT"+index);
                 switch (index){
                     case 0: tab.setIcon(R.drawable.ic_chat);return;
-                    case 1: tab.setIcon(R.drawable.ic_pattern);return;
+                    case 1: tab.setIcon(R.drawable.ic_patterns);return;
                     case 2: tab.setIcon(R.drawable.ic_devices);return;
                 }
             }
