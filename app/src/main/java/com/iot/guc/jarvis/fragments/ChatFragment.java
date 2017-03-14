@@ -64,7 +64,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
         aiService = AIService.getService(getContext(), config);
         aiDataService = new AIDataService(getContext(), config);
-
+        getActivity().setTitle("Chat");
         return view;
     }
 

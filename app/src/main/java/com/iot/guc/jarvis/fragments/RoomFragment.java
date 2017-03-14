@@ -62,7 +62,7 @@ public class RoomFragment extends Fragment {
         roomAdapter = new RoomAdapter(getActivity().getApplicationContext(), getActivity(), this);
         refill();
         RoomFragment_ExpandableListView_Rooms.setAdapter(roomAdapter);
-
+        getActivity().setTitle("Devices");
         return view;
     }
 
