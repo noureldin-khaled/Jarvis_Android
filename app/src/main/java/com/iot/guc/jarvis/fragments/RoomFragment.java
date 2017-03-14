@@ -314,20 +314,18 @@ public class RoomFragment extends Fragment {
                     dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
                     dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);
 
-                    room.editRoom(getContext(), AddRoomDialog_EditText_RoomName.getText().toString(), new HTTPResponse() {
+                    final String new_name = AddRoomDialog_EditText_RoomName.getText().toString();
+
+                    room.editRoom(getContext(), new_name, new HTTPResponse() {
                         @Override
                         public void onSuccess(int statusCode, JSONObject body) {
+
                             Shared.collapseKeyBoard(RoomFragment.this);
                             dialog.dismiss();
+                            Shared.editRoom(roomIndex,new Room(room.getId(),  new_name));
+                            refill();
+                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Room Saved Successfully", Snackbar.LENGTH_LONG).show();
 
-                            try {
-                                JSONObject jsonRoom = body.getJSONObject("room");
-                                Shared.editRoom(roomIndex,new Room(jsonRoom.getInt("id") , jsonRoom.getString("name")));
-                                refill();
-                                Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Room Saved Successfully", Snackbar.LENGTH_LONG).show();
-                            } catch (JSONException e) {
-                                Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
-                            }
                         }
 
                         @Override
