@@ -129,17 +129,6 @@ public class RoomAdapter extends BaseExpandableListAdapter {
             @Override
             public void onClick(View v) {
                 fragment.deleteRoom(groupPosition);
-//                new Confirmation().create(activity, "Are you sure you want to delete this room?", "Confirmation", new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//                        deleteRoom(groupPosition);
-//                    }
-//                }, new DialogInterface.OnClickListener() {
-//                    @Override
-//                    public void onClick(DialogInterface dialog, int which) {
-//
-//                    }
-//                }).show();
             }
         });
 

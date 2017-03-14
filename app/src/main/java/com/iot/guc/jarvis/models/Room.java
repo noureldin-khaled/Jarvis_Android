@@ -3,6 +3,7 @@ package com.iot.guc.jarvis.models;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.iot.guc.jarvis.Constants;
