@@ -65,9 +65,7 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
-
                 int index = tab.getPosition();
-                Log.e("MAIN","SELECT"+index);
                 switch (index){
                     case 0: tab.setIcon(R.drawable.ic_current_chat);return;
                     case 1: tab.setIcon(R.drawable.ic_current_patterns);return;
@@ -78,9 +76,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onTabUnselected(TabLayout.Tab tab) {
-
                 int index = tab.getPosition();
-                Log.e("MAIN","UNSELECT"+index);
                 switch (index){
                     case 0: tab.setIcon(R.drawable.ic_chat);return;
                     case 1: tab.setIcon(R.drawable.ic_patterns);return;
