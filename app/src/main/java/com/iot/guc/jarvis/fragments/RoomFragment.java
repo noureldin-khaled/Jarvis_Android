@@ -290,7 +290,7 @@ public class RoomFragment extends Fragment {
         final Room room = Shared.getRooms().get(roomIndex);
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View contentView = inflater.inflate(R.layout.dialog_add_room, null);
-        TextView AddRoomDialog_TextView_Label =(TextView) contentView.findViewById(R.id.AddRoomDialog_TextView_Label);
+        TextView AddRoomDialog_TextView_Label =(TextView) contentView.findViewById(R.id.AddRoomDialog_TextView_Title);
         AddRoomDialog_TextView_Label.setText("Edit Room");
         final TextInputLayout AddRoomDialog_TextInputLayout_RoomNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddRoomDialog_TextInputLayout_RoomNameLayout);
         final EditText AddRoomDialog_EditText_RoomName = (EditText) contentView.findViewById(R.id.AddRoomDialog_EditText_RoomName);
@@ -415,7 +415,8 @@ public class RoomFragment extends Fragment {
 
             @Override
             public void onNegative(AlertDialog dialog) {
-
+                Shared.collapseKeyBoard(RoomFragment.this);
+                dialog.dismiss();
             }
         });
     }
