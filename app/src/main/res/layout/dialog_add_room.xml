@@ -23,6 +23,7 @@
             android:layout_height="wrap_content"
             android:text="Add a Room"
             android:layout_gravity="center"
+            android:id="@+id/AddRoomDialog_TextView_Title"
             android:textSize="22dp"
             android:fontFamily="serif-monospace"
             android:textColor="@color/passwordVisible" />
