@@ -15,6 +15,7 @@ import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.fragments.RoomFragment;
 import com.iot.guc.jarvis.models.Device;
+import com.iot.guc.jarvis.models.Room;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -59,42 +60,6 @@ public class RoomAdapter extends BaseExpandableListAdapter {
                 @Override
                 public void onClick(View view) {
                 fragment.addDevice(groupPosition);
-
-//                    final Room room = Shared.getRooms().get(groupPosition);
-//                    View dialogView = activity.getLayoutInflater().inflate(R.layout.dialog_add_room, null);
-//
-//                    final TextView title = (TextView) dialogView.findViewById(R.id.dialog_title);
-//                    title.setText("Add a Device");
-//                    final TextInputLayout layout = (TextInputLayout) dialogView.findViewById(R.id.layout_name);
-//                    final EditText name = (EditText) dialogView.findViewById(R.id.name);
-//                    name.setHint("Device Name");
-
-//                    final AlertDialog dialog = new Popup().create(activity, dialogView, "Add");
-//                    dialog.show();
-//
-//                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//                            if (name.getText().toString().isEmpty()) {
-//                                layout.setErrorEnabled(true);
-//                                layout.setError("Please Enter a Device Name");
-//                            }
-//                            else {
-//                                layout.setErrorEnabled(false);
-//                                layout.setError(null);
-//                            }
-//
-//                            addDevice(name.getText().toString(), layout, dialog, room);
-//                        }
-//                    });
-//
-//                    dialog.getButton(AlertDialog.BUTTON_NEGATIVE).setOnClickListener(new View.OnClickListener() {
-//                        @Override
-//                        public void onClick(View v) {
-//                            activity.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-//                            dialog.dismiss();
-//                        }
-//                    });
                 }
             });
         }
@@ -163,6 +128,7 @@ public class RoomAdapter extends BaseExpandableListAdapter {
         delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                fragment.deleteRoom(groupPosition);
 //                new Confirmation().create(activity, "Are you sure you want to delete this room?", "Confirmation", new DialogInterface.OnClickListener() {
 //                    @Override
 //                    public void onClick(DialogInterface dialog, int which) {

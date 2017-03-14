@@ -80,6 +80,15 @@ public class Shared {
     }
 
     public static void removeRoom(int index) {
+        ArrayList<Integer> indices = new ArrayList<>();
+        for (int i = devices.size() - 1; i >= 0; i--) {
+            if (devices.get(i).getRoom_id() == rooms.get(index).getId())
+                indices.add(i);
+        }
+
+        for (int i = 0; i < indices.size(); i++)
+            removeDevice(indices.get(i));
+
         rooms.remove(index);
     }
 

@@ -1,5 +1,6 @@
 package com.iot.guc.jarvis.fragments;
 
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
@@ -219,6 +220,70 @@ public class RoomFragment extends Fragment {
                 dialog.dismiss();
             }
         });
+    }
+
+    public void deleteRoom(final int roomIndex) {
+        final Room room = Shared.getRooms().get(roomIndex);
+        new AlertDialog.Builder(getActivity()).setTitle("Confirmation")
+                .setMessage("Are you sure you want to delete this room?\n(All devices in the room will be deleted as well)")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final ProgressDialog progressDialog = new ProgressDialog(getActivity());
+                        progressDialog.setMessage("Deleting...");
+                        progressDialog.setCancelable(false);
+                        progressDialog.show();
+
+                        room.deleteRoom(getContext(), new HTTPResponse() {
+                            @Override
+                            public void onSuccess(int statusCode, JSONObject body) {
+                                Shared.removeRoom(roomIndex);
+                                refill();
+
+                                if (progressDialog.isShowing())
+                                    progressDialog.dismiss();
+                                Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Room Deleted Successfully", Snackbar.LENGTH_LONG).show();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, JSONObject body) {
+                                if (progressDialog.isShowing())
+                                    progressDialog.dismiss();
+                                switch (statusCode) {
+                                    case Constants.NO_INTERNET_CONNECTION: {
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                    }
+                                    break;
+                                    case Constants.SERVER_NOT_REACHED: {
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                                                .setAction("RETRY", new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        deleteRoom(roomIndex);
+                                                    }
+                                                }).show();
+                                    }
+                                    break;
+                                    default: {
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                .setAction("RETRY", new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        deleteRoom(roomIndex);
+                                                    }
+                                                }).show();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).create().show();
     }
 
     public void addDevice(int roomIndex) {
