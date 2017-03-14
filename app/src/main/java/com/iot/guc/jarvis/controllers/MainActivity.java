@@ -60,6 +60,34 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.getTabAt(0).setIcon(R.drawable.ic_chat);
         tabLayout.getTabAt(1).setIcon(R.drawable.ic_pattern);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_devices);
+
+        tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                int index = tab.getPosition();
+                switch (index){
+                    case 0: tab.setIcon(R.drawable.ic_current_chat);return;
+                    case 1: tab.setIcon(R.drawable.ic_current_patterns);return;
+                    case 2: tab.setIcon(R.drawable.ic_current_devices);return;
+                }
+
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {
+                int index = tab.getPosition();
+                switch (index){
+                    case 0: tab.setIcon(R.drawable.ic_chat);return;
+                    case 1: tab.setIcon(R.drawable.ic_pattern);return;
+                    case 2: tab.setIcon(R.drawable.ic_devices);return;
+                }
+            }
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {
+
+            }
+        });
     }
 
     @Override
