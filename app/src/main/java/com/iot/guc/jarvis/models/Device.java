@@ -75,6 +75,30 @@ public class Device {
         Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
 
+    public void handle(Context context, boolean status, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        try {
+            String url = Shared.getServer().URL() + "/api/device/" + getId();
+            JSONObject body = new JSONObject();
+            body.put("status", status);
+
+            Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
+        } catch (JSONException e) {
+            // The app failed
+            httpResponse.onFailure(Constants.APP_FAILURE, null);
+            e.printStackTrace();
+        }
+    }
+
     public int getId() {
         return id;
     }
