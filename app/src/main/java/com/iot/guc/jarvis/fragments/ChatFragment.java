@@ -47,7 +47,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
 
     private String resultMessage = "";
     private String status = "none";
-    private int deviceId = 1;   // TODO: 2017-03-11 remove hardcoding after filtering on rooms
+    private int deviceId = 8;   // TODO: 2017-03-11 remove hardcoding after filtering on rooms
     private ChatMessage chatMessage;
 
     @Override
@@ -69,9 +69,8 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     }
 
 
-    public void sendTextMessage(View v) {
-        String message = msg_edittext.getEditableText().toString();
-        if (!message.equalsIgnoreCase("")) {
+    public void sendTextMessage(String message) {
+        if (!message.isEmpty()) {
             chatMessage = new ChatMessage(message, true, Shared.getCurrentDate(), Shared.getCurrentTime());
             msg_edittext.setText("");
             chatAdapter.add(chatMessage);
@@ -145,7 +144,7 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.sendMessageButton:
-                sendTextMessage(v);
+                sendTextMessage(msg_edittext.getEditableText().toString());
         }
     }
 
@@ -162,13 +161,16 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
                 AIResponse aiResponse = aiDataService.request(aiRequest);
 
                 ArrayList<Device> devices = Shared.getDevices();
+
                 //TODO add filters on rooms
-//                for(Device device : devices){
-//                    if(device.getType()== Device.TYPE.LIGHT_BULB){
-//                        deviceId = device.getId();
-//                        break;
-//                    }
-//                }
+                if(aiResponse.getResult().getAction().startsWith("Lights")){
+                    for(Device device : devices){
+                        if(device.getType() == Device.TYPE.LIGHT_BULB){
+                            deviceId = device.getId();
+                            break;
+                        }
+                    }
+                }
 
                 if(aiResponse.getResult().getAction().equals("LightsOn")){
                     status = "true";
