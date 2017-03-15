@@ -1,45 +1,42 @@
 package com.iot.guc.jarvis.fragments;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-import android.content.DialogInterface;
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
-import com.android.volley.AuthFailureError;
-import com.android.volley.RequestQueue;
-import com.android.volley.toolbox.Volley;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.Request;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.HTTPResponse;
-import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
+import com.iot.guc.jarvis.VoiceRecognition;
+import com.iot.guc.jarvis.VoiceResponse;
+import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.models.ChatMessage;
 import com.iot.guc.jarvis.models.Device;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+
 import ai.api.AIServiceException;
 import ai.api.android.AIConfiguration;
+import ai.api.android.AIDataService;
+import ai.api.android.AIService;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
-import ai.api.android.AIService;
-import ai.api.android.AIDataService;
 
 public class ChatFragment extends Fragment {
     private final AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
@@ -49,23 +46,67 @@ public class ChatFragment extends Fragment {
     private EditText ChatFragment_EditText_Message;
     private ChatAdapter chatAdapter;
     private ListView ChatFragment_ListView_MessageList;
+    private VoiceRecognition voiceRecognition;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         ChatFragment_EditText_Message = (EditText) view.findViewById(R.id.ChatFragment_EditText_Message);
         ChatFragment_ListView_MessageList = (ListView) view.findViewById(R.id.ChatFragment_ListView_MessageList);
-        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.ChatFragment_FloatingActionButton_Send);
+        final FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.ChatFragment_FloatingActionButton_Send);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendMessage(ChatFragment_EditText_Message.getEditableText().toString());
-                ChatFragment_EditText_Message.setText("");
+                if (ChatFragment_EditText_Message.getText().toString().isEmpty()) {
+                    // Voice
+                    if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
+                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, Constants.PERMISSION_CODE);
+                    else
+                        voiceRecognition.listen();
+                }
+                else {
+                    // Text
+                    sendMessage(ChatFragment_EditText_Message.getEditableText().toString());
+                    ChatFragment_EditText_Message.setText("");
+                }
+            }
+        });
+
+
+        ChatFragment_EditText_Message.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().isEmpty())
+                    fab.setImageResource(android.R.drawable.ic_btn_speak_now);
+                else
+                    fab.setImageResource(android.R.drawable.ic_media_play);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
             }
         });
 
         chatAdapter = new ChatAdapter(getActivity(), new ArrayList<ChatMessage>());
         ChatFragment_ListView_MessageList.setAdapter(chatAdapter);
+
+        voiceRecognition = new VoiceRecognition(getContext(), new VoiceResponse() {
+            @Override
+            public void onSuccess(String result) {
+                sendMessage(result);
+            }
+
+            @Override
+            public void onError(int error) {
+                chatAdapter.add(new ChatMessage("I Can\'t hear you!", false, Shared.getCurrentDate(), Shared.getCurrentTime()));
+                chatAdapter.notifyDataSetChanged();
+            }
+        });
 
         aiService = AIService.getService(getContext(), config);
         aiDataService = new AIDataService(getContext(), config);
@@ -122,8 +163,18 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    private class ChatAsyncTask extends AsyncTask<String, Void, Params> {
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch(requestCode) {
+            case Constants.PERMISSION_CODE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    voiceRecognition.listen();
+                }
+            }
+        }
+    }
 
+    private class ChatAsyncTask extends AsyncTask<String, Void, Params> {
         @Override
         protected Params doInBackground(String... params) {
             boolean status = false;

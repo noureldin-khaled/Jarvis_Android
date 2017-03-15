@@ -35,6 +35,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -419,21 +420,158 @@ public class RoomFragment extends Fragment {
         });
     }
 
-    public void addDevice(int roomIndex) {
+    public void addDevice(final int roomIndex, final Device device) {
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View contentView = inflater.inflate(R.layout.dialog_add_devices, null);
+        final TextView AddDeviceDialog_TextView_TitleType = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_TitleType);
+        AddDeviceDialog_TextView_TitleType.setText(device.getType().toString());
+        final TextView AddDeviceDialog_TextView_TitleMac = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_TitleMac);
+        AddDeviceDialog_TextView_TitleMac.setText(device.getMac());
+
+        final TextInputLayout AddDeviceDialog_TextInputLayout_DeviceNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddDeviceDialog_TextInputLayout_DeviceNameLayout);
+        final EditText AddDeviceDialog_EditText_DeviceName = (EditText) contentView.findViewById(R.id.AddDeviceDialog_EditText_DeviceName);
+
+        new Popup().create(getActivity(), contentView, "Add", new PopupResponse() {
+            @Override
+            public void onPositive(final AlertDialog dialog) {
+                AddDeviceDialog_TextInputLayout_DeviceNameLayout.setErrorEnabled(false);
+                AddDeviceDialog_TextInputLayout_DeviceNameLayout.setError(null);
+
+                if (AddDeviceDialog_EditText_DeviceName.getText().toString().isEmpty()) {
+                    AddDeviceDialog_TextInputLayout_DeviceNameLayout.setErrorEnabled(true);
+                    AddDeviceDialog_TextInputLayout_DeviceNameLayout.setError("Please Enter a Device Name");
+                }
+
+                if (!AddDeviceDialog_EditText_DeviceName.getText().toString().isEmpty()) {
+                    Device.addDevice(getContext(), AddDeviceDialog_EditText_DeviceName.getText().toString(),
+                            device.getType(), device.getMac(), device.getIp(), Shared.getRooms().get(roomIndex).getId(),
+                            new HTTPResponse() {
+                                @Override
+                                public void onSuccess(int statusCode, JSONObject body) {
+                                    Shared.collapseKeyBoard(RoomFragment.this);
+                                    dialog.dismiss();
+
+                                    try {
+                                        JSONObject jsonDevice = body.getJSONObject("device");
+                                        Shared.addDevice(new Device(jsonDevice.getInt("id") , jsonDevice.getString("name"),
+                                                jsonDevice.getString("type").equals("Light Bulb") ? Device.TYPE.LIGHT_BULB : Device.TYPE.LOCK, jsonDevice.getBoolean("status"),
+                                                jsonDevice.getString("mac"), jsonDevice.getString("ip"), jsonDevice.getInt("room_id")));
+                                        refill();
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Device Created Successfully", Snackbar.LENGTH_LONG).show();
+                                    } catch (JSONException e) {
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                        e.printStackTrace();
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(int statusCode, JSONObject body) {
+                                    switch (statusCode) {
+                                        case Constants.NO_INTERNET_CONNECTION: {
+                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                            dialog.dismiss();
+                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                        }
+                                        break;
+                                        case Constants.SERVER_NOT_REACHED: {
+                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                            dialog.dismiss();
+                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                                                    .setAction("RETRY", new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View v) {
+                                                            addDevice(roomIndex, device);
+                                                        }
+                                                    }).show();
+                                        }
+                                        break;
+                                        case 400: {
+                                            try {
+                                                JSONArray arr = body.getJSONArray("errors");
+                                                for (int i = 0; i < arr.length(); i++) {
+                                                    JSONObject current = arr.getJSONObject(i);
+                                                    String type = current.getString("msg");
+                                                    String field = current.getString("param");
+
+                                                    if (type.equals("required")) {
+                                                        if (field.equals("name")) {
+                                                            AddDeviceDialog_TextInputLayout_DeviceNameLayout.setErrorEnabled(true);
+                                                            AddDeviceDialog_TextInputLayout_DeviceNameLayout.setError("Please Enter a Device Name");
+                                                        }
+                                                        else {
+                                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                                            dialog.dismiss();
+                                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                                    .setAction("RETRY", new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View v) {
+                                                                            addDevice(roomIndex, device);
+                                                                        }
+                                                                    }).show();
+                                                            break;
+                                                        }
+                                                    }
+                                                    else {
+                                                        Shared.collapseKeyBoard(RoomFragment.this);
+                                                        dialog.dismiss();
+                                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                                .setAction("RETRY", new View.OnClickListener() {
+                                                                    @Override
+                                                                    public void onClick(View v) {
+                                                                        addDevice(roomIndex, device);
+                                                                    }
+                                                                }).show();
+                                                        break;
+                                                    }
+                                                }
+                                            } catch (JSONException e) {
+                                                Shared.collapseKeyBoard(RoomFragment.this);
+                                                dialog.dismiss();
+                                                Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                        .setAction("RETRY", new View.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(View v) {
+                                                                addDevice(roomIndex, device);
+                                                            }
+                                                        }).show();
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                        break;
+                                        default: {
+                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                            dialog.dismiss();
+                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                    .setAction("RETRY", new View.OnClickListener() {
+                                                        @Override
+                                                        public void onClick(View v) {
+                                                            addDevice(roomIndex, device);
+                                                        }
+                                                    }).show();
+                                            Log.i(getActivity().getLocalClassName(), "onFailure: " + body.toString());
+                                        }
+                                    }
+                                }
+                            });
+                }
+            }
+
+            @Override
+            public void onNegative(AlertDialog dialog) {
+                Shared.collapseKeyBoard(RoomFragment.this);
+                dialog.dismiss();
+            }
+        });
+    }
+
+    public void scanDevices(final int roomIndex) {
         // Call Device.scanDevices
-
-        ArrayList<Device> devices = new ArrayList<>();
-        devices.add(new Device(Device.TYPE.LIGHT_BULB, "D0-72-17-D2-2A-C6"));
-        devices.add(new Device(Device.TYPE.LIGHT_BULB, "D0-72-17-D2-2A-C7"));
-        devices.add(new Device(Device.TYPE.LIGHT_BULB, "D0-72-17-D2-2A-C8"));
-        devices.add(new Device(Device.TYPE.LIGHT_BULB, "D0-72-17-D2-2A-C9"));
-        devices.add(new Device(Device.TYPE.LIGHT_BULB, "D0-72-17-D2-2A-C1"));
-
-
-        final DeviceAdapter adapter = new DeviceAdapter(getActivity(), devices);
-
         final LayoutInflater inflater = getActivity().getLayoutInflater();
-        View contentView = inflater.inflate(R.layout.dialog_scan_devices, null);
+        final View contentView = inflater.inflate(R.layout.dialog_scan_devices, null);
+        final LinearLayout AddDeviceDialog_LinearLayout_Progress = (LinearLayout) contentView.findViewById(R.id.AddDeviceDialog_LinearLayout_Progress);
+        final LinearLayout AddDeviceDialog_LinearLayout_DevicesLayout = (LinearLayout) contentView.findViewById(R.id.AddDeviceDialog_LinearLayout_DevicesLayout);
+        final ListView AddDeviceDialog_ListView_DeviceList = (ListView) contentView.findViewById(R.id.AddDeviceDialog_ListView_DeviceList);
+        final TextView AddDeviceDialog_TextView_Title = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_Title);
 
         final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView)
                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -446,49 +584,74 @@ public class RoomFragment extends Fragment {
 
         dialog.show();
 
-        ListView AddDeviceDialog_ListView_DeviceList = (ListView) contentView.findViewById(R.id.AddDeviceDialog_ListView_DeviceList);
-        TextView AddDeviceDialog_TextView_Title = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_Title);
-        AddDeviceDialog_TextView_Title.setText(devices.isEmpty() ? "No Devices Found" : "Devices Found");
-        AddDeviceDialog_ListView_DeviceList.setAdapter(adapter);
+        AddDeviceDialog_LinearLayout_Progress.setVisibility(View.VISIBLE);
+        AddDeviceDialog_LinearLayout_DevicesLayout.setVisibility(View.GONE);
 
-        AddDeviceDialog_ListView_DeviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        Device.scanDevices(getContext(), new HTTPResponse() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Device device = (Device) adapter.getItem(position);
-                Log.i(getActivity().getLocalClassName(), "onItemClick: " + position + " : " + device);
+            public void onSuccess(int statusCode, JSONObject body) {
+                AddDeviceDialog_LinearLayout_Progress.setVisibility(View.GONE);
+                AddDeviceDialog_LinearLayout_DevicesLayout.setVisibility(View.VISIBLE);
+
+                try {
+                    JSONArray devicesJson = body.getJSONArray("devices");
+                    ArrayList<Device> devices = new ArrayList<Device>();
+                    for (int i = 0; i < devicesJson.length(); i++) {
+                        JSONObject current = devicesJson.getJSONObject(i);
+                        devices.add(new Device(current.getString("type").equals("Light Bulb") ? Device.TYPE.LIGHT_BULB : Device.TYPE.LOCK, current.getString("mac"), current.getString("ip")));
+                    }
+
+                    final DeviceAdapter adapter = new DeviceAdapter(getActivity(), devices);
+                    AddDeviceDialog_TextView_Title.setText(devices.isEmpty() ? "No Devices Found" : "Devices Found");
+                    AddDeviceDialog_ListView_DeviceList.setAdapter(adapter);
+
+                    AddDeviceDialog_ListView_DeviceList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            final Device device = (Device) adapter.getItem(position);
+                            dialog.dismiss();
+                            addDevice(roomIndex, device);
+                        }
+                    });
+                } catch (JSONException e) {
+                    Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                            .setAction("RETRY", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    scanDevices(roomIndex);
+                                }
+                            }).show();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, JSONObject body) {
                 dialog.dismiss();
-
-                View contentView = inflater.inflate(R.layout.dialog_add_devices, null);
-                final TextView AddDeviceDialog_TextView_TitleType = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_TitleType);
-                AddDeviceDialog_TextView_TitleType.setText(device.getType().toString());
-                final TextView AddDeviceDialog_TextView_TitleMac = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_TitleMac);
-                AddDeviceDialog_TextView_TitleMac.setText(device.getMac());
-
-                final TextInputLayout AddDeviceDialog_TextInputLayout_DeviceNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddDeviceDialog_TextInputLayout_DeviceNameLayout);
-                final EditText AddDeviceDialog_EditText_DeviceName = (EditText) contentView.findViewById(R.id.AddDeviceDialog_EditText_DeviceName);
-
-                new Popup().create(getActivity(), contentView, "Add", new PopupResponse() {
-                    @Override
-                    public void onPositive(AlertDialog dialog) {
-                        AddDeviceDialog_TextInputLayout_DeviceNameLayout.setErrorEnabled(false);
-                        AddDeviceDialog_TextInputLayout_DeviceNameLayout.setError(null);
-
-                        if (AddDeviceDialog_EditText_DeviceName.getText().toString().isEmpty()) {
-                            AddDeviceDialog_TextInputLayout_DeviceNameLayout.setErrorEnabled(true);
-                            AddDeviceDialog_TextInputLayout_DeviceNameLayout.setError("Please Enter a Device Name");
-                        }
-
-                        if (!AddDeviceDialog_EditText_DeviceName.getText().toString().isEmpty()) {
-                            // Store the device
-                        }
+                switch (statusCode) {
+                    case Constants.NO_INTERNET_CONNECTION: {
+                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                     }
-
-                    @Override
-                    public void onNegative(AlertDialog dialog) {
-                        Shared.collapseKeyBoard(RoomFragment.this);
-                        dialog.dismiss();
+                    break;
+                    case Constants.SERVER_NOT_REACHED: {
+                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                                .setAction("RETRY", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        scanDevices(roomIndex);
+                                    }
+                                }).show();
                     }
-                });
+                    break;
+                    default: {
+                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                .setAction("RETRY", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        scanDevices(roomIndex);
+                                    }
+                                }).show();
+                    }
+                }
             }
         });
     }
