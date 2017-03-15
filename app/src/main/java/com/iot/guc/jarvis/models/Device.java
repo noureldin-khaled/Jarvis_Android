@@ -40,9 +40,10 @@ public class Device {
         this.room_id = room_id;
     }
 
-    public Device(TYPE type, String mac) {
+    public Device(TYPE type, String mac, String ip) {
         this.type = type;
         this.mac = mac;
+        this.ip = ip;
     }
 
     public static void getDevices(Context context, final HTTPResponse httpResponse) {
@@ -73,6 +74,34 @@ public class Device {
 
         String url = Shared.getServer().URL() + "/api/device/scan";
         Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
+    }
+
+    public static void addDevice(Context context, String name, TYPE type, String mac, String ip, int room_id, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        try {
+            String url = Shared.getServer().URL() + "/api/device";
+            JSONObject body = new JSONObject();
+            body.put("name", name);
+            body.put("type", type.toString());
+            body.put("mac", mac);
+            body.put("ip", ip);
+            body.put("room_id", room_id);
+
+            Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
+        } catch (JSONException e) {
+            // The app failed
+            httpResponse.onFailure(Constants.APP_FAILURE, null);
+            e.printStackTrace();
+        }
     }
 
     public int getId() {
