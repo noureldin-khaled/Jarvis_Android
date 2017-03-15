@@ -4,11 +4,25 @@ package com.iot.guc.jarvis.fragments;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import android.Manifest;
+import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.speech.RecognitionListener;
+import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
@@ -22,6 +36,9 @@ import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.VoiceRecognition;
+import com.iot.guc.jarvis.VoiceResponse;
 import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
@@ -44,19 +61,50 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     private AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
             AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
     private ListView msgListView;
-
     private String resultMessage = "";
     private String status = "none";
     private int deviceId = 1;   // TODO: 2017-03-11 remove hardcoding after filtering on rooms
     private ChatMessage chatMessage;
+    private VoiceRecognition voiceRecognition;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         msg_edittext = (EditText) view.findViewById(R.id.messageEditText);
         msgListView = (ListView) view.findViewById(R.id.msgListView);
-        FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.sendMessageButton);
+        final FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.sendMessageButton);
         fab.setOnClickListener(this);
+
+        voiceRecognition = new VoiceRecognition(getContext(), new VoiceResponse() {
+            @Override
+            public void onSuccess(String result) {
+                sendTextMessage(null);
+            }
+
+            @Override
+            public void onError(int error) {
+                Log.i(getActivity().getLocalClassName(), "onError: " + error);
+            }
+        });
+
+        msg_edittext.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.toString().isEmpty())
+                    fab.setImageResource(android.R.drawable.ic_btn_speak_now);
+                else
+                    fab.setImageResource(android.R.drawable.ic_media_play);
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+            }
+        });
 
         chatlist = new ArrayList<ChatMessage>();
         chatAdapter = new ChatAdapter(getActivity(), chatlist);
@@ -144,12 +192,36 @@ public class ChatFragment extends Fragment implements View.OnClickListener{
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.sendMessageButton:
-                sendTextMessage(v);
+            case R.id.sendMessageButton: {
+                if (msg_edittext.getText().toString().isEmpty()) {
+                    // Voice
+                    if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+                        requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, Constants.PERMISSION_CODE);
+                    }
+                    else {
+                        voiceRecognition.listen();
+                    }
+                }
+                else {
+                    // Text
+
+                }
+//                sendTextMessage(v);
+            }
         }
     }
 
-
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        Log.i(getActivity().getLocalClassName(), "onRequestPermissionsResult: ");
+        switch(requestCode) {
+            case Constants.PERMISSION_CODE: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    voiceRecognition.listen();
+                }
+            }
+        }
+    }
 
     private class ChatAsyncTask extends AsyncTask<String, Void, String> {
 
