@@ -57,12 +57,14 @@ public class MainActivity extends AppCompatActivity {
 
         MainActivity_ViewPager_Container = (ViewPager) findViewById(R.id.MainActivity_ViewPager_Container);
         MainActivity_ViewPager_Container.setAdapter(mSectionsPagerAdapter);
-
+        MainActivity_ViewPager_Container.setCurrentItem(1);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.MainActivity_TabLayout_Tabs);
+
         tabLayout.setupWithViewPager(MainActivity_ViewPager_Container);
-        tabLayout.getTabAt(0).setIcon(R.drawable.ic_current_chat);
-        tabLayout.getTabAt(1).setIcon(R.drawable.ic_patterns);
+        tabLayout.getTabAt(0).setIcon(R.drawable.ic_patterns);
+        tabLayout.getTabAt(1).setIcon(R.drawable.ic_current_chat);
         tabLayout.getTabAt(2).setIcon(R.drawable.ic_devices);
+
 
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -70,8 +72,8 @@ public class MainActivity extends AppCompatActivity {
 
                 int index = tab.getPosition();
                 switch (index){
-                    case 0: tab.setIcon(R.drawable.ic_current_chat);return;
-                    case 1: tab.setIcon(R.drawable.ic_current_patterns);return;
+                    case 0:tab.setIcon(R.drawable.ic_current_patterns);return;
+                    case 1: tab.setIcon(R.drawable.ic_current_chat);return;
                     case 2: tab.setIcon(R.drawable.ic_current_devices);return;
                 }
 
@@ -82,9 +84,9 @@ public class MainActivity extends AppCompatActivity {
 
                 int index = tab.getPosition();
                 switch (index){
-                    case 0: tab.setIcon(R.drawable.ic_chat);
+                    case 0: tab.setIcon(R.drawable.ic_patterns);return;
+                    case 1: tab.setIcon(R.drawable.ic_chat);
                             Shared.collapseKeyBoard(MainActivity.this);return;
-                    case 1: tab.setIcon(R.drawable.ic_patterns);return;
                     case 2: tab.setIcon(R.drawable.ic_devices);return;
                 }
             }
@@ -233,9 +235,9 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return new ChatFragment();
-                case 1:
                     return PlaceholderFragment.newInstance(position+1);
+                case 1:
+                    return new ChatFragment();
                 case 2:
                     return new RoomFragment();
             }

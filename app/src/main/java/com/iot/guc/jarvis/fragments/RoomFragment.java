@@ -655,4 +655,194 @@ public class RoomFragment extends Fragment {
             }
         });
     }
+
+    public void deleteDevice(final Device device){
+
+        new AlertDialog.Builder(getActivity()).setTitle("Confirmation")
+                .setMessage("Are you sure you want to delete this Device?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        final ProgressDialog progressDialog = new ProgressDialog(getActivity());
+                        progressDialog.setMessage("Deleting...");
+                        progressDialog.setCancelable(false);
+                        progressDialog.show();
+
+                        device.deleteDevice(getContext(), new HTTPResponse() {
+                            @Override
+                            public void onSuccess(int statusCode, JSONObject body) {
+                                Shared.removeDevice(device);
+                                refill();
+
+                                if (progressDialog.isShowing())
+                                    progressDialog.dismiss();
+                                Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Device Deleted Successfully", Snackbar.LENGTH_LONG).show();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, JSONObject body) {
+                                if (progressDialog.isShowing())
+                                    progressDialog.dismiss();
+                                switch (statusCode) {
+                                    case Constants.NO_INTERNET_CONNECTION: {
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                    }
+                                    break;
+                                    case Constants.SERVER_NOT_REACHED: {
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                                                .setAction("RETRY", new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        deleteDevice(device);
+                                                    }
+                                                }).show();
+                                    }
+                                    break;
+                                    default: {
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                .setAction("RETRY", new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        deleteDevice(device);
+                                                    }
+                                                }).show();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                })
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                }).create().show();
+
+    }
+
+    public void editDevice(final Device device) {
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View contentView = inflater.inflate(R.layout.dialog_add_room, null);
+        TextView AddRoomDialog_TextView_Title =(TextView) contentView.findViewById(R.id.AddRoomDialog_TextView_Title);
+        AddRoomDialog_TextView_Title.setText("Edit Device");
+        final TextInputLayout AddRoomDialog_TextInputLayout_RoomNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddRoomDialog_TextInputLayout_RoomNameLayout);
+        final EditText AddRoomDialog_EditText_RoomName = (EditText) contentView.findViewById(R.id.AddRoomDialog_EditText_RoomName);
+        final ProgressBar AddRoomDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.AddRoomDialog_ProgressBar_Progress);
+        final LinearLayout AddRoomDialog_LinearLayout_AddRoomForm = (LinearLayout) contentView.findViewById(R.id.AddRoomDialog_LinearLayout_AddRoomForm);
+
+        new Popup().create(getActivity(), contentView, "Save", new PopupResponse() {
+            @Override
+            public void onPositive(final AlertDialog dialog) {
+                AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(false);
+                AddRoomDialog_TextInputLayout_RoomNameLayout.setError(null);
+
+                if (AddRoomDialog_EditText_RoomName.getText().toString().isEmpty()) {
+                    AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(true);
+                    AddRoomDialog_TextInputLayout_RoomNameLayout.setError("Please Enter a Device Name");
+                }
+
+                if (!AddRoomDialog_EditText_RoomName.getText().toString().isEmpty()) {
+                    AddRoomDialog_ProgressBar_Progress.setVisibility(View.VISIBLE);
+                    AddRoomDialog_LinearLayout_AddRoomForm.setVisibility(View.GONE);
+                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+                    dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);
+
+                    final String new_name = AddRoomDialog_EditText_RoomName.getText().toString();
+
+                    device.editDevice(getContext(), new_name, new HTTPResponse() {
+                        @Override
+                        public void onSuccess(int statusCode, JSONObject body) {
+
+                            Shared.collapseKeyBoard(RoomFragment.this);
+                            dialog.dismiss();
+                            int deviceIndex=0;
+                            for(int i =0; i<Shared.getDevices().size();i++){
+                                if(device.getId()==Shared.getDevices().get(i).getId())
+                                    deviceIndex = i;
+                            }
+                            Shared.editDevice(deviceIndex,new Device(device.getId(),  new_name,device.getType(),device.isStatus(),device.getMac(),device.getIp(),device.getRoom_id()));
+                            refill();
+                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Device Saved Successfully", Snackbar.LENGTH_LONG).show();
+
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, JSONObject body) {
+                            AddRoomDialog_ProgressBar_Progress.setVisibility(View.GONE);
+                            AddRoomDialog_LinearLayout_AddRoomForm.setVisibility(View.VISIBLE);
+                            switch (statusCode) {
+                                case Constants.NO_INTERNET_CONNECTION: {
+                                    Shared.collapseKeyBoard(RoomFragment.this);
+                                    dialog.dismiss();
+                                    Snackbar.make(RoomFragment_LinearLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                }
+                                break;
+                                case Constants.SERVER_NOT_REACHED: {
+                                    Shared.collapseKeyBoard(RoomFragment.this);
+                                    dialog.dismiss();
+                                    Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
+                                }
+                                break;
+                                case 400: {
+                                    try {
+                                        JSONArray arr = body.getJSONArray("errors");
+                                        for (int i = 0; i < arr.length(); i++) {
+                                            JSONObject current = arr.getJSONObject(i);
+                                            String type = current.getString("msg");
+                                            String field = current.getString("param");
+
+                                            if (type.equals("unique violation")) {
+                                                if (field.equals("name")) {
+                                                    AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(true);
+                                                    AddRoomDialog_TextInputLayout_RoomNameLayout.setError("This name is already taken.");
+                                                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
+                                                    dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
+                                                }
+                                                else {
+                                                    Shared.collapseKeyBoard(RoomFragment.this);
+                                                    dialog.dismiss();
+                                                    Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                    break;
+                                                }
+                                            }
+                                            else {
+                                                Shared.collapseKeyBoard(RoomFragment.this);
+                                                dialog.dismiss();
+                                                Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                                break;
+                                            }
+                                        }
+
+                                    } catch (JSONException e) {
+                                        Shared.collapseKeyBoard(RoomFragment.this);
+                                        dialog.dismiss();
+                                        Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                                break;
+                                default: {
+                                    Shared.collapseKeyBoard(RoomFragment.this);
+                                    dialog.dismiss();
+                                    Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                }
+                            }
+                        }
+                    });
+                }
+
+
+            }
+
+            @Override
+            public void onNegative(AlertDialog dialog) {
+                Shared.collapseKeyBoard(RoomFragment.this);
+                dialog.dismiss();
+            }
+        });
+
+
+    }
 }

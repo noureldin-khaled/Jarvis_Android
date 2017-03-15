@@ -75,6 +75,15 @@ public class Shared {
         return devices;
     }
 
+    public static  Device getDevice(int deviceId){
+        for(int i=0; i <Shared.getDevices().size();i++){
+            Device d = devices.get(i);
+            if(d.getId()==deviceId)
+                return d;
+        }
+        return null;
+    }
+
     public static void addRoom(Room r) {
         rooms.add(r);
     }
@@ -102,6 +111,13 @@ public class Shared {
 
     public static void removeDevice(int index) {
         devices.remove(index);
+    }
+
+    public static  void  removeDevice(Device d){
+        for(int i =0;i<devices.size();i++){
+            if(d.getId()==devices.get(i).getId())
+                devices.remove(i);
+        }
     }
 
     public static void clearDevices() {
