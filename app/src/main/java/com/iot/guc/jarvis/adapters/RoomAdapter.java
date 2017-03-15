@@ -59,7 +59,7 @@ public class RoomAdapter extends BaseExpandableListAdapter {
             DeviceButton_Button_addDevice.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                fragment.addDevice(groupPosition);
+                fragment.scanDevices(groupPosition);
                 }
             });
         }
