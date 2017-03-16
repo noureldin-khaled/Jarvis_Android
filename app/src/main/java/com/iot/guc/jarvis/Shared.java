@@ -36,7 +36,7 @@ import java.util.Map;
 public class Shared {
     private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy");
     private static DateFormat timeFormat = new SimpleDateFormat("K:mma");
-    private static Server server = new Server("192.168.0.104", 8000);
+    private static Server server = new Server("192.168.1.3", 8000);
     private static User auth;
     private static ArrayList<Room> rooms = new ArrayList<>();
     private static ArrayList<Device> devices = new ArrayList<>();

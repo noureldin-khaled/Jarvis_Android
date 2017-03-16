@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -93,8 +94,8 @@ public class RoomAdapter extends BaseExpandableListAdapter {
                 }
             });
 
-            ImageView RoomsListItem_ImageView_Edit = (ImageView) convertView.findViewById(R.id.RoomsListItem_ImageView_Edit);
-            RoomsListItem_ImageView_Edit.setOnClickListener(new View.OnClickListener() {
+            Button RoomsListItem_Button_Edit = (Button) convertView.findViewById(R.id.RoomsListItem_Button_Edit);
+            RoomsListItem_Button_Edit.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     fragment.editDevice((Device)getChild(groupPosition,childPosition));

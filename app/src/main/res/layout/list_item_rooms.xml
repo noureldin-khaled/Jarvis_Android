@@ -24,12 +24,13 @@
         android:layout_weight="2"
         android:id="@+id/RoomsListItem_Switch_DeviceStatus"/>
 
-    <ImageView
+    <Button android:id="@+id/RoomsListItem_Button_Edit"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
-        android:id="@+id/RoomsListItem_ImageView_Edit"
-        app:srcCompat="@drawable/ic_edit" />
+        android:text="edit"
+        android:textColor="@color/colorAccent"/>
 
 
     <TextView

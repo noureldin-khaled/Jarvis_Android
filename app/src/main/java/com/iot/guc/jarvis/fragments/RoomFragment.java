@@ -511,6 +511,24 @@ public class RoomFragment extends Fragment {
                                                             break;
                                                         }
                                                     }
+                                                    else if (type.equals("unique violation")) {
+                                                        if (field.equals("name")) {
+                                                            AddDeviceDialog_TextInputLayout_DeviceNameLayout.setErrorEnabled(true);
+                                                            AddDeviceDialog_TextInputLayout_DeviceNameLayout.setError("This name is already taken.");
+                                                        }
+                                                        else {
+                                                            Shared.collapseKeyBoard(RoomFragment.this);
+                                                            dialog.dismiss();
+                                                            Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                                    .setAction("RETRY", new View.OnClickListener() {
+                                                                        @Override
+                                                                        public void onClick(View v) {
+                                                                            addDevice(roomIndex, device);
+                                                                        }
+                                                                    }).show();
+                                                            break;
+                                                        }
+                                                    }
                                                     else {
                                                         Shared.collapseKeyBoard(RoomFragment.this);
                                                         dialog.dismiss();
@@ -565,7 +583,6 @@ public class RoomFragment extends Fragment {
     }
 
     public void scanDevices(final int roomIndex) {
-        // Call Device.scanDevices
         final LayoutInflater inflater = getActivity().getLayoutInflater();
         final View contentView = inflater.inflate(R.layout.dialog_scan_devices, null);
         final LinearLayout AddDeviceDialog_LinearLayout_Progress = (LinearLayout) contentView.findViewById(R.id.AddDeviceDialog_LinearLayout_Progress);
