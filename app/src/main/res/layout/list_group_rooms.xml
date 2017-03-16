@@ -31,6 +31,6 @@
         android:layout_height="wrap_content"
         android:textColor="@color/colorAccent"
         android:focusable="false"
-        android:text="Delete" />
+        android:text="x" />
 
 </LinearLayout>
