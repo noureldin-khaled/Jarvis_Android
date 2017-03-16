@@ -127,6 +127,46 @@ public class Device {
         }
     }
 
+    public  void deleteDevice( Context context, HTTPResponse httpResponse){
+
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        String url = Shared.getServer().URL()+"/api/device/"+ getId();
+
+        Shared.request(context,Request.Method.DELETE,url,null,true,httpResponse);
+    }
+
+    public void editDevice( Context context, String name , HTTPResponse httpResponse){
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+        String url = Shared.getServer().URL()+"/api/device/"+getId();
+        try{
+
+            JSONObject body = new JSONObject();
+            body.put("name",name);
+            Shared.request(context,Request.Method.PUT,url,body,true,httpResponse);
+
+        }catch (JSONException e){
+            httpResponse.onFailure(Constants.APP_FAILURE,null);
+            e.printStackTrace();
+        }
+    }
+
     public int getId() {
         return id;
     }

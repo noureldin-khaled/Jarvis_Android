@@ -8,6 +8,8 @@ import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.Switch;
 import android.widget.TextView;
 
@@ -52,7 +54,7 @@ public class RoomAdapter extends BaseExpandableListAdapter {
     }
 
     @Override
-    public View getChildView(final int groupPosition, int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
+    public View getChildView(final int groupPosition, final int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
         if(isLastChild){
             convertView = LayoutInflater.from(context).inflate(R.layout.button_add_device, parent, false);
             Button DeviceButton_Button_addDevice = (Button) convertView.findViewById(R.id.DeviceButton_Button_addDevice);
@@ -88,7 +90,15 @@ public class RoomAdapter extends BaseExpandableListAdapter {
             RoomsListItem_TextView_DeleteDevice.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-                    Shared.deleteDevice(device.getId());
+                    fragment.deleteDevice((Device)getChild(groupPosition,childPosition));
+                }
+            });
+
+            Button RoomsListItem_Button_Edit = (Button) convertView.findViewById(R.id.RoomsListItem_Button_Edit);
+            RoomsListItem_Button_Edit.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    fragment.editDevice((Device)getChild(groupPosition,childPosition));
                 }
             });
         }
