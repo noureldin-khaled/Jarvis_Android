@@ -38,7 +38,7 @@
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif"
                 android:layout_marginTop="8dp"
-                android:hint="Room Name"
+                android:hint="Name"
                 android:textSize="15dp"/>
         </android.support.design.widget.TextInputLayout>
     </LinearLayout>
