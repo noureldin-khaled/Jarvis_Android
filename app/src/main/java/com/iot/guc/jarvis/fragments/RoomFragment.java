@@ -21,9 +21,9 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.iot.guc.jarvis.Constants;
-import com.iot.guc.jarvis.HTTPResponse;
+import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.Popup;
-import com.iot.guc.jarvis.PopupResponse;
+import com.iot.guc.jarvis.responses.PopupResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.adapters.DeviceAdapter;
@@ -35,7 +35,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 

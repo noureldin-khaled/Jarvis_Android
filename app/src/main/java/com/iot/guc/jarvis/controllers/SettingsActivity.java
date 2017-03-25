@@ -22,9 +22,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.iot.guc.jarvis.Constants;
-import com.iot.guc.jarvis.HTTPResponse;
+import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.Popup;
-import com.iot.guc.jarvis.PopupResponse;
+import com.iot.guc.jarvis.responses.PopupResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.models.User;

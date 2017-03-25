@@ -7,7 +7,7 @@ import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
 
-import com.iot.guc.jarvis.controllers.LoginActivity;
+import com.iot.guc.jarvis.responses.VoiceResponse;
 
 import java.util.ArrayList;
 

@@ -5,6 +5,8 @@ import android.content.DialogInterface;
 import android.support.v7.app.AlertDialog;
 import android.view.View;
 
+import com.iot.guc.jarvis.responses.PopupResponse;
+
 public class Popup {
 
     public AlertDialog create(Activity activity, View view, String positive_msg, final PopupResponse popupResponse) {

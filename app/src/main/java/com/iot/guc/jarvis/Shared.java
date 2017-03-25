@@ -1,7 +1,6 @@
 package com.iot.guc.jarvis;
 
 import android.app.Activity;
-import android.app.Fragment;
 import android.content.Context;
 import android.util.Log;
 import android.view.View;
@@ -20,6 +19,7 @@ import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Server;
 import com.iot.guc.jarvis.models.User;
+import com.iot.guc.jarvis.responses.HTTPResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
