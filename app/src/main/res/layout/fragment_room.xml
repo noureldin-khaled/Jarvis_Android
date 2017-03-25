@@ -1,0 +1,33 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:context="com.iot.guc.jarvis.fragments.RoomFragment"
+    android:id="@+id/RoomFragment_LinearLayout_MainContentView">
+
+    <TextView
+        android:id="@+id/RoomFragment_TextView_RoomsTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="10dp"
+        android:text="Rooms"
+        android:textSize="24sp"
+        android:textStyle="italic" />
+
+    <ExpandableListView
+        android:id="@+id/RoomFragment_ExpandableListView_Rooms"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:focusable="true"
+        android:layout_weight="8" />
+
+    <Button
+        android:id="@+id/RoomFragment_Button_AddRoom"
+        style="@style/Widget.AppCompat.Button.Borderless.Colored"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:text="+ Room"
+        android:visibility="visible" />
+</LinearLayout>
