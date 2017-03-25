@@ -6,7 +6,7 @@ import android.net.NetworkInfo;
 
 import com.android.volley.Request;
 import com.iot.guc.jarvis.Constants;
-import com.iot.guc.jarvis.HTTPResponse;
+import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.Shared;
 
 import org.json.JSONException;
