@@ -1,4 +1,4 @@
-package com.iot.guc.jarvis;
+package com.iot.guc.jarvis.responses;
 
 import org.json.JSONObject;
 

@@ -2,35 +2,29 @@ package com.iot.guc.jarvis.controllers;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
 import com.iot.guc.jarvis.Constants;
-import com.iot.guc.jarvis.HTTPResponse;
+import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
+import com.iot.guc.jarvis.responses.ServerResponse;
+import com.iot.guc.jarvis.ServerTask;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
-import com.iot.guc.jarvis.models.Server;
 import com.iot.guc.jarvis.models.User;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText LoginActivity_EditText_Username, LoginActivity_EditText_Password;
@@ -55,37 +49,17 @@ public class LoginActivity extends AppCompatActivity {
         LoginActivity_LinearLayout_Progress = (LinearLayout) findViewById(R.id.LoginActivity_LinearLayout_Progress);
 
         showProgress(true);
-        new ServerTask().execute();
+        new ServerTask(new ServerResponse() {
+            @Override
+            public void onFinish() {
+                init();
+            }
+        }).start();
     }
 
     public void showProgress(boolean show) {
         LoginActivity_LinearLayout_Progress.setVisibility(show ? View.VISIBLE : View.GONE);
         LoginActivity_RelativeLayout_LoginForm.setVisibility(show ? View.GONE : View.VISIBLE);
-    }
-
-    public void connectToServer() {
-        try {
-            byte[] message = new byte[1000];
-            DatagramPacket dp = new DatagramPacket(message, message.length, InetAddress.getByName("255.255.255.255"), 9000);
-            DatagramSocket s = new DatagramSocket();
-            s.send(dp);
-            int p = s.getLocalPort();
-            s.close();
-
-            s = new DatagramSocket(p);
-            dp = new DatagramPacket(message, message.length);
-            s.setSoTimeout(2500);
-            s.receive(dp);
-            String[] response = new String(message, 0, dp.getLength()).split("::");
-            s.close();
-            String ip = response[0];
-            int port = Integer.parseInt(response[1]);
-            Shared.setServer(new Server(ip, port));
-            init();
-        } catch (IOException e) {
-            connectToServer();
-            e.printStackTrace();
-        }
     }
 
     public void init() {
@@ -102,8 +76,11 @@ public class LoginActivity extends AppCompatActivity {
                 SharedPreferences.Editor editor = sharedPreferences.edit();
                 editor.remove("auth");
                 editor.commit();
+                showProgress(false);
             }
         }
+        else
+            showProgress(false);
     }
 
     public void registerClicked(final View view) {
@@ -515,14 +492,5 @@ public class LoginActivity extends AppCompatActivity {
                 }
             }
         });
-    }
-
-    private class ServerTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... params) {
-            connectToServer();
-            return null;
-        }
     }
 }

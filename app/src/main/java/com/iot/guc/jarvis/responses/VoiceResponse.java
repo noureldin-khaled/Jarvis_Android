@@ -1,4 +1,4 @@
-package com.iot.guc.jarvis;
+package com.iot.guc.jarvis.responses;
 
 public interface VoiceResponse {
     void onSuccess(String result);

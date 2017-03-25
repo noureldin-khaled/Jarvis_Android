@@ -1,4 +1,4 @@
-package com.iot.guc.jarvis;
+package com.iot.guc.jarvis.responses;
 
 import android.support.v7.app.AlertDialog;
 
