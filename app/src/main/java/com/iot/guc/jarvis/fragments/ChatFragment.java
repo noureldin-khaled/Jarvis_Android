@@ -26,6 +26,7 @@ import com.iot.guc.jarvis.VoiceResponse;
 import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.models.ChatMessage;
 import com.iot.guc.jarvis.models.Device;
+import com.iot.guc.jarvis.models.Room;
 
 import org.json.JSONObject;
 
@@ -39,8 +40,10 @@ import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
 
 public class ChatFragment extends Fragment {
-    private final AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
-            AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
+//    private final AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
+//            AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
+    private final AIConfiguration config = new AIConfiguration("97135bec060c48f9a6cc15dcf018ba2b",
+        AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
     private AIService aiService;
     private AIDataService aiDataService;
     private EditText ChatFragment_EditText_Message;
@@ -180,30 +183,49 @@ public class ChatFragment extends Fragment {
             boolean status = false;
             String message = "";
             Device d = null;
+            ArrayList<Room> rooms = Shared.getRooms();
             try {
                 AIRequest aiRequest = new AIRequest();
                 aiRequest.setQuery(params[0]);
                 aiService.textRequest(aiRequest);
                 AIResponse aiResponse = aiDataService.request(aiRequest);
 
-                //TODO add filters on rooms
-                if(aiResponse.getResult().getAction().startsWith("Lights")){
-                    for(Device device : Shared.getDevices()){
-                        if(device.getType() == Device.TYPE.LIGHT_BULB){
-                            d = device;
-                            break;
+                String action = aiResponse.getResult().getAction();
+                String roomName = "";
+                if(action.startsWith("smarthome")){
+                    if(action.equals("smarthome.lights_on")){
+                        if(aiResponse.getResult().isActionIncomplete()){
+                            message = aiResponse.getResult().getFulfillment().getSpeech();
+                        }
+                        else{
+                            roomName = aiResponse.getResult().getStringParameter("Location");
+                        }
+                    }
+                    else if(action.equals("smarthome.lights_off")){
+                        if(aiResponse.getResult().isActionIncomplete()){
+                            message = aiResponse.getResult().getFulfillment().getSpeech();
+                        }
+                        else{
+                            roomName = aiResponse.getResult().getStringParameter("Location");
                         }
                     }
                 }
-
-                if(aiResponse.getResult().getAction().equals("LightsOn")){
-                    status = true;
-                }
-                else if(aiResponse.getResult().getAction().equals("LightsOff")){
-                    status = false;
-                }
                 else{
                     message = aiResponse.getResult().getFulfillment().getSpeech();
+                }
+
+                if(!roomName.isEmpty()){
+                    for(Room room : rooms){
+                        if(room.getName().equals(roomName)){
+                            for(Device device : Shared.getDevices()) {
+                                if (device.getType() == Device.TYPE.LIGHT_BULB && device.getRoom_id() == room.getId()) {
+                                    d = device;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
                 }
 
             } catch (AIServiceException e) {
