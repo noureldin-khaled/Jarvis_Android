@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -49,12 +50,7 @@ public class LoginActivity extends AppCompatActivity {
         LoginActivity_LinearLayout_Progress = (LinearLayout) findViewById(R.id.LoginActivity_LinearLayout_Progress);
 
         showProgress(true);
-        new ServerTask(new ServerResponse() {
-            @Override
-            public void onFinish() {
-                init();
-            }
-        }).start();
+        init();
     }
 
     public void showProgress(boolean show) {

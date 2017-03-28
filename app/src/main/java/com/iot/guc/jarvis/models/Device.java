@@ -3,6 +3,7 @@ package com.iot.guc.jarvis.models;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
 import com.android.volley.Request;
 import com.iot.guc.jarvis.Constants;
@@ -47,7 +48,7 @@ public class Device {
             return;
         }
 
-        String url = Shared.getServer().URL() + "/api/device";
+        String url = "/api/device";
         Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
 
@@ -62,7 +63,7 @@ public class Device {
             return;
         }
 
-        String url = Shared.getServer().URL() + "/api/device/scan";
+        String url = "/api/device/scan";
         Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
 
@@ -78,7 +79,7 @@ public class Device {
         }
 
         try {
-            String url = Shared.getServer().URL() + "/api/device/" + getId();
+            String url = "/api/device/" + getId();
             JSONObject body = new JSONObject();
             body.put("status", status);
             Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
@@ -101,7 +102,7 @@ public class Device {
         }
 
         try {
-            String url = Shared.getServer().URL() + "/api/device";
+            String url = "/api/device";
             JSONObject body = new JSONObject();
             body.put("name", name);
             body.put("type", type.toString());

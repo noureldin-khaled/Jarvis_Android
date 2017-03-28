@@ -42,6 +42,11 @@ public class ServerTask {
     }
 
     public void start() {
+        if (Shared.getServer() != null) {
+            response.onFinish();
+            return;
+        }
+
         new AsyncTask<Void, Void, Void>() {
             @Override
             protected void onPreExecute() {
