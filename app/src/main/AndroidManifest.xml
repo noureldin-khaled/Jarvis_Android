@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -22,8 +23,9 @@
             android:name=".controllers.MainActivity"
             android:label="Jarvis"
             android:theme="@style/AppTheme.NoActionBar"
-            android:windowSoftInputMode="stateHidden"></activity>
-        <activity android:name=".controllers.SettingsActivity"></activity>
+            android:windowSoftInputMode="stateHidden" />
+        <activity android:name=".controllers.SettingsActivity" />
+        <activity android:name=".controllers.PeopleActivity"></activity>
     </application>
 
 </manifest>

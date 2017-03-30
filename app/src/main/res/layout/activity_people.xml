@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:orientation="vertical"
+    android:id="@+id/PeopleActivity_LinearLayout_MainContentView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.iot.guc.jarvis.controllers.PeopleActivity">
+
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/PeopleActivity_Toolbar_Toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?android:attr/actionBarSize"
+        app:theme="@style/Theme.AppCompat"
+        android:background="@color/colorPrimary"
+        app:popupTheme="@style/AppTheme.PopupOverlay">
+
+    </android.support.v7.widget.Toolbar>
+
+    <ProgressBar android:id="@+id/PeopleActivity_ProgressBar_Progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:indeterminateTint="@color/colorPrimary"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20sp"
+        android:visibility="gone"/>
+
+    <TextView
+        android:id="@+id/PeopleActivity_TextView_NoUserFound"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="No one is here but you!"
+        android:layout_gravity="center_horizontal"
+        android:textColor="@color/Black"
+        android:textSize="20sp"
+        android:layout_marginTop="20sp"
+        android:visibility="gone"/>
+
+    <ListView
+        android:id="@+id/PeopleActivity_ListView_People"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+</LinearLayout>
