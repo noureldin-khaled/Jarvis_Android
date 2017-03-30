@@ -64,6 +64,9 @@ public class RoomAdapter extends BaseExpandableListAdapter {
                 fragment.scanDevices(groupPosition);
                 }
             });
+
+            if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
+                DeviceButton_Button_addDevice.setVisibility(View.GONE);
         }
         else {
             final Device device = (Device) getChild(groupPosition, childPosition);
@@ -101,6 +104,12 @@ public class RoomAdapter extends BaseExpandableListAdapter {
                     fragment.editDevice((Device)getChild(groupPosition,childPosition));
                 }
             });
+
+            if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
+            {
+                RoomsListItem_Button_Edit.setVisibility(View.GONE);
+                RoomsListItem_TextView_DeleteDevice.setVisibility(View.GONE);
+            }
         }
 
         return convertView;
@@ -133,25 +142,30 @@ public class RoomAdapter extends BaseExpandableListAdapter {
             convertView = LayoutInflater.from(context).inflate(R.layout.list_group_rooms, parent,false);
         }
 
-        Button delete  = (Button) convertView.findViewById(R.id.delete);
-
-        delete.setOnClickListener(new View.OnClickListener() {
+        Button RoomsListGroup_Button_DeleteRoom  = (Button) convertView.findViewById(R.id.RoomsListGroup_Button_DeleteRoom);
+        RoomsListGroup_Button_DeleteRoom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 fragment.deleteRoom(groupPosition);
             }
         });
 
-        Button edit = (Button) convertView.findViewById(R.id.edit);
-        edit.setOnClickListener(new View.OnClickListener() {
+        Button RoomsListGroup_Button_EditRoom = (Button) convertView.findViewById(R.id.RoomsListGroup_Button_EditRoom);
+        RoomsListGroup_Button_EditRoom.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 fragment.editRoom(groupPosition);
             }
         });
 
-        TextView listHeader = (TextView) convertView.findViewById(R.id.list_header);
-        listHeader.setText(headerTitle);
+        if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
+        {
+            RoomsListGroup_Button_DeleteRoom.setVisibility(View.GONE);
+            RoomsListGroup_Button_EditRoom.setVisibility(View.GONE);
+        }
+
+        TextView RoomsListGroup_TextView_RoomName = (TextView) convertView.findViewById(R.id.RoomsListGroup_TextView_RoomName);
+        RoomsListGroup_TextView_RoomName.setText(headerTitle);
 
         return convertView;
     }

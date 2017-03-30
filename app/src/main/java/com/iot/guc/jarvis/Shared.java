@@ -20,6 +20,7 @@ import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Server;
 import com.iot.guc.jarvis.models.User;
 import com.iot.guc.jarvis.responses.HTTPResponse;
+import com.iot.guc.jarvis.responses.ServerResponse;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -148,74 +149,81 @@ public class Shared {
         fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
-    public static void request(Context context, int method, String url, JSONObject body, boolean includeAuth, final HTTPResponse httpResponse) {
-        RequestQueue queue = Volley.newRequestQueue(context);
-        JsonObjectRequest request;
+    public static void request(final Context context, final int method, final String url, final JSONObject body,final boolean includeAuth,final HTTPResponse httpResponse) {
+        new ServerTask(new ServerResponse() {
+            @Override
+            public void onFinish() {
+                RequestQueue queue = Volley.newRequestQueue(context);
+                JsonObjectRequest request;
+                final String URL = server.URL() + url;
 
-        if (includeAuth) {
-            request = new JsonObjectRequest(method, url, body, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    httpResponse.onSuccess(200, response);
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    if (error.networkResponse == null) {
-                        // The server couldn't be reached
-                        httpResponse.onFailure(Constants.SERVER_NOT_REACHED, null);
-                    }
-                    else {
-                        try {
-                            String err = new String(error.networkResponse.data, "UTF-8");
-                            JSONObject json = new JSONObject(err);
-                            httpResponse.onFailure(error.networkResponse.statusCode, json);
-                        } catch (UnsupportedEncodingException | JSONException e) {
-                            // The app failed
-                            httpResponse.onFailure(Constants.APP_FAILURE, null);
-                            e.printStackTrace();
+                if (includeAuth) {
+                    request = new JsonObjectRequest(method, URL, body, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            httpResponse.onSuccess(200, response);
                         }
-                    }
-                }
-            })
-            {
-                @Override
-                public Map<String, String> getHeaders() throws AuthFailureError {
-                    HashMap<String, String> headers = new HashMap<>();
-                    headers.put("Authorization", auth.getToken());
-                    return headers;
-                }
-            };
-        }
-        else {
-            request = new JsonObjectRequest(method, url, body, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    httpResponse.onSuccess(200, response);
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    if (error.networkResponse == null) {
-                        // The server couldn't be reached
-                        httpResponse.onFailure(Constants.SERVER_NOT_REACHED, null);
-                    }
-                    else {
-                        try {
-                            String err = new String(error.networkResponse.data, "UTF-8");
-                            JSONObject json = new JSONObject(err);
-                            httpResponse.onFailure(error.networkResponse.statusCode, json);
-                        } catch (UnsupportedEncodingException | JSONException e) {
-                            // The app failed
-                            httpResponse.onFailure(Constants.APP_FAILURE, null);
-                            e.printStackTrace();
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            if (error.networkResponse == null) {
+                                // The server couldn't be reached
+                                server = null;
+                                httpResponse.onFailure(Constants.SERVER_NOT_REACHED, null);
+                            }
+                            else {
+                                try {
+                                    String err = new String(error.networkResponse.data, "UTF-8");
+                                    JSONObject json = new JSONObject(err);
+                                    httpResponse.onFailure(error.networkResponse.statusCode, json);
+                                } catch (UnsupportedEncodingException | JSONException e) {
+                                    // The app failed
+                                    httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                    e.printStackTrace();
+                                }
+                            }
                         }
-                    }
+                    })
+                    {
+                        @Override
+                        public Map<String, String> getHeaders() throws AuthFailureError {
+                            HashMap<String, String> headers = new HashMap<>();
+                            headers.put("Authorization", auth.getToken());
+                            return headers;
+                        }
+                    };
                 }
-            });
-        }
+                else {
+                    request = new JsonObjectRequest(method, URL, body, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            httpResponse.onSuccess(200, response);
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            if (error.networkResponse == null) {
+                                // The server couldn't be reached
+                                httpResponse.onFailure(Constants.SERVER_NOT_REACHED, null);
+                            }
+                            else {
+                                try {
+                                    String err = new String(error.networkResponse.data, "UTF-8");
+                                    JSONObject json = new JSONObject(err);
+                                    httpResponse.onFailure(error.networkResponse.statusCode, json);
+                                } catch (UnsupportedEncodingException | JSONException e) {
+                                    // The app failed
+                                    httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    });
+                }
 
-        queue.add(request);
+                queue.add(request);
+            }
+        }).start();
     }
 
     //API REQUESTS
