@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.controllers.MainActivity;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
@@ -109,7 +110,6 @@ public class ChatFragment extends Fragment {
 
         aiService = AIService.getService(getContext(), config);
         aiDataService = new AIDataService(getContext(), config);
-        getActivity().setTitle("Chat");
         return view;
     }
 

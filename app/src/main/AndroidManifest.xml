@@ -24,7 +24,6 @@
             android:label="Jarvis"
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="stateHidden" />
-        <activity android:name=".controllers.SettingsActivity" />
         <activity android:name=".controllers.PeopleActivity"></activity>
     </application>
 

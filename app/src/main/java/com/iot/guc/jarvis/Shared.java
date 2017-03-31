@@ -2,6 +2,7 @@ package com.iot.guc.jarvis;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -224,6 +225,11 @@ public class Shared {
                 queue.add(request);
             }
         }).start();
+    }
+
+    public static int dpToPx(int dp, Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
     }
 
     //API REQUESTS

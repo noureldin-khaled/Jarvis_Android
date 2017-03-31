@@ -77,6 +77,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         MainActivity_ViewPager_Container = (ViewPager) findViewById(R.id.MainActivity_ViewPager_Container);
         MainActivity_ViewPager_Container.setAdapter(mSectionsPagerAdapter);
         MainActivity_ViewPager_Container.setCurrentItem(1);
+        getSupportActionBar().setTitle("Chat");
 
         NavigationDrawer_NavigationView_View = (NavigationView) findViewById(R.id.NavigationDrawer_NavigationView_View);
         NavigationDrawer_NavigationView_View.setNavigationItemSelectedListener(this);
@@ -109,9 +110,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onTabSelected(TabLayout.Tab tab) {
                 int index = tab.getPosition();
                 switch (index){
-                    case 0:tab.setIcon(R.drawable.ic_current_patterns);return;
-                    case 1: tab.setIcon(R.drawable.ic_current_chat);return;
-                    case 2: tab.setIcon(R.drawable.ic_current_devices);return;
+                    case 0: tab.setIcon(R.drawable.ic_current_patterns); getSupportActionBar().setTitle("Patterns"); return;
+                    case 1: tab.setIcon(R.drawable.ic_current_chat); getSupportActionBar().setTitle("Chat"); return;
+                    case 2: tab.setIcon(R.drawable.ic_current_devices); getSupportActionBar().setTitle("Devices"); return;
                 }
 
             }
@@ -120,10 +121,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onTabUnselected(TabLayout.Tab tab) {
                 int index = tab.getPosition();
                 switch (index){
-                    case 0: tab.setIcon(R.drawable.ic_patterns);return;
-                    case 1: tab.setIcon(R.drawable.ic_chat);
-                        Shared.collapseKeyBoard(MainActivity.this);return;
-                    case 2: tab.setIcon(R.drawable.ic_devices);return;
+                    case 0: tab.setIcon(R.drawable.ic_patterns); return;
+                    case 1: tab.setIcon(R.drawable.ic_chat); Shared.collapseKeyBoard(MainActivity.this); return;
+                    case 2: tab.setIcon(R.drawable.ic_devices); return;
                 }
             }
 
@@ -139,90 +139,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (NavigationDrawer_DrawerLayout_MainLayout.isDrawerOpen(GravityCompat.START)) {
             NavigationDrawer_DrawerLayout_MainLayout.closeDrawer(GravityCompat.START);
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(final MenuItem item) {
-        int id = item.getItemId();
-
-        switch (id) {
-            case R.id.action_settings: {
-                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
-                return true;
-            }
-            case R.id.action_logout: {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage("Are you sure you want to logout?")
-                        .setTitle("Confirmation")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                showProgress(true);
-                                Shared.getAuth().logout(getApplicationContext(), new HTTPResponse() {
-                                    @Override
-                                    public void onSuccess(int statusCode, JSONObject body) {
-                                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                                        editor.remove("auth");
-                                        editor.commit();
-                                        Shared.setAuth(null);
-                                        Shared.clearRooms();
-                                        Shared.clearDevices();
-
-                                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        startActivity(intent);
-                                    }
-
-                                    @Override
-                                    public void onFailure(int statusCode, JSONObject body) {
-                                        showProgress(false);
-                                        switch (statusCode) {
-                                            case Constants.NO_INTERNET_CONNECTION: {
-                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
-                                            }
-                                            break;
-                                            case Constants.SERVER_NOT_REACHED: {
-                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
-                                                        .setAction("RETRY", new View.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(View v) {
-                                                                onOptionsItemSelected(item);
-                                                            }
-                                                        }).show();
-                                            }
-                                            break;
-                                            default: {
-                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
-                                                        .setAction("RETRY", new View.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(View v) {
-                                                                onOptionsItemSelected(item);
-                                                            }
-                                                        }).show();
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {}
-                        }).create().show();
-
-                return true;
-            }
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
