@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.StrictMode;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
@@ -15,6 +16,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
+import java.util.Collections;
 
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.responses.HTTPResponse;
@@ -30,13 +32,20 @@ import com.iot.guc.jarvis.models.Room;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import ai.api.AIServiceException;
+import ai.api.RequestExtras;
 import ai.api.android.AIConfiguration;
 import ai.api.android.AIDataService;
 import ai.api.android.AIService;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
+import ai.api.model.Entity;
+import ai.api.model.EntityEntry;
+
+
+import android.util.Log;
 
 public class ChatFragment extends Fragment {
 //    private final AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
@@ -120,10 +129,13 @@ public class ChatFragment extends Fragment {
     public void sendMessage(String message) {
         if (message.isEmpty()) return;
 
+
         chatAdapter.add(new ChatMessage(message, true, Shared.getCurrentDate(), Shared.getCurrentTime()));
         chatAdapter.notifyDataSetChanged();
 
         new ChatAsyncTask().execute(message);
+
+
     }
 
     public void handleChat(Params result) {
@@ -190,32 +202,36 @@ public class ChatFragment extends Fragment {
                 AIResponse aiResponse = aiDataService.request(aiRequest);
 
                 String action = aiResponse.getResult().getAction();
+
                 String roomName = "";
-                if(action.startsWith("smarthome")){
-                    if(action.equals("smarthome.lights_on")){
-                        if(aiResponse.getResult().isActionIncomplete()){
+
+                Log.i("Action", aiResponse.getResult().getParameters().toString());
+
+                if (action.startsWith("smarthome")) {
+                    if (action.equals("smarthome.lights_on")) {
+                        if (aiResponse.getResult().isActionIncomplete()) {
                             message = aiResponse.getResult().getFulfillment().getSpeech();
-                        }
-                        else{
+
+                        } else {
                             roomName = aiResponse.getResult().getStringParameter("Location");
+                            status = true;
+                        }
+                    } else if (action.equals("smarthome.lights_off")) {
+                        if (aiResponse.getResult().isActionIncomplete()) {
+                            message = aiResponse.getResult().getFulfillment().getSpeech();
+                        } else {
+                            roomName = aiResponse.getResult().getStringParameter("Location");
+                            status = false;
                         }
                     }
-                    else if(action.equals("smarthome.lights_off")){
-                        if(aiResponse.getResult().isActionIncomplete()){
-                            message = aiResponse.getResult().getFulfillment().getSpeech();
-                        }
-                        else{
-                            roomName = aiResponse.getResult().getStringParameter("Location");
-                        }
-                    }
-                }
-                else{
+                } else {
                     message = aiResponse.getResult().getFulfillment().getSpeech();
                 }
 
+
                 if(!roomName.isEmpty()){
                     for(Room room : rooms){
-                        if(room.getName().equals(roomName)){
+                        if(room.getName().equalsIgnoreCase(roomName)){
                             for(Device device : Shared.getDevices()) {
                                 if (device.getType() == Device.TYPE.LIGHT_BULB && device.getRoom_id() == room.getId()) {
                                     d = device;
@@ -224,6 +240,9 @@ public class ChatFragment extends Fragment {
                             }
                             break;
                         }
+                    }
+                    if(d == null){
+                        message = "Device does not exist in the room";
                     }
                 }
 
