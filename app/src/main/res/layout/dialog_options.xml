@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center_horizontal"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/OptionDialog_FloatingActionButton_Edit"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        app:fabSize="normal"
+        android:tint="#FFF"
+        app:elevation="0dp"
+        android:theme="@style/EditFab"
+        android:src="@drawable/ic_editt"/>
+
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/OptionDialog_FloatingActionButton_Delete"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_marginLeft="50dp"
+        app:fabSize="normal"
+        android:tint="#FFF"
+        app:elevation="0dp"
+        android:theme="@style/DeleteFab"
+        android:src="@drawable/ic_delete"/>
+</LinearLayout>

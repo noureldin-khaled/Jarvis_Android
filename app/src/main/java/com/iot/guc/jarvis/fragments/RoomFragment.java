@@ -1,10 +1,10 @@
 package com.iot.guc.jarvis.fragments;
 
-import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
-import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.os.Vibrator;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -22,36 +22,29 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
-import com.baoyz.swipemenulistview.SwipeMenu;
-import com.baoyz.swipemenulistview.SwipeMenuCreator;
-import com.baoyz.swipemenulistview.SwipeMenuItem;
-import com.baoyz.swipemenulistview.SwipeMenuListView;
 import com.iot.guc.jarvis.Constants;
-import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.Popup;
-import com.iot.guc.jarvis.responses.PopupResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
-import com.iot.guc.jarvis.adapters.DeviceAdapter;
 import com.iot.guc.jarvis.adapters.RoomAdapter;
-import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
+import com.iot.guc.jarvis.responses.HTTPResponse;
+import com.iot.guc.jarvis.responses.PopupResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 public class RoomFragment extends Fragment {
     private RoomAdapter adapter;
     private CoordinatorLayout RoomFragment_CoordinatorLayout_MainContentView;
-    private SwipeMenuListView RoomFragment_SwipeMenuListView_Rooms;
+    private ListView RoomFragment_ListView_Rooms;
 
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_room, container, false);
+        final View view = inflater.inflate(R.layout.fragment_room, container, false);
 
         FloatingActionButton RoomFragment_FloatingActionButton_AddRoom = (FloatingActionButton) view.findViewById(R.id.RoomFragment_FloatingActionButton_AddRoom);
         RoomFragment_FloatingActionButton_AddRoom.setOnClickListener(new View.OnClickListener() {
@@ -64,55 +57,44 @@ public class RoomFragment extends Fragment {
         if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
             RoomFragment_FloatingActionButton_AddRoom.setVisibility(View.GONE);
         RoomFragment_CoordinatorLayout_MainContentView = (CoordinatorLayout) view.findViewById(R.id.RoomFragment_CoordinatorLayout_MainContentView);
+        RoomFragment_ListView_Rooms = (ListView) view.findViewById(R.id.RoomFragment_ListView_Rooms);
 
-        SwipeMenuCreator creator = new SwipeMenuCreator() {
-
+        RoomFragment_ListView_Rooms.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
             @Override
-            public void create(SwipeMenu menu) {
-                SwipeMenuItem edit = new SwipeMenuItem(getContext());
-                edit.setBackground(new ColorDrawable(Color.rgb(129, 255, 104)));
-                edit.setWidth(Shared.dpToPx(70, getContext()));
-                edit.setIcon(R.drawable.ic_editt);
-                menu.addMenuItem(edit);
+            public boolean onItemLongClick(AdapterView<?> parent, View v, final int position, long id) {
+                Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+                vibrator.vibrate(250);
 
-                SwipeMenuItem delete = new SwipeMenuItem(getContext());
-                delete.setBackground(new ColorDrawable(Color.rgb(249, 63, 37)));
-                delete.setWidth(Shared.dpToPx(70, getContext()));
-                delete.setIcon(R.drawable.ic_delete);
-                menu.addMenuItem(delete);
-            }
-        };
+                LayoutInflater inflater = getActivity().getLayoutInflater();
+                View contentView = inflater.inflate(R.layout.dialog_options, null);
+                final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView).create();
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+                dialog.show();
+                dialog.getWindow().setLayout(Shared.dpToPx(240, getContext()), ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        RoomFragment_SwipeMenuListView_Rooms = (SwipeMenuListView) view.findViewById(R.id.RoomFragment_SwipeMenuListView_Rooms);
-        RoomFragment_SwipeMenuListView_Rooms.setMenuCreator(creator);
+                final FloatingActionButton OptionDialog_FloatingActionButton_Edit = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Edit);
+                final FloatingActionButton OptionDialog_FloatingActionButton_Delete = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Delete);
 
-        RoomFragment_SwipeMenuListView_Rooms.setOnMenuItemClickListener(new SwipeMenuListView.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(int position, SwipeMenu menu, int index) {
-                switch (index) {
-                    case 0:
-                        // edit
-                        Log.i(getActivity().getLocalClassName(), "onMenuItemClick: edit");
-                        break;
-                    case 1:
-                        // delete
-                        Log.i(getActivity().getLocalClassName(), "onMenuItemClick: delete");
-                        break;
-                }
+                OptionDialog_FloatingActionButton_Edit.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        editRoom(position);
+                    }
+                });
 
+                OptionDialog_FloatingActionButton_Delete.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Log.i(getActivity().getLocalClassName(), "onClick: delete " + position);
+                        dialog.dismiss();
+                        deleteRoom(position);
+                    }
+                });
                 return false;
             }
         });
 
-        RoomFragment_SwipeMenuListView_Rooms.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-                Log.i(getActivity().getLocalClassName(), "onItemLongClick: here");
-                return false;
-            }
-        });
-
-        RoomFragment_SwipeMenuListView_Rooms.setSwipeDirection(SwipeMenuListView.DIRECTION_LEFT);
         reload();
         return view;
     }
@@ -122,12 +104,13 @@ public class RoomFragment extends Fragment {
         for (Room r : Shared.getRooms())
             a.add(r.getName());
         adapter = new RoomAdapter(getContext(), a);
-        RoomFragment_SwipeMenuListView_Rooms.setAdapter(adapter);
+        RoomFragment_ListView_Rooms.setAdapter(adapter);
     }
 
     public void addRoom() {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View contentView = inflater.inflate(R.layout.dialog_add_room, null);
+
         final TextInputLayout AddRoomDialog_TextInputLayout_RoomNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddRoomDialog_TextInputLayout_RoomNameLayout);
         final EditText AddRoomDialog_EditText_RoomName = (EditText) contentView.findViewById(R.id.AddRoomDialog_EditText_RoomName);
         final ProgressBar AddRoomDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.AddRoomDialog_ProgressBar_Progress);
@@ -257,31 +240,29 @@ public class RoomFragment extends Fragment {
 
     public void deleteRoom(final int roomIndex) {
         final Room room = Shared.getRooms().get(roomIndex);
+
         new AlertDialog.Builder(getActivity()).setTitle("Confirmation")
                 .setMessage("Are you sure you want to delete this room?\n(All devices in the room will be deleted as well)")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        final ProgressDialog progressDialog = new ProgressDialog(getActivity());
-                        progressDialog.setMessage("Deleting...");
-                        progressDialog.setCancelable(false);
-                        progressDialog.show();
+                        LayoutInflater inflater = getActivity().getLayoutInflater();
+                        View contentView = inflater.inflate(R.layout.dialog_loading, null);
+                        final AlertDialog loading = new AlertDialog.Builder(getContext()).setView(contentView).create();
+                        loading.show();
 
                         room.deleteRoom(getContext(), new HTTPResponse() {
                             @Override
                             public void onSuccess(int statusCode, JSONObject body) {
                                 Shared.removeRoom(roomIndex);
                                 reload();
-
-                                if (progressDialog.isShowing())
-                                    progressDialog.dismiss();
+                                loading.dismiss();
                                 Snackbar.make(RoomFragment_CoordinatorLayout_MainContentView, "Room Deleted Successfully", Snackbar.LENGTH_LONG).show();
                             }
 
                             @Override
                             public void onFailure(int statusCode, JSONObject body) {
-                                if (progressDialog.isShowing())
-                                    progressDialog.dismiss();
+                                loading.dismiss();
                                 switch (statusCode) {
                                     case Constants.NO_INTERNET_CONNECTION: {
                                         Snackbar.make(RoomFragment_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
@@ -321,6 +302,7 @@ public class RoomFragment extends Fragment {
 
     public void editRoom(final int roomIndex){
         final Room room = Shared.getRooms().get(roomIndex);
+
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View contentView = inflater.inflate(R.layout.dialog_add_room, null);
         TextView AddRoomDialog_TextView_Title =(TextView) contentView.findViewById(R.id.AddRoomDialog_TextView_Title);
@@ -352,13 +334,11 @@ public class RoomFragment extends Fragment {
                     room.editRoom(getContext(), new_name, new HTTPResponse() {
                         @Override
                         public void onSuccess(int statusCode, JSONObject body) {
-
                             Shared.collapseKeyBoard(RoomFragment.this);
                             dialog.dismiss();
-                            Shared.editRoom(roomIndex,new Room(room.getId(),  new_name));
+                            Shared.editRoom(roomIndex,new Room(room.getId(), new_name));
                             reload();
                             Snackbar.make(RoomFragment_CoordinatorLayout_MainContentView, "Room Saved Successfully", Snackbar.LENGTH_LONG).show();
-
                         }
 
                         @Override

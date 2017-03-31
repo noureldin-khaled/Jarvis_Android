@@ -16,10 +16,10 @@
         android:textSize="20sp"
         android:visibility="gone"/>
 
-    <com.baoyz.swipemenulistview.SwipeMenuListView
-        android:id="@+id/RoomFragment_SwipeMenuListView_Rooms"
+    <ListView
+        android:id="@+id/RoomFragment_ListView_Rooms"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="wrap_content" />
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/RoomFragment_FloatingActionButton_AddRoom"
@@ -28,5 +28,6 @@
         android:layout_gravity="end|bottom"
         android:layout_margin="16dp"
         android:src="@drawable/ic_add"
+        android:theme="@style/DefaultFab"
         android:tint="@color/White"/>
 </android.support.design.widget.CoordinatorLayout>

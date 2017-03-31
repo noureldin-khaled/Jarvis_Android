@@ -25,6 +25,18 @@
         <item name="actionMenuTextColor">@android:color/white</item>
     </style>
 
+    <style name="DeleteFab" parent="Theme.AppCompat.Light">
+        <item name="colorAccent">@color/Red</item>
+    </style>
+
+    <style name="EditFab" parent="Theme.AppCompat.Light">
+        <item name="colorAccent">@color/Green</item>
+    </style>
+
+    <style name="DefaultFab" parent="Theme.AppCompat.Light">
+        <item name="colorAccent">@color/colorPrimary</item>
+    </style>
+
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>

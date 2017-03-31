@@ -9,4 +9,6 @@
     <color name="Normal">#595959</color>
     <color name="White">#e0e0e0</color>
     <color name="Black">#323232</color>
+    <color name="Red">#f93f25</color>
+    <color name="Green">#46c92c</color>
 </resources>
