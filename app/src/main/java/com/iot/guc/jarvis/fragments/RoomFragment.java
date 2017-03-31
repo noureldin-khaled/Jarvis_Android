@@ -10,7 +10,10 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
+import android.transition.Transition;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,8 +41,9 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 
 public class RoomFragment extends Fragment {
-    private RoomAdapter adapter;
     private CoordinatorLayout RoomFragment_CoordinatorLayout_MainContentView;
+    private TextView RoomFragment_TextView_NoRoomsFound;
+    private RoomAdapter adapter;
     private ListView RoomFragment_ListView_Rooms;
 
     @Override
@@ -56,7 +60,9 @@ public class RoomFragment extends Fragment {
 
         if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
             RoomFragment_FloatingActionButton_AddRoom.setVisibility(View.GONE);
+
         RoomFragment_CoordinatorLayout_MainContentView = (CoordinatorLayout) view.findViewById(R.id.RoomFragment_CoordinatorLayout_MainContentView);
+        RoomFragment_TextView_NoRoomsFound = (TextView) view.findViewById(R.id.RoomFragment_TextView_NoRoomsFound);
         RoomFragment_ListView_Rooms = (ListView) view.findViewById(R.id.RoomFragment_ListView_Rooms);
 
         RoomFragment_ListView_Rooms.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
@@ -86,12 +92,27 @@ public class RoomFragment extends Fragment {
                 OptionDialog_FloatingActionButton_Delete.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Log.i(getActivity().getLocalClassName(), "onClick: delete " + position);
                         dialog.dismiss();
                         deleteRoom(position);
                     }
                 });
-                return false;
+
+                return true;
+            }
+        });
+
+        RoomFragment_ListView_Rooms.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Shared.setSelectedRoom(position);
+
+                FragmentTransaction trans = getFragmentManager().beginTransaction();
+                trans.replace(R.id.ContainerFragment_FrameLayout_Container, new DeviceFragment());
+
+                trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                trans.addToBackStack(null);
+
+                trans.commit();
             }
         });
 
@@ -105,6 +126,10 @@ public class RoomFragment extends Fragment {
             a.add(r.getName());
         adapter = new RoomAdapter(getContext(), a);
         RoomFragment_ListView_Rooms.setAdapter(adapter);
+        if (a.isEmpty())
+            RoomFragment_TextView_NoRoomsFound.setVisibility(View.VISIBLE);
+        else
+            RoomFragment_TextView_NoRoomsFound.setVisibility(View.GONE);
     }
 
     public void addRoom() {
@@ -336,7 +361,7 @@ public class RoomFragment extends Fragment {
                         public void onSuccess(int statusCode, JSONObject body) {
                             Shared.collapseKeyBoard(RoomFragment.this);
                             dialog.dismiss();
-                            Shared.editRoom(roomIndex,new Room(room.getId(), new_name));
+                            Shared.editRoom(roomIndex, new Room(room.getId(), new_name));
                             reload();
                             Snackbar.make(RoomFragment_CoordinatorLayout_MainContentView, "Room Saved Successfully", Snackbar.LENGTH_LONG).show();
                         }
@@ -434,7 +459,7 @@ public class RoomFragment extends Fragment {
 
 //    public void addDevice(final int roomIndex, final Device device) {
 //        LayoutInflater inflater = getActivity().getLayoutInflater();
-//        View contentView = inflater.inflate(R.layout.dialog_add_devices, null);
+//        View contentView = inflater.inflate(R.layout.dialog_add_device, null);
 //        final TextView AddDeviceDialog_TextView_TitleType = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_TitleType);
 //        AddDeviceDialog_TextView_TitleType.setText(device.getType().toString());
 //        final TextView AddDeviceDialog_TextView_TitleMac = (TextView) contentView.findViewById(R.id.AddDeviceDialog_TextView_TitleMac);
@@ -630,7 +655,7 @@ public class RoomFragment extends Fragment {
 //                        devices.add(new Device(current.getString("type").equals("Light Bulb") ? Device.TYPE.LIGHT_BULB : Device.TYPE.LOCK, current.getString("mac"), current.getString("ip")));
 //                    }
 //
-//                    final DeviceAdapter adapter = new DeviceAdapter(getActivity(), devices);
+//                    final ScannedDeviceAdapter adapter = new ScannedDeviceAdapter(getActivity(), devices);
 //                    AddDeviceDialog_TextView_Title.setText(devices.isEmpty() ? "No Devices Found" : "Devices Found");
 //                    AddDeviceDialog_ListView_DeviceList.setAdapter(adapter);
 //

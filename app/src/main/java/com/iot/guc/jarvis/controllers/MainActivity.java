@@ -39,6 +39,7 @@ import com.iot.guc.jarvis.Popup;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.fragments.ChatFragment;
+import com.iot.guc.jarvis.fragments.ContainerFragment;
 import com.iot.guc.jarvis.fragments.RoomFragment;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.PopupResponse;
@@ -420,7 +421,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 case 1:
                     return new ChatFragment();
                 case 2:
-                    return new RoomFragment();
+                    return new ContainerFragment();
             }
             return null;
         }

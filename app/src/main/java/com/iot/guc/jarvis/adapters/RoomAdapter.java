@@ -40,7 +40,7 @@ public class RoomAdapter extends BaseAdapter {
         String room = (String) getItem(position);
 
         if (convertView == null)
-            convertView = LayoutInflater.from(context).inflate(R.layout.list_item_room, parent,false);
+            convertView = LayoutInflater.from(context).inflate(R.layout.list_item_room, parent, false);
 
         TextView RoomListItem_TextView_RoomName = (TextView) convertView.findViewById(R.id.RoomListItem_TextView_RoomName);
         RoomListItem_TextView_RoomName.setText(room);

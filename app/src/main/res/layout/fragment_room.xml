@@ -12,7 +12,7 @@
         android:layout_margin="20dp"
         android:text="No Rooms Found"
         android:textColor="@color/Black"
-        android:layout_gravity="center_horizontal"
+        android:layout_gravity="center"
         android:textSize="20sp"
         android:visibility="gone"/>
 

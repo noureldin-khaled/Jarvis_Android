@@ -9,6 +9,7 @@
         android:layout_height="wrap_content"
         android:text="Room Name"
         android:textColor="@color/Black"
+        android:transitionName="@string/transitionName"
         android:layout_margin="15dp"
         android:textSize="18sp" />
 
