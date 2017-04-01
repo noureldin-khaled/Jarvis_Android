@@ -1,5 +1,6 @@
 package com.iot.guc.jarvis.fragments;
 
+import android.app.DownloadManager;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -20,6 +21,14 @@ import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.Volley;
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.Popup;
@@ -35,8 +44,10 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 public class RoomFragment extends Fragment {
     private RoomAdapter roomAdapter;
@@ -100,6 +111,8 @@ public class RoomFragment extends Fragment {
         final ProgressBar AddRoomDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.AddRoomDialog_ProgressBar_Progress);
         final LinearLayout AddRoomDialog_LinearLayout_AddRoomForm = (LinearLayout) contentView.findViewById(R.id.AddRoomDialog_LinearLayout_AddRoomForm);
 
+
+
         new Popup().create(getActivity(), contentView, "Add", new PopupResponse() {
             @Override
             public void onPositive(final AlertDialog dialog) {
@@ -120,14 +133,14 @@ public class RoomFragment extends Fragment {
                     Room.addRoom(getContext(), AddRoomDialog_EditText_RoomName.getText().toString(), new HTTPResponse() {
                         @Override
                         public void onSuccess(int statusCode, JSONObject body) {
-                            Shared.collapseKeyBoard(RoomFragment.this);
-                            dialog.dismiss();
-
                             try {
                                 JSONObject jsonRoom = body.getJSONObject("room");
                                 Shared.addRoom(new Room(jsonRoom.getInt("id") , jsonRoom.getString("name")));
                                 refill();
+                                Shared.collapseKeyBoard(RoomFragment.this);
+                                dialog.dismiss();
                                 Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Room Created Successfully", Snackbar.LENGTH_LONG).show();
+
                             } catch (JSONException e) {
                                 Snackbar.make(RoomFragment_LinearLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                             }

@@ -3,14 +3,37 @@ package com.iot.guc.jarvis.models;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.util.Log;
 
+import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.NetworkResponse;
+import com.android.volley.VolleyError;
+import com.android.volley.ParseError;
+import com.android.volley.VolleyLog;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.HttpHeaderParser;
+import com.android.volley.toolbox.Volley;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.Shared;
+import com.iot.guc.jarvis.requests.*;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Room {
     private int id;
@@ -40,6 +63,45 @@ public class Room {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        // here
+        String entityUrl = "https://api.api.ai/v1/entities/9088204c-b4bf-4330-bb41-771b99af06ca/entries?v=20150910";
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
+        final String jsonString = "[\n" +
+                " {\n" +
+                "  \"value\": israa,\n" +
+                "  \"synonyms\": [\"i\"]\n"+
+                " }\n" +
+                "]";
+        try {
+            JSONArray jsonArray = new JSONArray(jsonString);
+            CustomJsonRequest jsonArrayRequest = new CustomJsonRequest(Request.Method.POST, entityUrl, jsonArray, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("resp", response.toString());
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("error",error.toString());
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer fe2437e5a86740a78ccdfac19d283494");
+                    headers.put("Content-Type", "application/json");
+                    return headers;
+                }
+
+            };
+            requestQueue.add(jsonArrayRequest);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        //here
+
 
         if (!isConnected) {
             // No Internet Connection
