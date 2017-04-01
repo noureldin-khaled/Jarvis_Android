@@ -133,7 +133,7 @@ public class Device {
         Shared.request(context, Request.Method.DELETE, url, null, true, httpResponse);
     }
 
-    public void editDevice( Context context, String name , HTTPResponse httpResponse){
+    public void editDevice(Context context, String name, HTTPResponse httpResponse){
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
@@ -154,6 +154,21 @@ public class Device {
             httpResponse.onFailure(Constants.APP_FAILURE,null);
             e.printStackTrace();
         }
+    }
+
+    public void privilegeDevice(Context context, int userId, HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        String url = "/api/user/" + userId + "/" + getId();
+        Shared.request(context, Request.Method.POST, url, null, true, httpResponse);
     }
 
     public int getId() {

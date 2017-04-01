@@ -73,6 +73,9 @@ public class RoomFragment extends Fragment {
 
                 LayoutInflater inflater = getActivity().getLayoutInflater();
                 View contentView = inflater.inflate(R.layout.dialog_options, null);
+                FloatingActionButton OptionDialog_FloatingActionButton_Privilege = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Privilege);
+                OptionDialog_FloatingActionButton_Privilege.setVisibility(View.GONE);
+
                 final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView).create();
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
                 dialog.show();
@@ -109,7 +112,7 @@ public class RoomFragment extends Fragment {
                 FragmentTransaction trans = getFragmentManager().beginTransaction();
                 trans.replace(R.id.ContainerFragment_FrameLayout_Container, new DeviceFragment());
 
-                trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 trans.addToBackStack(null);
 
                 trans.commit();

@@ -33,6 +33,10 @@
         <item name="colorAccent">@color/Green</item>
     </style>
 
+    <style name="PrivilegeFab" parent="Theme.AppCompat.Light">
+        <item name="colorAccent">@color/Purple</item>
+    </style>
+
     <style name="DefaultFab" parent="Theme.AppCompat.Light">
         <item name="colorAccent">@color/colorPrimary</item>
     </style>

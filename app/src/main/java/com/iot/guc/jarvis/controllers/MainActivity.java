@@ -308,6 +308,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         Shared.setAuth(null);
                                         Shared.clearRooms();
                                         Shared.clearDevices();
+                                        Shared.setSelectedRoom(-1);
 
                                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

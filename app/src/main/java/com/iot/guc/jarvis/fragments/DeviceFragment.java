@@ -29,8 +29,10 @@ import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.adapters.DeviceAdapter;
 import com.iot.guc.jarvis.adapters.ScannedDeviceAdapter;
+import com.iot.guc.jarvis.adapters.ScannedUserAdapter;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
+import com.iot.guc.jarvis.models.User;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.PopupResponse;
 
@@ -71,7 +73,7 @@ public class DeviceFragment extends Fragment {
                 FragmentTransaction trans = getFragmentManager().beginTransaction();
                 trans.replace(R.id.ContainerFragment_FrameLayout_Container, new RoomFragment());
 
-                trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+                trans.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 trans.addToBackStack(null);
 
                 trans.commit();
@@ -96,9 +98,10 @@ public class DeviceFragment extends Fragment {
                 final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView).create();
                 dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
                 dialog.show();
-                dialog.getWindow().setLayout(Shared.dpToPx(240, getContext()), ViewGroup.LayoutParams.WRAP_CONTENT);
+                dialog.getWindow().setLayout(Shared.dpToPx(365, getContext()), ViewGroup.LayoutParams.WRAP_CONTENT);
 
                 final FloatingActionButton OptionDialog_FloatingActionButton_Edit = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Edit);
+                final FloatingActionButton OptionDialog_FloatingActionButton_Privilege = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Privilege);
                 final FloatingActionButton OptionDialog_FloatingActionButton_Delete = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Delete);
 
                 OptionDialog_FloatingActionButton_Edit.setOnClickListener(new View.OnClickListener() {
@@ -106,6 +109,14 @@ public class DeviceFragment extends Fragment {
                     public void onClick(View v) {
                         dialog.dismiss();
                         editDevice(position);
+                    }
+                });
+
+                OptionDialog_FloatingActionButton_Privilege.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        dialog.dismiss();
+                        scanUsers(position);
                     }
                 });
 
@@ -553,6 +564,145 @@ public class DeviceFragment extends Fragment {
             public void onNegative(AlertDialog dialog) {
                 Shared.collapseKeyBoard(DeviceFragment.this);
                 dialog.dismiss();
+            }
+        });
+    }
+
+    public void scanUsers(final int position) {
+        final Device device = (Device) adapter.getItem(position);
+        final LayoutInflater inflater = getActivity().getLayoutInflater();
+        final View contentView = inflater.inflate(R.layout.dialog_scan_users, null);
+        final ProgressBar ScanUserDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.ScanUserDialog_ProgressBar_Progress);
+        final LinearLayout ScanUserDialog_LinearLayout_UsersLayout = (LinearLayout) contentView.findViewById(R.id.ScanUserDialog_LinearLayout_UsersLayout);
+        final ListView ScanUserDialog_ListView_UserList = (ListView) contentView.findViewById(R.id.ScanUserDialog_ListView_UserList);
+        final TextView ScanUserDialog_TextView_Title = (TextView) contentView.findViewById(R.id.ScanUserDialog_TextView_Title);
+
+        final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView)
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                    }
+                })
+                .create();
+
+        dialog.show();
+
+        ScanUserDialog_ProgressBar_Progress.setVisibility(View.VISIBLE);
+        ScanUserDialog_LinearLayout_UsersLayout.setVisibility(View.GONE);
+
+        User.getUsers(getContext(), device.getId(), new HTTPResponse() {
+            @Override
+            public void onSuccess(int statusCode, JSONObject body) {
+                ScanUserDialog_ProgressBar_Progress.setVisibility(View.GONE);
+                ScanUserDialog_LinearLayout_UsersLayout.setVisibility(View.VISIBLE);
+
+                try {
+                    JSONArray usersJson = body.getJSONArray("users");
+                    ArrayList<User> users = new ArrayList<>();
+                    for (int i = 0; i < usersJson.length(); i++) {
+                        JSONObject current = usersJson.getJSONObject(i);
+                        users.add(new User(current.getInt("id"), current.getString("username"), current.getString("type")));
+                    }
+
+                    final ScannedUserAdapter adapter = new ScannedUserAdapter(getActivity(), users);
+                    ScanUserDialog_TextView_Title.setText(users.isEmpty() ? "No Users Found" : "Give Privilege To");
+                    ScanUserDialog_ListView_UserList.setAdapter(adapter);
+
+                    ScanUserDialog_ListView_UserList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                            final User user = (User) adapter.getItem(position);
+                            dialog.dismiss();
+                            privilegeDevice(user, device);
+                        }
+                    });
+                } catch (JSONException e) {
+                    dialog.dismiss();
+                    Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                            .setAction("RETRY", new View.OnClickListener() {
+                                @Override
+                                public void onClick(View v) {
+                                    scanUsers(position);
+                                }
+                            }).show();
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, JSONObject body) {
+                dialog.dismiss();
+                switch (statusCode) {
+                    case Constants.NO_INTERNET_CONNECTION: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                    }
+                    break;
+                    case Constants.SERVER_NOT_REACHED: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                                .setAction("RETRY", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        scanUsers(position);
+                                    }
+                                }).show();
+                    }
+                    break;
+                    default: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                .setAction("RETRY", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        scanUsers(position);
+                                    }
+                                }).show();
+                    }
+                }
+            }
+        });
+    }
+
+    public void privilegeDevice(final User user, final Device device) {
+        LayoutInflater inflater = getActivity().getLayoutInflater();
+        View contentView = inflater.inflate(R.layout.dialog_loading, null);
+        final AlertDialog loading = new AlertDialog.Builder(getContext()).setView(contentView).create();
+        loading.show();
+
+        device.privilegeDevice(getContext(), user.getId(), new HTTPResponse() {
+            @Override
+            public void onSuccess(int statusCode, JSONObject body) {
+                loading.dismiss();
+                Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "Privilege Given Successfully", Snackbar.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(int statusCode, JSONObject body) {
+                loading.dismiss();
+                switch (statusCode) {
+                    case Constants.NO_INTERNET_CONNECTION: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                    }
+                    break;
+                    case Constants.SERVER_NOT_REACHED: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                                .setAction("RETRY", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        privilegeDevice(user, device);
+                                    }
+                                }).show();
+                    }
+                    break;
+                    default: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                .setAction("RETRY", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        privilegeDevice(user, device);
+                                    }
+                                }).show();
+                    }
+                }
             }
         });
     }

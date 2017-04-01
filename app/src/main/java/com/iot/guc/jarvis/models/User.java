@@ -188,4 +188,19 @@ public class User {
         String url = "/api/user";
         Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
+
+    public static void getUsers(Context context, int device_id, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        String url = "/api/user/" + device_id;
+        Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
+    }
 }
