@@ -24,6 +24,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.fragments.PatternsFragment;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
@@ -230,7 +231,7 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return PlaceholderFragment.newInstance(position+1);
+                    return new PatternsFragment();
                 case 1:
                     return new ChatFragment();
                 case 2:
