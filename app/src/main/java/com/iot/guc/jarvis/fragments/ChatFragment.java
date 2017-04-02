@@ -53,8 +53,8 @@ public class ChatFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         ChatFragment_EditText_Message = (EditText) view.findViewById(R.id.ChatFragment_EditText_Message);
         ChatFragment_ListView_MessageList = (ListView) view.findViewById(R.id.ChatFragment_ListView_MessageList);
-        final FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.ChatFragment_FloatingActionButton_Send);
-        fab.setOnClickListener(new View.OnClickListener() {
+        final FloatingActionButton ChatFragment_FloatingActionButton_Send = (FloatingActionButton) view.findViewById(R.id.ChatFragment_FloatingActionButton_Send);
+        ChatFragment_FloatingActionButton_Send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (ChatFragment_EditText_Message.getText().toString().isEmpty()) {
@@ -82,9 +82,9 @@ public class ChatFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.toString().isEmpty())
-                    fab.setImageResource(android.R.drawable.ic_btn_speak_now);
+                    ChatFragment_FloatingActionButton_Send.setImageResource(R.drawable.ic_mic);
                 else
-                    fab.setImageResource(android.R.drawable.ic_media_play);
+                    ChatFragment_FloatingActionButton_Send.setImageResource(R.drawable.ic_send);
             }
 
             @Override
