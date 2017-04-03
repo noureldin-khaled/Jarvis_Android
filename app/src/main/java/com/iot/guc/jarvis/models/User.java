@@ -50,7 +50,7 @@ public class User {
             return;
         }
 
-        String url = Shared.getServer().URL() + "/api/logout";
+        String url = "/api/logout";
         Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
 
@@ -66,7 +66,7 @@ public class User {
         }
 
         try {
-            String url = Shared.getServer().URL() + "/api/user";
+            String url = "/api/user";
             JSONObject body = new JSONObject();
             body.put("old_password", old_password);
             body.put("new_password", new_password);
@@ -81,7 +81,7 @@ public class User {
 
     public void makeAdmin(Context context, String username, final HTTPResponse httpResponse) {
         try {
-            String url = Shared.getServer().URL() + "/api/user/updateAuth";
+            String url = "/api/user/updateAuth";
             JSONObject body = new JSONObject();
             body.put("username", username);
             body.put("type", "Admin");
@@ -106,7 +106,7 @@ public class User {
         }
 
         try {
-            String url = Shared.getServer().URL() + "/api/register";
+            String url = "/api/register";
             JSONObject body = new JSONObject();
             body.put("username", username);
             body.put("password", password);
@@ -131,7 +131,7 @@ public class User {
         }
 
         try {
-            String url = Shared.getServer().URL() + "/api/login";
+            String url = "/api/login";
             JSONObject body = new JSONObject();
             body.put("username", username);
             body.put("password", password);

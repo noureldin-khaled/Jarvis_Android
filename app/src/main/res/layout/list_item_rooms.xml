@@ -4,25 +4,22 @@
     android:orientation="horizontal" android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
+    <TextView android:id="@+id/RoomsListItem_TextView_DeviceName"
         android:layout_weight="2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/RoomsListItem_TextView_DeviceName"
         android:paddingLeft="?android:attr/expandableListPreferredChildPaddingLeft"/>
 
-    <TextView
+    <TextView android:id="@+id/RoomsListItem_TextView_DeviceType"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="2"
-        android:id="@+id/RoomsListItem_TextView_DeviceType"
         android:text="Type" />
 
-    <Switch
+    <Switch android:id="@+id/RoomsListItem_Switch_DeviceStatus"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="2"
-        android:id="@+id/RoomsListItem_Switch_DeviceStatus"/>
+        android:layout_weight="2" />
 
     <Button android:id="@+id/RoomsListItem_Button_Edit"
         style="@style/Widget.AppCompat.Button.Borderless.Colored"
@@ -33,13 +30,12 @@
         android:textColor="@color/colorAccent"/>
 
 
-    <TextView
+    <TextView android:id="@+id/RoomsListItem_TextView_DeleteDevice"
         android:layout_width="0dp"
         android:layout_weight="2"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:focusable="false"
-        android:id="@+id/RoomsListItem_TextView_DeleteDevice"
         android:text="x"
         android:textColor="@color/colorAccent"/>
 </LinearLayout>

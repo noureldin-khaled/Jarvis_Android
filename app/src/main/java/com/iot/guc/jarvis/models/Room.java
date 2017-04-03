@@ -55,7 +55,7 @@ public class Room {
             return;
         }
 
-        String url = Shared.getServer().URL() + "/api/room";
+        String url = "/api/room";
         Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
 
@@ -72,7 +72,7 @@ public class Room {
         }
 
         try {
-            String url = Shared.getServer().URL() + "/api/room";
+            String url = "/api/room";
             JSONObject body = new JSONObject();
             body.put("name", name);
 
@@ -97,7 +97,7 @@ public class Room {
             return;
         }
 
-        String url = Shared.getServer().URL() + "/api/room/" + getId();
+        String url = "/api/room/" + getId();
         Shared.request(context, Request.Method.DELETE, url, null, true, httpResponse);
     }
 

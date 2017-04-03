@@ -54,6 +54,9 @@ public class RoomFragment extends Fragment {
             }
         });
 
+        if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
+            RoomFragment_Button_AddRoom.setVisibility(View.GONE);
+
         RoomFragment_ExpandableListView_Rooms = (ExpandableListView) view.findViewById(R.id.RoomFragment_ExpandableListView_Rooms);
         RoomFragment_TextView_RoomsTitle = (TextView) view.findViewById(R.id.RoomFragment_TextView_RoomsTitle);
         RoomFragment_LinearLayout_MainContentView = (LinearLayout) view.findViewById(R.id.RoomFragment_LinearLayout_MainContentView);
