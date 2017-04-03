@@ -1,6 +1,6 @@
 package com.iot.guc.jarvis.fragments;
 
-import android.app.DownloadManager;
+
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.os.Bundle;
@@ -20,15 +20,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.Volley;
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.Popup;
@@ -39,15 +30,11 @@ import com.iot.guc.jarvis.adapters.DeviceAdapter;
 import com.iot.guc.jarvis.adapters.RoomAdapter;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 public class RoomFragment extends Fragment {
     private RoomAdapter roomAdapter;
@@ -135,7 +122,8 @@ public class RoomFragment extends Fragment {
                         public void onSuccess(int statusCode, JSONObject body) {
                             try {
                                 JSONObject jsonRoom = body.getJSONObject("room");
-                                Shared.addRoom(new Room(jsonRoom.getInt("id") , jsonRoom.getString("name")));
+                                Room r = new Room(jsonRoom.getInt("id") , jsonRoom.getString("name"));
+                                Shared.addRoom(r,getContext());
                                 refill();
                                 Shared.collapseKeyBoard(RoomFragment.this);
                                 dialog.dismiss();

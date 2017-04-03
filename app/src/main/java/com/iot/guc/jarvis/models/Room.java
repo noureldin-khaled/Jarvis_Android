@@ -64,44 +64,6 @@ public class Room {
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
 
-        // here
-        String entityUrl = "https://api.api.ai/v1/entities/9088204c-b4bf-4330-bb41-771b99af06ca/entries?v=20150910";
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        final String jsonString = "[\n" +
-                " {\n" +
-                "  \"value\": israa,\n" +
-                "  \"synonyms\": [\"i\"]\n"+
-                " }\n" +
-                "]";
-        try {
-            JSONArray jsonArray = new JSONArray(jsonString);
-            CustomJsonRequest jsonArrayRequest = new CustomJsonRequest(Request.Method.POST, entityUrl, jsonArray, new Response.Listener<JSONObject>() {
-                @Override
-                public void onResponse(JSONObject response) {
-                    Log.d("resp", response.toString());
-                }
-            }, new Response.ErrorListener() {
-                @Override
-                public void onErrorResponse(VolleyError error) {
-                    Log.d("error",error.toString());
-                }
-            }) {
-                @Override
-                public Map<String, String> getHeaders() throws AuthFailureError {
-                    Map<String, String> headers = new HashMap<>();
-                    headers.put("Authorization", "Bearer fe2437e5a86740a78ccdfac19d283494");
-                    headers.put("Content-Type", "application/json");
-                    return headers;
-                }
-
-            };
-            requestQueue.add(jsonArrayRequest);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        //here
-
 
         if (!isConnected) {
             // No Internet Connection
@@ -115,11 +77,13 @@ public class Room {
             body.put("name", name);
 
             Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
+
         } catch (JSONException e) {
             // The app failed
             httpResponse.onFailure(Constants.APP_FAILURE, null);
             e.printStackTrace();
         }
+
     }
 
     public void deleteRoom(Context context, final HTTPResponse httpResponse) {
