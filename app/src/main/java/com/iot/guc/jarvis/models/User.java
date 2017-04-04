@@ -23,6 +23,12 @@ public class User {
         this.type = type;
     }
 
+    public User(int id, String username, String type) {
+        this.id = id;
+        this.username = username;
+        this.type = type;
+    }
+
     public int getId() {
         return id;
     }
@@ -70,6 +76,30 @@ public class User {
             JSONObject body = new JSONObject();
             body.put("old_password", old_password);
             body.put("new_password", new_password);
+
+            Shared.request(context, Request.Method.PUT, url, body, true, httpResponse);
+        } catch (JSONException e) {
+            // The app failed
+            httpResponse.onFailure(Constants.APP_FAILURE, null);
+            e.printStackTrace();
+        }
+    }
+
+    public void updateAuth(Context context, int id, String type, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        try {
+            String url = "/api/user/" + id;
+            JSONObject body = new JSONObject();
+            body.put("type", type);
 
             Shared.request(context, Request.Method.PUT, url, body, true, httpResponse);
         } catch (JSONException e) {
@@ -142,5 +172,35 @@ public class User {
             httpResponse.onFailure(Constants.APP_FAILURE, null);
             e.printStackTrace();
         }
+    }
+
+    public static void getUsers(Context context, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        String url = "/api/user";
+        Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
+    }
+
+    public static void getUsers(Context context, int device_id, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        String url = "/api/user/" + device_id;
+        Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
     }
 }

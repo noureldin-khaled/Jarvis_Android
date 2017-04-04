@@ -1,7 +1,6 @@
 package com.iot.guc.jarvis.adapters;
 
 import android.content.Context;
-import android.support.v7.widget.CardView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -9,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.iot.guc.jarvis.R;
+import com.iot.guc.jarvis.fragments.PatternsFragment;
 import com.iot.guc.jarvis.models.Event;
 
 import java.util.ArrayList;
@@ -18,10 +18,12 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
 
     private ArrayList<ArrayList<Event>> sequences;
     private Context context;
+    private PatternsFragment fragment;
 
-    public PatternsAdapter(ArrayList<ArrayList<Event>>Data, Context context){
+    public PatternsAdapter(ArrayList<ArrayList<Event>>Data, Context context, PatternsFragment fragment){
         sequences = Data;
         this.context = context;
+        this.fragment = fragment;
     }
 
 
@@ -34,7 +36,7 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
-        SequenceAdapter sequenceAdapter = new SequenceAdapter(sequences.get(position));
+        SequenceAdapter sequenceAdapter = new SequenceAdapter(sequences.get(position),fragment,position);
         holder.recyclerView.setLayoutManager(new LinearLayoutManager(context));
         holder.recyclerView.setAdapter(sequenceAdapter);
     }
