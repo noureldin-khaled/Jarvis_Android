@@ -6,7 +6,7 @@
     android:paddingRight="28dp"
     android:paddingTop="@dimen/activity_vertical_margin">
 
-    <LinearLayout android:id="@+id/AddDeviceDialog_LinearLayout_Progress"
+    <LinearLayout android:id="@+id/ScanDeviceDialog_LinearLayout_Progress"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
@@ -15,29 +15,31 @@
 
         <ProgressBar android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:indeterminateTint="@color/colorPrimary"
             android:layout_gravity="center"/>
 
         <TextView android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Scanning For Devices..."
+            android:textColor="@color/Black"
             android:layout_gravity="center"/>
     </LinearLayout>
 
-    <LinearLayout android:id="@+id/AddDeviceDialog_LinearLayout_DevicesLayout"
+    <LinearLayout android:id="@+id/ScanDeviceDialog_LinearLayout_DevicesLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView android:id="@+id/AddDeviceDialog_TextView_Title"
+        <TextView android:id="@+id/ScanDeviceDialog_TextView_Title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Devices Found"
             android:layout_gravity="center"
             android:textSize="20dp"
             android:fontFamily="serif-monospace"
-            android:textColor="@color/passwordVisible" />
+            android:textColor="@color/Black" />
 
-        <ListView android:id="@+id/AddDeviceDialog_ListView_DeviceList"
+        <ListView android:id="@+id/ScanDeviceDialog_ListView_DeviceList"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="17dp">

@@ -2,6 +2,7 @@ package com.iot.guc.jarvis;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
@@ -15,6 +16,7 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.iot.guc.jarvis.fragments.ChatFragment;
+import com.iot.guc.jarvis.fragments.DeviceFragment;
 import com.iot.guc.jarvis.fragments.RoomFragment;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
@@ -44,6 +46,7 @@ public class Shared {
     private static User auth;
     private static ArrayList<Room> rooms = new ArrayList<>();
     private static ArrayList<Device> devices = new ArrayList<>();
+    private static int selectedRoom = -1;
 
     public static String getCurrentTime() {
         Date today = Calendar.getInstance().getTime();
@@ -71,6 +74,14 @@ public class Shared {
         Shared.auth = auth;
     }
 
+    public static int getSelectedRoom() {
+        return selectedRoom;
+    }
+
+    public static void setSelectedRoom(int selectedRoom) {
+        Shared.selectedRoom = selectedRoom;
+    }
+
     public static ArrayList<Room> getRooms() {
         return rooms;
     }
@@ -79,7 +90,16 @@ public class Shared {
         return devices;
     }
 
-    public static  Device getDevice(int deviceId){
+    public static ArrayList<Device> getDevices(int room_id) {
+        ArrayList<Device> res = new ArrayList<>();
+        for (Device d : devices)
+            if (d.getRoom_id() == room_id)
+                res.add(d);
+
+        return res;
+    }
+
+    public static Device getDevice(int deviceId){
         for(int i=0; i <Shared.getDevices().size();i++){
             Device d = devices.get(i);
             if(d.getId()==deviceId)
@@ -154,11 +174,13 @@ public class Shared {
         devices.remove(index);
     }
 
-    public static  void  removeDevice(Device d){
-        for(int i =0;i<devices.size();i++){
-            if(d.getId()==devices.get(i).getId())
-                devices.remove(i);
-        }
+    public static void removeDevice(Device d){
+        int idx = -1;
+        for(int i = 0; i < devices.size() && idx == -1; i++)
+            if(d.getId() == devices.get(i).getId())
+                idx = i;
+
+        removeDevice(idx);
     }
 
     public static void clearDevices() {
@@ -182,6 +204,10 @@ public class Shared {
     }
 
     public static void collapseKeyBoard(RoomFragment fragment) {
+        fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
+
+    public static void collapseKeyBoard(DeviceFragment fragment) {
         fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
@@ -264,6 +290,11 @@ public class Shared {
                 queue.add(request);
             }
         }).start();
+    }
+
+    public static int dpToPx(int dp, Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
     }
 
     //API REQUESTS

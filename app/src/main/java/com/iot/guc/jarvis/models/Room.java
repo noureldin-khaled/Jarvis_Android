@@ -101,7 +101,7 @@ public class Room {
         Shared.request(context, Request.Method.DELETE, url, null, true, httpResponse);
     }
 
-    public void editRoom( Context context,String name, final HTTPResponse httpResponse){
+    public void editRoom(Context context,String name, final HTTPResponse httpResponse){
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
@@ -111,14 +111,13 @@ public class Room {
             return;
         }
 
-        String url = Shared.getServer().URL()+"/api/room/"+getId();
+        String url = "/api/room/" + getId();
         try{
-
             JSONObject body = new JSONObject();
-            body.put("name",name);
-            Shared.request(context,Request.Method.PUT,url,body,true,httpResponse);
+            body.put("name", name);
 
-        }catch (JSONException e){
+            Shared.request(context, Request.Method.PUT, url, body, true, httpResponse);
+        } catch (JSONException e){
             httpResponse.onFailure(Constants.APP_FAILURE,null);
             e.printStackTrace();
         }

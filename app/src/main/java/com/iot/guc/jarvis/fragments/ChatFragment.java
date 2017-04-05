@@ -16,6 +16,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
 import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.controllers.MainActivity;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
@@ -41,8 +42,6 @@ public class ChatFragment extends Fragment {
 
     private final AIConfiguration config = new AIConfiguration("97135bec060c48f9a6cc15dcf018ba2b",
         AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
-//    private AIService aiService;
-//    private AIDataService aiDataService;
     private EditText ChatFragment_EditText_Message;
     private ChatAdapter chatAdapter;
     private ListView ChatFragment_ListView_MessageList;
@@ -53,8 +52,8 @@ public class ChatFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         ChatFragment_EditText_Message = (EditText) view.findViewById(R.id.ChatFragment_EditText_Message);
         ChatFragment_ListView_MessageList = (ListView) view.findViewById(R.id.ChatFragment_ListView_MessageList);
-        final FloatingActionButton fab = (FloatingActionButton) view.findViewById(R.id.ChatFragment_FloatingActionButton_Send);
-        fab.setOnClickListener(new View.OnClickListener() {
+        final FloatingActionButton ChatFragment_FloatingActionButton_Send = (FloatingActionButton) view.findViewById(R.id.ChatFragment_FloatingActionButton_Send);
+        ChatFragment_FloatingActionButton_Send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (ChatFragment_EditText_Message.getText().toString().isEmpty()) {
@@ -82,9 +81,9 @@ public class ChatFragment extends Fragment {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 if (s.toString().isEmpty())
-                    fab.setImageResource(android.R.drawable.ic_btn_speak_now);
+                    ChatFragment_FloatingActionButton_Send.setImageResource(R.drawable.ic_mic);
                 else
-                    fab.setImageResource(android.R.drawable.ic_media_play);
+                    ChatFragment_FloatingActionButton_Send.setImageResource(R.drawable.ic_send);
             }
 
             @Override
@@ -118,13 +117,10 @@ public class ChatFragment extends Fragment {
     public void sendMessage(String message) {
         if (message.isEmpty()) return;
 
-
         chatAdapter.add(new ChatMessage(message, true, Shared.getCurrentDate(), Shared.getCurrentTime()));
         chatAdapter.notifyDataSetChanged();
 
         new ChatAsyncTask().execute(message);
-
-
     }
 
     public void handleChat(Params result) {
