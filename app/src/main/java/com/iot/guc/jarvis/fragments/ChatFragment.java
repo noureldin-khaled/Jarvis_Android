@@ -16,7 +16,7 @@ import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
 import com.iot.guc.jarvis.Constants;
-import com.iot.guc.jarvis.controllers.MainActivity;
+import com.iot.guc.jarvis.responses.ChatResponse;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
@@ -24,19 +24,15 @@ import com.iot.guc.jarvis.VoiceRecognition;
 import com.iot.guc.jarvis.responses.VoiceResponse;
 import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.models.ChatMessage;
-import com.iot.guc.jarvis.models.Device;
-import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Params;
 import com.iot.guc.jarvis.ChatAPI;
 import org.json.JSONObject;
 import java.util.ArrayList;
-import ai.api.AIServiceException;
 import ai.api.android.AIConfiguration;
 import ai.api.android.AIDataService;
 import ai.api.android.AIService;
-import ai.api.model.AIRequest;
-import ai.api.model.AIResponse;
-import android.util.Log;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 
 public class ChatFragment extends Fragment {
 
@@ -46,6 +42,7 @@ public class ChatFragment extends Fragment {
     private ChatAdapter chatAdapter;
     private ListView ChatFragment_ListView_MessageList;
     private VoiceRecognition voiceRecognition;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -109,6 +106,7 @@ public class ChatFragment extends Fragment {
 
         ChatAPI.aiService = AIService.getService(getContext(), config);
         ChatAPI.aiDataService = new AIDataService(getContext(), config);
+        ChatAPI.queue = Volley.newRequestQueue(getContext());
         getActivity().setTitle("Chat");
         return view;
     }
@@ -174,14 +172,28 @@ public class ChatFragment extends Fragment {
     }
 
     private class ChatAsyncTask extends AsyncTask<String, Void, Params> {
+
         @Override
         protected Params doInBackground(String... params) {
-            return ChatAPI.handleChat(params[0]);
+
+            ChatAPI.handleChat(params[0], getContext(), new ChatResponse() {
+                @Override
+                public void onSuccess(int statusCode, final Params param) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            handleChat(param);
+                        }
+                    });
+
+                }
+            });
+            return null;
         }
 
         @Override
         protected void onPostExecute(Params result) {
-            handleChat(result);
+//            handleChat(result);
         }
     }
 
