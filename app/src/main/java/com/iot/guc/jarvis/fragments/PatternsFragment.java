@@ -72,6 +72,10 @@ public class PatternsFragment extends Fragment {
             public void onSuccess(int statusCode, JSONObject body) {
                 try {
                     JSONArray patterns = body.getJSONArray("patterns");
+                    if(patterns==null){
+                        noPatterns.setVisibility(View.VISIBLE);
+                        return;
+                    }
                     ArrayList<ArrayList<Event>> p = new ArrayList<ArrayList<Event>>();
                     for (int i =0; i<patterns.length();i++){
                         JSONArray sequence = patterns.getJSONArray(i);
