@@ -6,36 +6,28 @@ package com.iot.guc.jarvis;
 
 import android.content.Context;
 import android.util.Log;
-
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
-import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Params;
-import com.iot.guc.jarvis.requests.CustomJsonRequest;
 import com.iot.guc.jarvis.responses.ChatResponse;
-import com.iot.guc.jarvis.responses.HTTPResponse;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import ai.api.AIServiceException;
-import ai.api.android.AIConfiguration;
 import ai.api.android.AIDataService;
 import ai.api.android.AIService;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
+import java.util.Date;
 
 public class ChatAPI {
 
@@ -45,10 +37,25 @@ public class ChatAPI {
     static boolean incompleteLight = false;
     static String incompleteLightMessage = "";
     static String countryCode = "";
-    static String weatherForeCast = "";
     static String message;
     static boolean status;
     static Device d;
+
+    public static String parseResponse(JSONObject response) throws JSONException {
+        int count = response.getInt("cnt");
+        JSONArray list = response.getJSONArray("list");
+        String result = "";
+
+        for(int i = 0; i < count; i++){
+            JSONObject day = list.getJSONObject(i);
+            long unixSeconds = day.getLong("dt");
+            Date date = new Date(unixSeconds*1000L);
+            result += date.toString().substring(0,10) + ", ";
+            int temp = (int)Math.ceil(((day.getJSONObject("temp").getDouble("min") + day.getJSONObject("temp").getDouble("max")) / 2 ) - 273.15);
+            result += temp + "°C, " + day.getJSONArray("weather").getJSONObject(0).getString("description") + "\n";
+        }
+        return result;
+    }
 
     public static void handleChat(String requestMessage, Context context, final ChatResponse chatResponse) {
 
@@ -128,10 +135,7 @@ public class ChatAPI {
                 chatResponse.onSuccess(200,new Params(d,status,message));
             }
             else if(action.equals("weatherForeCast")){
-
-
                 String cityName = aiResponse.getResult().getStringParameter("geo-city");
-                //here
                 final String URL = Shared.getServer().URL() + "/api/country/";
                 JSONObject body = new JSONObject();
                 try {
@@ -153,9 +157,9 @@ public class ChatAPI {
                                         final JsonObjectRequest weatherForeCastrequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                                             @Override
                                             public void onResponse(JSONObject response) {
-
                                                 try {
-                                                    message = response.getJSONArray("list").getJSONObject(0).getJSONObject("temp").getDouble("day")+"";
+                                                    message = parseResponse(response);
+                                                    //message = response.getJSONArray("list").getJSONObject(0).getJSONObject("temp").getDouble("day")+"";
                                                 } catch (JSONException e) {
                                                     e.printStackTrace();
                                                 }
@@ -208,8 +212,6 @@ public class ChatAPI {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                //here
-
             }
             else {
                 message = aiResponse.getResult().getFulfillment().getSpeech();
@@ -224,91 +226,4 @@ public class ChatAPI {
 
     }
 
-
-
-//    public static void country(Context context, String cityName, final HTTPResponse httpResponse){
-//
-//        RequestQueue queue = Volley.newRequestQueue(context);
-//        final String URL = Shared.getServer().URL() + "/api/country/";
-//        JSONObject body = new JSONObject();
-//        try {
-//            body.put("cityName", cityName);
-//        } catch (JSONException e) {
-//            e.printStackTrace();
-//        }
-//
-//        try {
-//            JsonObjectRequest cityCountryrequest = new JsonObjectRequest(Request.Method.POST, URL, body, new Response.Listener<JSONObject>() {
-//                @Override
-//                public void onResponse(JSONObject response) {
-//                    httpResponse.onSuccess(200,response);
-//                    try {
-//                        JSONArray countries = response.getJSONArray("code");
-//                        if(countries.length() > 0){
-//                            countryCode = countries.getJSONObject(0).getString("country");
-//                            String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q="+countries.getJSONObject(0).getString("name").toLowerCase()+","+countryCode+"&id=524901&APPID=88704427a46ca5ed706fdcd943b95cb9";
-//                            weatherForeCast(context,url);
-//                            Log.d("cooode", countryCode);
-//                        }
-//                        else{
-//                            Log.d("cde", countryCode);
-//                            countryCode = "";
-//                        }
-//                    } catch (JSONException e) {
-//                        e.printStackTrace();
-//                    }
-//                    Log.d("resp", response.toString());
-//                }
-//            }, new Response.ErrorListener() {
-//                @Override
-//                public void onErrorResponse(VolleyError error) {
-//                    Log.d("error",error.toString());
-//                }
-//            }) {
-//                @Override
-//                public Map<String, String> getHeaders() throws AuthFailureError {
-//                    Map<String, String> headers = new HashMap<>();
-//                    headers.put("Authorization", Shared.getAuth().getToken());
-//                    headers.put("Content-Type", "application/json");
-//                    return headers;
-//                }
-//            };
-//            queue.add(cityCountryrequest);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
-//
-
-//    public static void weatherForeCast(Context context, String url){
-//
-//        RequestQueue queue = Volley.newRequestQueue(context);
-//
-//        try {
-//            final JsonObjectRequest weatherForeCastrequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-//                @Override
-//                public void onResponse(JSONObject response) {
-//                    weatherForeCast = response.toString();
-//                    Log.d("weather forecast", response.toString());
-//                }
-//            }, new Response.ErrorListener() {
-//                @Override
-//                public void onErrorResponse(VolleyError error) {
-//                    Log.d("error",error.toString());
-//                }
-//            }) {
-//                @Override
-//                public Map<String, String> getHeaders() throws AuthFailureError {
-//                    Map<String, String> headers = new HashMap<>();
-//                    headers.put("Content-Type", "application/json");
-//                    return headers;
-//                }
-//            };
-//            queue.add(weatherForeCastrequest);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//
-//    }
 }
