@@ -37,7 +37,6 @@ import java.util.ArrayList;
 public class PatternsFragment extends Fragment {
 
     private ArrayList<ArrayList<Event>> Patterns = new ArrayList<ArrayList<Event>>();
-    private ProgressBar progressBar;
     private LinearLayout Patterns_LinearLayout;
     private TextView noPatterns;
     private PatternsAdapter patternsAdapter;
@@ -48,11 +47,8 @@ public class PatternsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_patterns,container,false);
         RecyclerView recyclerView = (RecyclerView) view.findViewById(R.id.Patterns_RecyclerView_list);
 
-        progressBar = (ProgressBar) view.findViewById(R.id.Patterns_ProgressBar);
         noPatterns = (TextView) view.findViewById(R.id.Patterns_TextView_NoPatterns);
         Patterns_LinearLayout = (LinearLayout) view.findViewById(R.id.Patterns_LinearLayout);
-
-        progressBar.setVisibility(View.VISIBLE);
 
 
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(getActivity());
@@ -67,51 +63,11 @@ public class PatternsFragment extends Fragment {
 
     private void fillData() {
 
-        Shared.request(getContext(), Request.Method.GET, "/api/patterns", null, true, new HTTPResponse() {
-            @Override
-            public void onSuccess(int statusCode, JSONObject body) {
-                try {
-                    JSONArray patterns = body.getJSONArray("patterns");
-                    if(patterns==null){
-                        noPatterns.setVisibility(View.VISIBLE);
-                        return;
-                    }
-                    ArrayList<ArrayList<Event>> p = new ArrayList<ArrayList<Event>>();
-                    for (int i =0; i<patterns.length();i++){
-                        JSONArray sequence = patterns.getJSONArray(i);
-                        ArrayList<Event> s = new ArrayList<Event>();
-                        for (int j =0; j<sequence.length();j++){
-                            JSONObject event = sequence.getJSONObject(j);
-                            Event e = new Event();
-                            e.setTime(event.getString("time"));
-                            e.setDevice(event.getString("device"));
-                            e.setStatus(event.getBoolean("status"));
-                            s.add(e);
-                        }
-                        p.add(s);
-                    }
-                    progressBar.setVisibility(View.GONE);
-                    Patterns = p;
-                    if(p.size()==0)
-                        noPatterns.setVisibility(View.VISIBLE);
+        Patterns = Shared.getPatterns();
 
-
-                } catch (JSONException e) {
-                    progressBar.setVisibility(View.GONE);
-                    noPatterns.setVisibility(View.VISIBLE);
-                    Snackbar.make(Patterns_LinearLayout,"Something Went Wrong!",Snackbar.LENGTH_SHORT);
-                    e.printStackTrace();
-                }
-
-            }
-
-            @Override
-            public void onFailure(int statusCode, JSONObject body) {
-                progressBar.setVisibility(View.GONE);
-                noPatterns.setVisibility(View.VISIBLE);
-                Snackbar.make(Patterns_LinearLayout,"Something Went Wrong!",Snackbar.LENGTH_SHORT);
-            }
-        });
+        if (Patterns.isEmpty()){
+            noPatterns.setVisibility(View.VISIBLE);
+        }
 
 //        Event ev1 = new Event();
 //        ev1.setDevice("D1");
@@ -145,6 +101,7 @@ public class PatternsFragment extends Fragment {
 
         final TextInputLayout AddRoomDialog_TextInputLayout_RoomNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddRoomDialog_TextInputLayout_RoomNameLayout);
         final EditText AddRoomDialog_EditText_RoomName = (EditText) contentView.findViewById(R.id.AddRoomDialog_EditText_RoomName);
+        AddRoomDialog_EditText_RoomName.setText("Enter Time (HH:MM)");
         final ProgressBar AddRoomDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.AddRoomDialog_ProgressBar_Progress);
         final LinearLayout AddRoomDialog_LinearLayout_AddRoomForm = (LinearLayout) contentView.findViewById(R.id.AddRoomDialog_LinearLayout_AddRoomForm);
         final TextView AddRoomDialog_TextView_Title = (TextView) contentView.findViewById(R.id.AddRoomDialog_TextView_Title);
@@ -197,6 +154,8 @@ public class PatternsFragment extends Fragment {
 
             @Override
             public void onNegative(AlertDialog dialog) {
+                PatternsFragment.this.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+                dialog.dismiss();
 
             }
 

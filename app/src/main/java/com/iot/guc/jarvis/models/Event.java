@@ -4,6 +4,7 @@ public class Event {
 
     private String time;
     private String device;
+    private int device_id;
     private Boolean status;
 
     public String getTime() {
@@ -29,4 +30,13 @@ public class Event {
     public void setStatus(Boolean status) {
         this.status = status;
     }
+
+    public int getDevice_id() {
+        return device_id;
+    }
+
+    public void setDevice_id(int device_id) {
+        this.device_id = device_id;
+    }
+
 }
