@@ -113,7 +113,7 @@ public class Shared {
 
         final String jsonString = "[\n" +
                 " {\n" +
-                "  \"value\": "+r.getName()+",\n" +
+                "  \"value\": \""+r.getName()+"\",\n" +
                 "  \"synonyms\": [\""+r.getName()+"\"]\n"+
                 " }\n" +
                 "]";

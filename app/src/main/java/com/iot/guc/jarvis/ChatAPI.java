@@ -36,6 +36,8 @@ public class ChatAPI {
     public static RequestQueue queue;
     static boolean incompleteLight = false;
     static String incompleteLightMessage = "";
+    static boolean incompleteWeather = false;
+    static String incompleteWeatherMessage = "";
     static String countryCode = "";
     static String message;
     static boolean status;
@@ -57,7 +59,7 @@ public class ChatAPI {
         return result;
     }
 
-    public static void handleChat(String requestMessage, Context context, final ChatResponse chatResponse) {
+    public static void handleChat(String requestMessage,final ChatResponse chatResponse) {
 
         status = false;
         message = "";
@@ -70,7 +72,12 @@ public class ChatAPI {
             if(!incompleteLightMessage.isEmpty()){
                 aiRequest.setQuery(incompleteLightMessage+requestMessage);
                 incompleteLightMessage = "";
-                Log.i("QUERY",incompleteLightMessage);
+                Log.d("QUERY",incompleteLightMessage);
+            }
+            else if(!incompleteWeatherMessage.isEmpty()){
+                aiRequest.setQuery(incompleteWeatherMessage+requestMessage);
+                incompleteWeatherMessage = "";
+                Log.d("QUERY",incompleteWeatherMessage);
             }
             else{
                 aiRequest.setQuery(requestMessage);
@@ -89,7 +96,6 @@ public class ChatAPI {
                     if (aiResponse.getResult().isActionIncomplete()) {
                         message = aiResponse.getResult().getFulfillment().getSpeech();
                         if (incompleteLight) {
-
                             incompleteLight = false;
                         } else {
                             incompleteLightMessage = "turn on the light in the ";
@@ -132,95 +138,104 @@ public class ChatAPI {
                         message = "Device does not exist in the room";
                     }
                 }
-                chatResponse.onSuccess(200,new Params(d,status,message));
+                chatResponse.onSuccess(new Params(d,status,message));
             }
             else if(action.equals("weatherForeCast")){
                 String cityName = aiResponse.getResult().getStringParameter("geo-city");
-                final String URL = Shared.getServer().URL() + "/api/country/";
-                JSONObject body = new JSONObject();
-                try {
-                    body.put("cityName", cityName);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+                if (aiResponse.getResult().isActionIncomplete()) {
+                    message = aiResponse.getResult().getFulfillment().getSpeech();
+                    incompleteWeatherMessage = "weather in "+cityName+" ";
+                    chatResponse.onSuccess(new Params(d,status,message));
+                } else {
+
+                    final int duration = Integer.parseInt(aiResponse.getResult().getStringParameter("duration"));
+                    final String URL = Shared.getServer().URL() + "/api/country/";
+                    JSONObject body = new JSONObject();
+                    try {
+                        body.put("cityName", cityName);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    try {
+                        JsonObjectRequest cityCountryrequest = new JsonObjectRequest(Request.Method.POST, URL, body, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                try {
+                                    JSONArray countries = response.getJSONArray("code");
+                                    if(countries.length() > 0){
+                                        countryCode = countries.getJSONObject(0).getString("country");
+                                        String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q="+countries.getJSONObject(0).getString("name").toLowerCase()+","+countryCode+"&cnt="+duration+"&id=524901&APPID=88704427a46ca5ed706fdcd943b95cb9";
+                                        try {
+                                            final JsonObjectRequest weatherForeCastrequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                                                @Override
+                                                public void onResponse(JSONObject response) {
+                                                    try {
+                                                        message = parseResponse(response);
+                                                    } catch (JSONException e) {
+                                                        e.printStackTrace();
+                                                    }
+                                                    chatResponse.onSuccess(new Params(d,status,message));
+                                                }
+                                            }, new Response.ErrorListener() {
+                                                @Override
+                                                public void onErrorResponse(VolleyError error) {
+                                                    message = "Something went wrong here";
+                                                    chatResponse.onSuccess(new Params(d,status,message));
+                                                }
+                                            }) {
+                                                @Override
+                                                public Map<String, String> getHeaders() throws AuthFailureError {
+                                                    Map<String, String> headers = new HashMap<>();
+                                                    headers.put("Content-Type", "application/json");
+                                                    return headers;
+                                                }
+                                            };
+                                            queue.add(weatherForeCastrequest);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    else{
+                                        message = "Please enter a valid city name";
+                                        chatResponse.onSuccess(new Params(d,status,message));
+                                    }
+                                } catch (JSONException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }, new Response.ErrorListener() {
+                            @Override
+                            public void onErrorResponse(VolleyError error) {
+                                Log.d("error",error.toString());
+                                message = "Something went wrong here again";
+                                chatResponse.onSuccess(new Params(d,status,message));
+                            }
+                        }) {
+                            @Override
+                            public Map<String, String> getHeaders() throws AuthFailureError {
+                                Map<String, String> headers = new HashMap<>();
+                                headers.put("Authorization", Shared.getAuth().getToken());
+                                headers.put("Content-Type", "application/json");
+                                return headers;
+                            }
+                        };
+                        queue.add(cityCountryrequest);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                 }
 
-                try {
-                    JsonObjectRequest cityCountryrequest = new JsonObjectRequest(Request.Method.POST, URL, body, new Response.Listener<JSONObject>() {
-                        @Override
-                        public void onResponse(JSONObject response) {
-                            try {
-                                JSONArray countries = response.getJSONArray("code");
-                                if(countries.length() > 0){
-                                    countryCode = countries.getJSONObject(0).getString("country");
-                                    String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q="+countries.getJSONObject(0).getString("name").toLowerCase()+","+countryCode+"&id=524901&APPID=88704427a46ca5ed706fdcd943b95cb9";
-                                    try {
-                                        final JsonObjectRequest weatherForeCastrequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                                            @Override
-                                            public void onResponse(JSONObject response) {
-                                                try {
-                                                    message = parseResponse(response);
-                                                    //message = response.getJSONArray("list").getJSONObject(0).getJSONObject("temp").getDouble("day")+"";
-                                                } catch (JSONException e) {
-                                                    e.printStackTrace();
-                                                }
-                                                chatResponse.onSuccess(200,new Params(d,status,message));
-                                            }
-                                        }, new Response.ErrorListener() {
-                                            @Override
-                                            public void onErrorResponse(VolleyError error) {
-                                                message = "Something went wrong here";
-                                                chatResponse.onSuccess(200,new Params(d,status,message));
-                                            }
-                                        }) {
-                                            @Override
-                                            public Map<String, String> getHeaders() throws AuthFailureError {
-                                                Map<String, String> headers = new HashMap<>();
-                                                headers.put("Content-Type", "application/json");
-                                                return headers;
-                                            }
-                                        };
-                                        queue.add(weatherForeCastrequest);
-                                    } catch (Exception e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                                else{
-                                    message = "Please enter a valid city name";
-                                    chatResponse.onSuccess(200,new Params(d,status,message));
-                                }
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }, new Response.ErrorListener() {
-                        @Override
-                        public void onErrorResponse(VolleyError error) {
-                            Log.d("error",error.toString());
-                            message = "Something went wrong here again";
-                            chatResponse.onSuccess(200,new Params(d,status,message));
-                        }
-                    }) {
-                        @Override
-                        public Map<String, String> getHeaders() throws AuthFailureError {
-                            Map<String, String> headers = new HashMap<>();
-                            headers.put("Authorization", Shared.getAuth().getToken());
-                            headers.put("Content-Type", "application/json");
-                            return headers;
-                        }
-                    };
-                    queue.add(cityCountryrequest);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
             }
             else {
                 message = aiResponse.getResult().getFulfillment().getSpeech();
-                chatResponse.onSuccess(200,new Params(d,status,message));
+                chatResponse.onSuccess(new Params(d,status,message));
             }
 
         } catch (AIServiceException e) {
             message = "Something Went Wrong!";
-            chatResponse.onSuccess(200,new Params(d,status,message));
+            chatResponse.onSuccess(new Params(d,status,message));
             e.printStackTrace();
         }
 
