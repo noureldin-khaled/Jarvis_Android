@@ -1,6 +1,8 @@
 package com.iot.guc.jarvis.models;
 
-public class Event {
+import java.io.Serializable;
+
+public class Event implements Serializable {
 
     private String time;
     private String device;

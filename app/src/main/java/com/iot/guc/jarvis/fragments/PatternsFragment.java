@@ -126,6 +126,7 @@ public class PatternsFragment extends Fragment {
 
             }
             Patterns.get(sequence).get(event).setTime(AddRoomDialog_EditText_RoomName.getText().toString());
+            Shared.setPatterns(Patterns);
             patternsAdapter.notifyDataSetChanged();
             JSONObject body = new JSONObject();
                 try {

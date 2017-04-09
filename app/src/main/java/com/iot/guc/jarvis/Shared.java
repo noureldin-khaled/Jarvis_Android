@@ -60,6 +60,7 @@ public class Shared {
     public static ArrayList<ArrayList<Event>> getPatterns(){
         return Patterns;
     }
+
     public static void setPatterns(ArrayList<ArrayList<Event>> p){
         Shared.Patterns = p;
     }
