@@ -33,8 +33,10 @@ import com.iot.guc.jarvis.adapters.ScannedUserAdapter;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.User;
+import com.iot.guc.jarvis.responses.DeviceResponse;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.PopupResponse;
+import com.iot.guc.jarvis.responses.ServerResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -138,7 +140,7 @@ public class DeviceFragment extends Fragment {
 
     public void reload() {
         ArrayList<Device> a = Shared.getDevices(room.getId());
-        adapter = new DeviceAdapter(getContext(), a);
+        adapter = new DeviceAdapter(getContext(), a, DeviceFragment.this);
         DeviceFragment_ListView_Devices.setAdapter(adapter);
         if (a.isEmpty())
             DeviceFragment_TextView_NoDevicesFound.setVisibility(View.VISIBLE);
@@ -766,5 +768,34 @@ public class DeviceFragment extends Fragment {
 
                     }
                 }).create().show();
+    }
+
+    public void handleDevice(int position, boolean status, final DeviceResponse response) {
+        Device device = (Device) adapter.getItem(position);
+        device.handle(getContext(), status, new HTTPResponse() {
+            @Override
+            public void onSuccess(int statusCode, JSONObject body) {
+                response.onSuccess();
+            }
+
+            @Override
+            public void onFailure(int statusCode, JSONObject body) {
+                switch (statusCode) {
+                    case Constants.NO_INTERNET_CONNECTION: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                    }
+                    break;
+                    case Constants.SERVER_NOT_REACHED: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "Device Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
+                    }
+                    break;
+                    default: {
+                        Snackbar.make(DeviceFragment_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                    }
+                }
+
+                response.onFailure();
+            }
+        });
     }
 }

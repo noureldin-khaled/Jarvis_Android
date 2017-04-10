@@ -57,8 +57,11 @@ public class ChatFragment extends Fragment {
                     // Voice
                     if (ContextCompat.checkSelfPermission(getActivity(), Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED)
                         requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, Constants.PERMISSION_CODE);
-                    else
+                    else {
                         voiceRecognition.listen();
+                        ChatFragment_EditText_Message.setEnabled(false);
+                        ChatFragment_EditText_Message.setHint("Listening...");
+                    }
                 }
                 else {
                     // Text
@@ -94,11 +97,15 @@ public class ChatFragment extends Fragment {
         voiceRecognition = new VoiceRecognition(getContext(), new VoiceResponse() {
             @Override
             public void onSuccess(String result) {
+                ChatFragment_EditText_Message.setEnabled(true);
+                ChatFragment_EditText_Message.setHint("Write Something...");
                 sendMessage(result);
             }
 
             @Override
             public void onError(int error) {
+                ChatFragment_EditText_Message.setEnabled(true);
+                ChatFragment_EditText_Message.setHint("Write Something...");
                 chatAdapter.add(new ChatMessage("I Can\'t hear you!", false, Shared.getCurrentDate(), Shared.getCurrentTime()));
                 chatAdapter.notifyDataSetChanged();
             }
