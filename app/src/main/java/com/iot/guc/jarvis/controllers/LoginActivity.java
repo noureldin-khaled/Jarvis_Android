@@ -354,7 +354,7 @@ public class LoginActivity extends AppCompatActivity {
                     JSONArray rooms = body.getJSONArray("rooms");
                     for (int i = 0; i < rooms.length(); i++) {
                         JSONObject current = rooms.getJSONObject(i);
-                        Shared.addRoom(new Room(current.getInt("id"), current.getString("name")));
+                        Shared.addRoom(new Room(current.getInt("id"), current.getString("name")),getApplicationContext());
                     }
 
                     fetchDevices(fromForm);

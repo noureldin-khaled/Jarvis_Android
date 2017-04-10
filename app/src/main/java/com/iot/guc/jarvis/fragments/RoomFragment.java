@@ -12,9 +12,6 @@ import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AlertDialog;
-import android.transition.Transition;
-import android.transition.TransitionInflater;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +21,6 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.Popup;
 import com.iot.guc.jarvis.R;
@@ -33,11 +29,9 @@ import com.iot.guc.jarvis.adapters.RoomAdapter;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.PopupResponse;
-
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
 
 public class RoomFragment extends Fragment {
@@ -138,7 +132,6 @@ public class RoomFragment extends Fragment {
     public void addRoom() {
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View contentView = inflater.inflate(R.layout.dialog_add_room, null);
-
         final TextInputLayout AddRoomDialog_TextInputLayout_RoomNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddRoomDialog_TextInputLayout_RoomNameLayout);
         final EditText AddRoomDialog_EditText_RoomName = (EditText) contentView.findViewById(R.id.AddRoomDialog_EditText_RoomName);
         final ProgressBar AddRoomDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.AddRoomDialog_ProgressBar_Progress);
@@ -169,9 +162,13 @@ public class RoomFragment extends Fragment {
 
                             try {
                                 JSONObject jsonRoom = body.getJSONObject("room");
-                                Shared.addRoom(new Room(jsonRoom.getInt("id") , jsonRoom.getString("name")));
+                                Room r = new Room(jsonRoom.getInt("id") , jsonRoom.getString("name"));
+                                Shared.addRoom(r,getContext());
                                 reload();
+                                Shared.collapseKeyBoard(RoomFragment.this);
+                                dialog.dismiss();
                                 Snackbar.make(RoomFragment_CoordinatorLayout_MainContentView, "Room Created Successfully", Snackbar.LENGTH_LONG).show();
+
                             } catch (JSONException e) {
                                 Snackbar.make(RoomFragment_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
                             }
@@ -268,7 +265,6 @@ public class RoomFragment extends Fragment {
 
     public void deleteRoom(final int roomIndex) {
         final Room room = Shared.getRooms().get(roomIndex);
-
         new AlertDialog.Builder(getActivity()).setTitle("Confirmation")
                 .setMessage("Are you sure you want to delete this room?\n(All devices in the room will be deleted as well)")
                 .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
@@ -330,7 +326,6 @@ public class RoomFragment extends Fragment {
 
     public void editRoom(final int roomIndex){
         final Room room = Shared.getRooms().get(roomIndex);
-
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View contentView = inflater.inflate(R.layout.dialog_add_room, null);
         TextView AddRoomDialog_TextView_Title =(TextView) contentView.findViewById(R.id.AddRoomDialog_TextView_Title);
@@ -362,6 +357,7 @@ public class RoomFragment extends Fragment {
                     room.editRoom(getContext(), new_name, new HTTPResponse() {
                         @Override
                         public void onSuccess(int statusCode, JSONObject body) {
+
                             Shared.collapseKeyBoard(RoomFragment.this);
                             dialog.dismiss();
                             Shared.editRoom(roomIndex, new Room(room.getId(), new_name));

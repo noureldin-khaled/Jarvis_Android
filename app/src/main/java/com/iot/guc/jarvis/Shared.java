@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
@@ -22,9 +23,11 @@ import com.iot.guc.jarvis.models.Event;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Server;
 import com.iot.guc.jarvis.models.User;
+import com.iot.guc.jarvis.requests.CustomJsonRequest;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.ServerResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -114,9 +117,46 @@ public class Shared {
         }
         return null;
     }
+    public static void addRoomAPIAI(Room r, Context context){
+        String entityUrl = "https://api.api.ai/v1/entities/9088204c-b4bf-4330-bb41-771b99af06ca/entries?v=20150910";
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
 
-    public static void addRoom(Room r) {
+        final String jsonString = "[\n" +
+                " {\n" +
+                "  \"value\": \""+r.getName()+"\",\n" +
+                "  \"synonyms\": [\""+r.getName()+"\"]\n"+
+                " }\n" +
+                "]";
+        try {
+            JSONArray jsonArray = new JSONArray(jsonString);
+            CustomJsonRequest jsonArrayRequest = new CustomJsonRequest(Request.Method.POST, entityUrl, jsonArray, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("resp", response.toString());
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("error",error.toString());
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer fe2437e5a86740a78ccdfac19d283494");
+                    headers.put("Content-Type", "application/json");
+                    return headers;
+                }
+            };
+            requestQueue.add(jsonArrayRequest);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addRoom(Room r, Context context) {
         rooms.add(r);
+        addRoomAPIAI(r,context);
     }
 
     public static void removeRoom(int index) {
