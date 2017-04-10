@@ -138,6 +138,7 @@ public class ChatAPI {
                         message = "Device does not exist in the room";
                     }
                 }
+                Log.d("Result",status+message);
                 chatResponse.onSuccess(new Params(d,status,message));
             }
             else if(action.equals("weatherForeCast")){
