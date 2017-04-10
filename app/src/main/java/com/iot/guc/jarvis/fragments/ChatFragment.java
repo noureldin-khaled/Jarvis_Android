@@ -15,9 +15,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
-
 import com.iot.guc.jarvis.Constants;
-import com.iot.guc.jarvis.controllers.MainActivity;
+import com.iot.guc.jarvis.responses.ChatResponse;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
@@ -25,28 +24,25 @@ import com.iot.guc.jarvis.VoiceRecognition;
 import com.iot.guc.jarvis.responses.VoiceResponse;
 import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.models.ChatMessage;
-import com.iot.guc.jarvis.models.Device;
-
+import com.iot.guc.jarvis.models.Params;
+import com.iot.guc.jarvis.ChatAPI;
 import org.json.JSONObject;
-
 import java.util.ArrayList;
-
-import ai.api.AIServiceException;
 import ai.api.android.AIConfiguration;
 import ai.api.android.AIDataService;
 import ai.api.android.AIService;
-import ai.api.model.AIRequest;
-import ai.api.model.AIResponse;
+import com.android.volley.RequestQueue;
+import com.android.volley.toolbox.Volley;
 
 public class ChatFragment extends Fragment {
-    private final AIConfiguration config = new AIConfiguration("189b8c2169774040abec935b35f974d1",
-            AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
-    private AIService aiService;
-    private AIDataService aiDataService;
+
+    private final AIConfiguration config = new AIConfiguration("97135bec060c48f9a6cc15dcf018ba2b",
+        AIConfiguration.SupportedLanguages.English, AIConfiguration.RecognitionEngine.System);
     private EditText ChatFragment_EditText_Message;
     private ChatAdapter chatAdapter;
     private ListView ChatFragment_ListView_MessageList;
     private VoiceRecognition voiceRecognition;
+
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -108,8 +104,10 @@ public class ChatFragment extends Fragment {
             }
         });
 
-        aiService = AIService.getService(getContext(), config);
-        aiDataService = new AIDataService(getContext(), config);
+        ChatAPI.aiService = AIService.getService(getContext(), config);
+        ChatAPI.aiDataService = new AIDataService(getContext(), config);
+        ChatAPI.queue = Volley.newRequestQueue(getContext());
+        getActivity().setTitle("Chat");
         return view;
     }
 
@@ -124,9 +122,9 @@ public class ChatFragment extends Fragment {
     }
 
     public void handleChat(Params result) {
-        if (result.message.isEmpty()) {
+        if (result.getMessage().isEmpty()) {
             // Send Request
-            result.device.handle(getContext(), result.status, new HTTPResponse() {
+            result.getDevice().handle(getContext(), result.getStatus(), new HTTPResponse() {
                 @Override
                 public void onSuccess(int statusCode, JSONObject body) {
                     chatAdapter.add(new ChatMessage("Done.", false, Shared.getCurrentDate(), Shared.getCurrentTime()));
@@ -157,7 +155,7 @@ public class ChatFragment extends Fragment {
         }
         else {
             // Not a command or got an error
-            chatAdapter.add(new ChatMessage(result.message, false, Shared.getCurrentDate(), Shared.getCurrentTime()));
+            chatAdapter.add(new ChatMessage(result.getMessage(), false, Shared.getCurrentDate(), Shared.getCurrentTime()));
             chatAdapter.notifyDataSetChanged();
         }
     }
@@ -174,62 +172,31 @@ public class ChatFragment extends Fragment {
     }
 
     private class ChatAsyncTask extends AsyncTask<String, Void, Params> {
+
         @Override
         protected Params doInBackground(String... params) {
-            boolean status = false;
-            String message = "";
-            Device d = null;
-            try {
-                AIRequest aiRequest = new AIRequest();
-                aiRequest.setQuery(params[0]);
-                aiService.textRequest(aiRequest);
-                AIResponse aiResponse = aiDataService.request(aiRequest);
 
-                //TODO add filters on rooms
-                if(aiResponse.getResult().getAction().startsWith("Lights")){
-                    for(Device device : Shared.getDevices()){
-                        if(device.getType() == Device.TYPE.LIGHT_BULB){
-                            d = device;
-                            break;
+            ChatAPI.handleChat(params[0],new ChatResponse() {
+                @Override
+                public void onSuccess(final Params param) {
+                    getActivity().runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            handleChat(param);
                         }
-                    }
-                }
+                    });
 
-                if(aiResponse.getResult().getAction().equals("LightsOn")){
-                    status = true;
                 }
-                else if(aiResponse.getResult().getAction().equals("LightsOff")){
-                    status = false;
-                }
-                else{
-                    message = aiResponse.getResult().getFulfillment().getSpeech();
-                }
-
-            } catch (AIServiceException e) {
-                message = "Something Went Wrong!";
-                e.printStackTrace();
-            }
-
-            return new Params(d, status, message);
+            });
+            return null;
         }
 
         @Override
         protected void onPostExecute(Params result) {
-            handleChat(result);
+//            handleChat(result);
         }
     }
 
-    private static class Params {
-        Device device;
-        boolean status;
-        String message;
-
-        public Params(Device device, boolean status, String message) {
-            this.device = device;
-            this.status = status;
-            this.message = message;
-        }
-    }
 }
 
 
