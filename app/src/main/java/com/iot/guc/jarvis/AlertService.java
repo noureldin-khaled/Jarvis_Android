@@ -43,6 +43,7 @@ public class AlertService extends Service {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
                 Log.v("Service","Device handeled");
+
             }
 
             @Override
