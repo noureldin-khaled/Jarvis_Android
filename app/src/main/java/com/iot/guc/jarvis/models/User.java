@@ -124,7 +124,7 @@ public class User {
         }
     }
 
-    public static void register(Context context, String username, String password, final HTTPResponse httpResponse) {
+    public static void register(Context context, String username, String password, String public_key, String salt, final HTTPResponse httpResponse) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
@@ -140,6 +140,8 @@ public class User {
             JSONObject body = new JSONObject();
             body.put("username", username);
             body.put("password", password);
+            body.put("public_key", public_key);
+            body.put("salt", salt);
 
             Shared.request(context, Request.Method.POST, url, body, false, httpResponse);
         } catch (JSONException e) {
@@ -172,6 +174,21 @@ public class User {
             httpResponse.onFailure(Constants.APP_FAILURE, null);
             e.printStackTrace();
         }
+    }
+
+    public static void getSalt(Context context, String username, final  HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        String url = "/api/salt/" + username;
+        Shared.request(context, Request.Method.GET, url, null, false, httpResponse);
     }
 
     public static void getUsers(Context context, final HTTPResponse httpResponse) {

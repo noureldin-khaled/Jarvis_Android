@@ -3,6 +3,7 @@ package com.iot.guc.jarvis.models;
 public class Server {
     private String IP;
     private int PORT;
+    private String public_key;
 
     public Server(String IP, int PORT) {
         this.IP = IP;
@@ -27,5 +28,9 @@ public class Server {
 
     public void setPORT(int PORT) {
         this.PORT = PORT;
+    }
+
+    public void setPublic_key(String s) {
+        this.public_key = s;
     }
 }

@@ -14,6 +14,7 @@ import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.iot.guc.jarvis.fragments.ChatFragment;
 import com.iot.guc.jarvis.fragments.DeviceFragment;
@@ -25,6 +26,7 @@ import com.iot.guc.jarvis.models.Server;
 import com.iot.guc.jarvis.models.User;
 import com.iot.guc.jarvis.requests.CustomJsonRequest;
 import com.iot.guc.jarvis.responses.HTTPResponse;
+import com.iot.guc.jarvis.responses.SecurityResponse;
 import com.iot.guc.jarvis.responses.ServerResponse;
 
 import org.json.JSONArray;
@@ -223,6 +225,24 @@ public class Shared {
 
     public static void collapseKeyBoard(ChatFragment fragment) {
         fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
+
+    public static void call(Context context, int method, String url, final HTTPResponse httpResponse) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+        url = "https://mighty-savannah-17728.herokuapp.com" + url;
+        JsonObjectRequest request = new JsonObjectRequest(method, url, null, new Response.Listener<JSONObject>() {
+            @Override
+            public void onResponse(JSONObject response) {
+                httpResponse.onFailure(200, response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                httpResponse.onFailure(500, null);
+            }
+        });
+
+        queue.add(request);
     }
 
     public static void request(final Context context, final int method, final String url, final JSONObject body,final boolean includeAuth,final HTTPResponse httpResponse) {
