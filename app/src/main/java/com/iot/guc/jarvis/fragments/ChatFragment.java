@@ -176,7 +176,7 @@ public class ChatFragment extends Fragment {
         @Override
         protected Params doInBackground(String... params) {
 
-            ChatAPI.handleChat(params[0],new ChatResponse() {
+            ChatAPI.handleChat(params[0],getContext(),getActivity(),new ChatResponse() {
                 @Override
                 public void onSuccess(final Params param) {
                     getActivity().runOnUiThread(new Runnable() {

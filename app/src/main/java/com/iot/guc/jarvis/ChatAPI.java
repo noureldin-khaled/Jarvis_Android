@@ -4,7 +4,13 @@ package com.iot.guc.jarvis;
  * Created by MariamMazen on 2017-04-02.
  */
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
+import android.os.AsyncTask;
+import android.os.Bundle;
+import android.os.Build;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
@@ -28,8 +34,21 @@ import ai.api.android.AIService;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
 import java.util.Date;
+import java.util.Calendar;
+import android.content.Intent;
+import android.provider.CalendarContract;
+import android.provider.CalendarContract.*;
+import java.text.SimpleDateFormat;
+import android.content.ContentResolver;
+import android.content.ContentValues;
+import android.content.pm.PackageManager;
+import java.util.TimeZone;
+import android.net.Uri;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.app.ActivityCompat;
+import android.support.v7.app.AppCompatActivity;
 
-public class ChatAPI {
+public class ChatAPI extends AppCompatActivity {
 
     public static AIService aiService;
     public static AIDataService aiDataService;
@@ -42,44 +61,51 @@ public class ChatAPI {
     static String message;
     static boolean status;
     static Device d;
+    static boolean done = false;
+    static Context context;
+    static Activity activity;
+    static ContentValues eventValues;
+    static String eventUriString = "content://com.android.calendar/events";
+    static ChatResponse response;
 
     public static String parseResponse(JSONObject response) throws JSONException {
         int count = response.getInt("cnt");
         JSONArray list = response.getJSONArray("list");
         String result = "";
 
-        for(int i = 0; i < count; i++){
+        for (int i = 0; i < count; i++) {
             JSONObject day = list.getJSONObject(i);
             long unixSeconds = day.getLong("dt");
-            Date date = new Date(unixSeconds*1000L);
-            result += date.toString().substring(0,10) + ", ";
-            int temp = (int)Math.ceil(((day.getJSONObject("temp").getDouble("min") + day.getJSONObject("temp").getDouble("max")) / 2 ) - 273.15);
+            Date date = new Date(unixSeconds * 1000L);
+            result += date.toString().substring(0, 10) + ", ";
+            int temp = (int) Math.ceil(((day.getJSONObject("temp").getDouble("min") + day.getJSONObject("temp").getDouble("max")) / 2) - 273.15);
             result += temp + "°C, " + day.getJSONArray("weather").getJSONObject(0).getString("description") + "\n";
         }
         return result;
     }
 
-    public static void handleChat(String requestMessage,final ChatResponse chatResponse) {
+    public static void handleChat(String requestMessage, Context applicationContext, Activity callingActivity, final ChatResponse chatResponse) {
 
         status = false;
         message = "";
         d = null;
         ArrayList<Room> rooms = Shared.getRooms();
+        context = applicationContext;
+        activity = callingActivity;
+        response = chatResponse;
 
 
         try {
             AIRequest aiRequest = new AIRequest();
-            if(!incompleteLightMessage.isEmpty()){
-                aiRequest.setQuery(incompleteLightMessage+requestMessage);
+            if (!incompleteLightMessage.isEmpty()) {
+                aiRequest.setQuery(incompleteLightMessage + requestMessage);
                 incompleteLightMessage = "";
-                Log.d("QUERY",incompleteLightMessage);
-            }
-            else if(!incompleteWeatherMessage.isEmpty()){
-                aiRequest.setQuery(incompleteWeatherMessage+requestMessage);
+                Log.d("QUERY", incompleteLightMessage);
+            } else if (!incompleteWeatherMessage.isEmpty()) {
+                aiRequest.setQuery(incompleteWeatherMessage + requestMessage);
                 incompleteWeatherMessage = "";
-                Log.d("QUERY",incompleteWeatherMessage);
-            }
-            else{
+                Log.d("QUERY", incompleteWeatherMessage);
+            } else {
                 aiRequest.setQuery(requestMessage);
             }
 
@@ -138,15 +164,14 @@ public class ChatAPI {
                         message = "Device does not exist in the room";
                     }
                 }
-                Log.d("Result",status+message);
-                chatResponse.onSuccess(new Params(d,status,message));
-            }
-            else if(action.equals("weatherForeCast")){
+                Log.d("Result", status + message);
+                chatResponse.onSuccess(new Params(d, status, message));
+            } else if (action.equals("weatherForeCast")) {
                 String cityName = aiResponse.getResult().getStringParameter("geo-city");
                 if (aiResponse.getResult().isActionIncomplete()) {
                     message = aiResponse.getResult().getFulfillment().getSpeech();
-                    incompleteWeatherMessage = "weather in "+cityName+" ";
-                    chatResponse.onSuccess(new Params(d,status,message));
+                    incompleteWeatherMessage = "weather in " + cityName + " ";
+                    chatResponse.onSuccess(new Params(d, status, message));
                 } else {
 
                     final int duration = Integer.parseInt(aiResponse.getResult().getStringParameter("duration"));
@@ -164,9 +189,9 @@ public class ChatAPI {
                             public void onResponse(JSONObject response) {
                                 try {
                                     JSONArray countries = response.getJSONArray("code");
-                                    if(countries.length() > 0){
+                                    if (countries.length() > 0) {
                                         countryCode = countries.getJSONObject(0).getString("country");
-                                        String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q="+countries.getJSONObject(0).getString("name").toLowerCase()+","+countryCode+"&cnt="+duration+"&id=524901&APPID=88704427a46ca5ed706fdcd943b95cb9";
+                                        String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q=" + countries.getJSONObject(0).getString("name").toLowerCase() + "," + countryCode + "&cnt=" + duration + "&id=524901&APPID=88704427a46ca5ed706fdcd943b95cb9";
                                         try {
                                             final JsonObjectRequest weatherForeCastrequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
                                                 @Override
@@ -176,13 +201,13 @@ public class ChatAPI {
                                                     } catch (JSONException e) {
                                                         e.printStackTrace();
                                                     }
-                                                    chatResponse.onSuccess(new Params(d,status,message));
+                                                    chatResponse.onSuccess(new Params(d, status, message));
                                                 }
                                             }, new Response.ErrorListener() {
                                                 @Override
                                                 public void onErrorResponse(VolleyError error) {
                                                     message = "Something went wrong here";
-                                                    chatResponse.onSuccess(new Params(d,status,message));
+                                                    chatResponse.onSuccess(new Params(d, status, message));
                                                 }
                                             }) {
                                                 @Override
@@ -196,10 +221,9 @@ public class ChatAPI {
                                         } catch (Exception e) {
                                             e.printStackTrace();
                                         }
-                                    }
-                                    else{
+                                    } else {
                                         message = "Please enter a valid city name";
-                                        chatResponse.onSuccess(new Params(d,status,message));
+                                        chatResponse.onSuccess(new Params(d, status, message));
                                     }
                                 } catch (JSONException e) {
                                     e.printStackTrace();
@@ -208,9 +232,9 @@ public class ChatAPI {
                         }, new Response.ErrorListener() {
                             @Override
                             public void onErrorResponse(VolleyError error) {
-                                Log.d("error",error.toString());
+                                Log.d("error", error.toString());
                                 message = "Something went wrong here again";
-                                chatResponse.onSuccess(new Params(d,status,message));
+                                chatResponse.onSuccess(new Params(d, status, message));
                             }
                         }) {
                             @Override
@@ -228,18 +252,67 @@ public class ChatAPI {
 
                 }
 
+            } else {
+
+                Calendar cal = Calendar.getInstance();
+                eventValues = new ContentValues();
+
+                eventValues.put("calendar_id", 1);
+                eventValues.put("title", "Mariam's event");
+                eventValues.put("description", "Trying to get this work");
+                eventValues.put("eventLocation", "GUC");
+
+                long endDate = cal.getTimeInMillis() + 1000 * 60 * 60;
+
+                eventValues.put("dtstart", cal.getTimeInMillis());
+                eventValues.put("dtend", endDate);
+
+
+                eventValues.put("eventStatus", "BLABLA");
+
+                eventValues.put("eventTimezone", "UTC/GMT +2:00");
+
+                eventValues.put("hasAlarm", 1);
+
+                Uri eventUri;
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED &&
+                        ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED)
+                    ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.READ_CALENDAR,Manifest.permission.WRITE_CALENDAR}, 4);
+                else {
+                    eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
+                    chatResponse.onSuccess(new Params(d, status, "Appointment set"));
+                }
+
             }
-            else {
-                message = aiResponse.getResult().getFulfillment().getSpeech();
-                chatResponse.onSuccess(new Params(d,status,message));
-            }
+//            else{
+//                message = aiResponse.getResult().getFulfillment().getSpeech();
+//                chatResponse.onSuccess(new Params(d, status, message));
+//
+//            }
 
         } catch (AIServiceException e) {
             message = "Something Went Wrong!";
-            chatResponse.onSuccess(new Params(d,status,message));
+            chatResponse.onSuccess(new Params(d, status, message));
             e.printStackTrace();
         }
 
     }
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        switch(requestCode) {
+            case 4: {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Uri eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
+                    response.onSuccess(new Params(d,status,"appintment set"));
+                }
+            }
+        }
+    }
+
+
+
 }
+
+
