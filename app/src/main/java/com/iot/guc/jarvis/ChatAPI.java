@@ -1,11 +1,7 @@
 package com.iot.guc.jarvis;
 
-/**
- * Created by MariamMazen on 2017-04-02.
- */
-
-import android.content.Context;
 import android.util.Log;
+
 import com.android.volley.AuthFailureError;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
@@ -13,21 +9,24 @@ import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.iot.guc.jarvis.models.Device;
-import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Params;
+import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.responses.ChatResponse;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
 import ai.api.AIServiceException;
 import ai.api.android.AIDataService;
 import ai.api.android.AIService;
 import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
-import java.util.Date;
 
 public class ChatAPI {
 
