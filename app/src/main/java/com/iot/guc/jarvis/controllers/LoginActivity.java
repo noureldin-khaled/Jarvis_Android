@@ -431,7 +431,8 @@ public class LoginActivity extends AppCompatActivity {
                                 current.getString("type").equals("Light Bulb") ? Device.TYPE.LIGHT_BULB : Device.TYPE.LOCK,
                                 current.getBoolean("status"), current.getString("mac"), current.getString("ip"), current.getInt("room_id")));
                     }
-                    fetchPatterns();
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+//                    fetchPatterns();
                 } catch (JSONException e) {
                     showProgress(false);
                     if (fromForm) {
