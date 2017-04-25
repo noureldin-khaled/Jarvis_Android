@@ -25,6 +25,8 @@ import com.iot.guc.jarvis.responses.ChatResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,6 +45,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import java.util.TimeZone;
+import java.util.GregorianCalendar;
 import android.net.Uri;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
@@ -67,6 +70,8 @@ public class ChatAPI extends AppCompatActivity {
     static ContentValues eventValues;
     static String eventUriString = "content://com.android.calendar/events";
     static ChatResponse response;
+    static String appointmentDescription;
+    static String appointmentLocation;
 
     public static String parseResponse(JSONObject response) throws JSONException {
         int count = response.getInt("cnt");
@@ -136,7 +141,6 @@ public class ChatAPI extends AppCompatActivity {
                     if (aiResponse.getResult().isActionIncomplete()) {
                         message = aiResponse.getResult().getFulfillment().getSpeech();
                         if (incompleteLight) {
-
                             incompleteLight = false;
                         } else {
                             incompleteLightMessage = "turn off the light in the ";
@@ -252,16 +256,62 @@ public class ChatAPI extends AppCompatActivity {
 
                 }
 
-            } else {
+            } else if(action.equals("appointment")){
 
+                String dateTime = aiResponse.getResult().getStringParameter("date-time");
                 Calendar cal = Calendar.getInstance();
+                Log.d("CURRENT",cal.getTime().toString());
+
+                if(dateTime.length() > 8){
+
+                    String[] dateArray = dateTime.substring(0,10).split("-");
+                    String[] date_time = dateTime.split("T");
+
+                    int year = Integer.parseInt(dateArray[0]);
+                    int month = Integer.parseInt(dateArray[1]);
+                    int date = Integer.parseInt(dateArray[2]);
+
+                    Date appointmentDate = cal.getTime();
+
+                    final SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm");
+                    String time = date_time[1].substring(0,5);
+                    try{
+                        appointmentDate = simpleDateFormat.parse(time);
+                    }
+                    catch(ParseException e){
+                        e.printStackTrace();
+                    }
+
+                    cal.setTime(appointmentDate);
+
+                    cal.set(Calendar.YEAR, year);
+                    cal.set(Calendar.DAY_OF_MONTH,date);
+                    cal.set(Calendar.MONTH, month-1);
+
+                }
+                else if(dateTime.length() == 8){
+
+                    String[] timeArray = dateTime.split(":");
+                    cal.set(Calendar.HOUR_OF_DAY, Integer.parseInt(timeArray[0]));
+                    cal.set(Calendar.MINUTE, Integer.parseInt(timeArray[1]));
+                    cal.set(Calendar.SECOND, 0);
+
+                }
+                else{
+                    // default appointment at 12 noon
+                    cal.set(Calendar.HOUR_OF_DAY, 12);
+                    cal.set(Calendar.MINUTE, 0);
+                    cal.set(Calendar.SECOND, 0);
+                }
+
+
+
                 eventValues = new ContentValues();
 
                 eventValues.put("calendar_id", 1);
                 eventValues.put("title", "Mariam's event");
                 eventValues.put("description", "Trying to get this work");
                 eventValues.put("eventLocation", "GUC");
-
                 long endDate = cal.getTimeInMillis() + 1000 * 60 * 60;
 
                 eventValues.put("dtstart", cal.getTimeInMillis());
@@ -284,11 +334,11 @@ public class ChatAPI extends AppCompatActivity {
                 }
 
             }
-//            else{
-//                message = aiResponse.getResult().getFulfillment().getSpeech();
-//                chatResponse.onSuccess(new Params(d, status, message));
-//
-//            }
+            else{
+                message = aiResponse.getResult().getFulfillment().getSpeech();
+                chatResponse.onSuccess(new Params(d, status, message));
+
+            }
 
         } catch (AIServiceException e) {
             message = "Something Went Wrong!";
@@ -305,12 +355,11 @@ public class ChatAPI extends AppCompatActivity {
             case 4: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Uri eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
-                    response.onSuccess(new Params(d,status,"appintment set"));
+                    response.onSuccess(new Params(d,status,"Appointment set"));
                 }
             }
         }
     }
-
 
 
 }
