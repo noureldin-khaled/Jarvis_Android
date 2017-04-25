@@ -70,8 +70,9 @@ public class ChatAPI extends AppCompatActivity {
     static ContentValues eventValues;
     static String eventUriString = "content://com.android.calendar/events";
     static ChatResponse response;
-    static String appointmentDescription;
-    static String appointmentLocation;
+    static String appointmentDescription = "";
+    static String appointmentLocation = "";
+    static Calendar cal = Calendar.getInstance();
 
     public static String parseResponse(JSONObject response) throws JSONException {
         int count = response.getInt("cnt");
@@ -259,7 +260,6 @@ public class ChatAPI extends AppCompatActivity {
             } else if(action.equals("appointment")){
 
                 String dateTime = aiResponse.getResult().getStringParameter("date-time");
-                Calendar cal = Calendar.getInstance();
                 Log.d("CURRENT",cal.getTime().toString());
 
                 if(dateTime.length() > 8){
@@ -305,24 +305,35 @@ public class ChatAPI extends AppCompatActivity {
                 }
 
 
+                chatResponse.onSuccess(new Params(d, status, "Well, what's the appointment's description ? "));
+                appointmentDescription = "description";
+
+            }
+            else if(!appointmentDescription.isEmpty() && appointmentLocation.isEmpty()){
+                appointmentDescription = requestMessage;
+                appointmentLocation = "location";
+                chatResponse.onSuccess(new Params(d, status, "Well, what about the location ?"));
+            }
+            else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty()){
+
+                appointmentLocation = requestMessage;
 
                 eventValues = new ContentValues();
-
                 eventValues.put("calendar_id", 1);
-                eventValues.put("title", "Mariam's event");
-                eventValues.put("description", "Trying to get this work");
-                eventValues.put("eventLocation", "GUC");
+                eventValues.put("title", appointmentLocation+"'s appointment");
+                eventValues.put("description", appointmentDescription);
+                eventValues.put("eventLocation", appointmentLocation);
+
                 long endDate = cal.getTimeInMillis() + 1000 * 60 * 60;
 
                 eventValues.put("dtstart", cal.getTimeInMillis());
                 eventValues.put("dtend", endDate);
-
-
-                eventValues.put("eventStatus", "BLABLA");
-
                 eventValues.put("eventTimezone", "UTC/GMT +2:00");
 
                 eventValues.put("hasAlarm", 1);
+
+                appointmentDescription = "";
+                appointmentLocation = "";
 
                 Uri eventUri;
                 if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED &&
@@ -330,14 +341,12 @@ public class ChatAPI extends AppCompatActivity {
                     ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.READ_CALENDAR,Manifest.permission.WRITE_CALENDAR}, 4);
                 else {
                     eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
-                    chatResponse.onSuccess(new Params(d, status, "Appointment set"));
+                    chatResponse.onSuccess(new Params(d, status, "Appointment set !"));
                 }
-
             }
             else{
                 message = aiResponse.getResult().getFulfillment().getSpeech();
                 chatResponse.onSuccess(new Params(d, status, message));
-
             }
 
         } catch (AIServiceException e) {
@@ -355,7 +364,7 @@ public class ChatAPI extends AppCompatActivity {
             case 4: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Uri eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
-                    response.onSuccess(new Params(d,status,"Appointment set"));
+                    response.onSuccess(new Params(d,status,"Appointment set !"));
                 }
             }
         }
