@@ -6,10 +6,9 @@ package com.iot.guc.jarvis;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.Context;
-import android.os.AsyncTask;
-import android.os.Bundle;
-import android.os.Build;
+import android.content.Intent;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
@@ -37,15 +36,10 @@ import ai.api.model.AIRequest;
 import ai.api.model.AIResponse;
 import java.util.Date;
 import java.util.Calendar;
-import android.content.Intent;
-import android.provider.CalendarContract;
-import android.provider.CalendarContract.*;
 import java.text.SimpleDateFormat;
-import android.content.ContentResolver;
+
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
-import java.util.TimeZone;
-import java.util.GregorianCalendar;
 import android.net.Uri;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.app.ActivityCompat;
@@ -123,7 +117,42 @@ public class ChatAPI extends AppCompatActivity {
             String roomName = "";
             Log.i("Action", aiResponse.getResult().getParameters().toString());
 
-            if (action.startsWith("smarthome")) {
+            if(!appointmentDescription.isEmpty() && appointmentLocation.isEmpty()){
+                appointmentDescription = requestMessage;
+                appointmentLocation = "location";
+                chatResponse.onSuccess(new Params(d, status, "Well, what about the location ?"));
+            }
+            else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty()){
+
+                appointmentLocation = requestMessage;
+
+                eventValues = new ContentValues();
+                eventValues.put("calendar_id", 1);
+                eventValues.put("title", appointmentLocation+"'s appointment");
+                eventValues.put("description", appointmentDescription);
+                eventValues.put("eventLocation", appointmentLocation);
+
+                long endDate = cal.getTimeInMillis() + 1000 * 60 * 60;
+
+                eventValues.put("dtstart", cal.getTimeInMillis());
+                eventValues.put("dtend", endDate);
+                eventValues.put("eventTimezone", "UTC/GMT +2:00");
+
+                eventValues.put("hasAlarm", 1);
+
+                appointmentDescription = "";
+                appointmentLocation = "";
+
+                Uri eventUri;
+                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED &&
+                        ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED)
+                    ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.READ_CALENDAR,Manifest.permission.WRITE_CALENDAR}, 4);
+                else {
+                    eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
+                    chatResponse.onSuccess(new Params(d, status, "Appointment set !"));
+                }
+            }
+            else if (action.startsWith("smarthome")) {
                 if (action.equals("smarthome.lights_on")) {
                     if (aiResponse.getResult().isActionIncomplete()) {
                         message = aiResponse.getResult().getFulfillment().getSpeech();
@@ -169,7 +198,6 @@ public class ChatAPI extends AppCompatActivity {
                         message = "Device does not exist in the room";
                     }
                 }
-                Log.d("Result", status + message);
                 chatResponse.onSuccess(new Params(d, status, message));
             } else if (action.equals("weatherForeCast")) {
                 String cityName = aiResponse.getResult().getStringParameter("geo-city");
@@ -309,44 +337,16 @@ public class ChatAPI extends AppCompatActivity {
                 appointmentDescription = "description";
 
             }
-            else if(!appointmentDescription.isEmpty() && appointmentLocation.isEmpty()){
-                appointmentDescription = requestMessage;
-                appointmentLocation = "location";
-                chatResponse.onSuccess(new Params(d, status, "Well, what about the location ?"));
-            }
-            else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty()){
 
-                appointmentLocation = requestMessage;
-
-                eventValues = new ContentValues();
-                eventValues.put("calendar_id", 1);
-                eventValues.put("title", appointmentLocation+"'s appointment");
-                eventValues.put("description", appointmentDescription);
-                eventValues.put("eventLocation", appointmentLocation);
-
-                long endDate = cal.getTimeInMillis() + 1000 * 60 * 60;
-
-                eventValues.put("dtstart", cal.getTimeInMillis());
-                eventValues.put("dtend", endDate);
-                eventValues.put("eventTimezone", "UTC/GMT +2:00");
-
-                eventValues.put("hasAlarm", 1);
-
-                appointmentDescription = "";
-                appointmentLocation = "";
-
-                Uri eventUri;
-                if (ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CALENDAR) != PackageManager.PERMISSION_GRANTED &&
-                        ContextCompat.checkSelfPermission(activity, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED)
-                    ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.READ_CALENDAR,Manifest.permission.WRITE_CALENDAR}, 4);
-                else {
-                    eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
-                    chatResponse.onSuccess(new Params(d, status, "Appointment set !"));
-                }
-            }
-            else{
+            else if(action.startsWith("smalltalk") || action.equals("input.welcome") || action.equals("input.thanks") || action.equals("input.bye")){
                 message = aiResponse.getResult().getFulfillment().getSpeech();
                 chatResponse.onSuccess(new Params(d, status, message));
+            }
+            else{
+                Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+                intent.putExtra(SearchManager.QUERY, requestMessage); // query contains search string
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                context.startActivity(intent);
             }
 
         } catch (AIServiceException e) {
@@ -369,7 +369,6 @@ public class ChatAPI extends AppCompatActivity {
             }
         }
     }
-
 
 }
 
