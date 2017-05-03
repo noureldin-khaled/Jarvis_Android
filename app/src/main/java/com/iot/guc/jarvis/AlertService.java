@@ -33,25 +33,25 @@ public class AlertService extends Service {
             return START_REDELIVER_INTENT;
         }
         Event event = (Event) intent.getSerializableExtra("event");
-        JSONObject body = new JSONObject();
+
         try {
+            JSONObject body = new JSONObject();
             body.put("status", event.getStatus());
+            Shared.request(getApplicationContext(), Request.Method.POST, "/api/device/" + event.getDevice_id(), body, true, new HTTPResponse() {
+                @Override
+                public void onSuccess(int statusCode, JSONObject body) {
+                    Log.v("Service","Device handeled");
+
+                }
+
+                @Override
+                public void onFailure(int statusCode, JSONObject body) {
+                    Log.e("Service","Could not handle device");
+                }
+            });
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Shared.request(getApplicationContext(), Request.Method.GET, "/api/device/" + event.getDevice_id(), body, true, new HTTPResponse() {
-            @Override
-            public void onSuccess(int statusCode, JSONObject body) {
-                Log.v("Service","Device handeled");
-
-            }
-
-            @Override
-            public void onFailure(int statusCode, JSONObject body) {
-                Log.e("Service","Could not handle device");
-            }
-        });
-
 
 
         return START_REDELIVER_INTENT;

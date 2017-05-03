@@ -94,6 +94,26 @@ public class PatternsFragment extends Fragment {
 
     }
 
+    public void deletePattern(final int sequence){
+        Patterns.remove(sequence);
+        Shared.setPatterns(Patterns);
+        patternsAdapter.notifyDataSetChanged();
+
+        Shared.request(getContext(), Request.Method.DELETE, "api/patterns/" + sequence, null, true, new HTTPResponse() {
+            @Override
+            public void onSuccess(int statusCode, JSONObject body) {
+
+                Snackbar.make(Patterns_LinearLayout,"Deleted Successfully!",Snackbar.LENGTH_LONG);
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, JSONObject body) {
+                Snackbar.make(Patterns_LinearLayout,"Something went wrong",Snackbar.LENGTH_SHORT);
+            }
+        });
+    }
+
     public void editPattern(final int sequence, final int event){
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
@@ -141,7 +161,7 @@ public class PatternsFragment extends Fragment {
                         PatternsFragment.this.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
                         dialog.dismiss();
                         if(statusCode==200){
-                            Snackbar.make(Patterns_LinearLayout,"Edited Successfully!",Snackbar.LENGTH_SHORT);
+                            Snackbar.make(Patterns_LinearLayout,"Edited Successfully!",Snackbar.LENGTH_LONG);
                         }
                     }
 

@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 
 import com.iot.guc.jarvis.AlertService;
 import com.iot.guc.jarvis.R;
@@ -79,7 +80,14 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
 
                 }
             });
-        }
+        holder.delete.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                fragment.deletePattern(position);
+
+            }
+        });
+    }
 
 
     @Override
@@ -91,11 +99,13 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
 
         RecyclerView recyclerView;
         CheckBox checkBox;
+        ImageView delete;
 
         public ViewHolder(View itemView) {
             super(itemView);
             recyclerView = (RecyclerView) itemView.findViewById(R.id.patterns_sequence);
             checkBox = (CheckBox) itemView.findViewById(R.id.Patterns_Checkbox_Auto);
+            delete = (ImageView) itemView.findViewById(R.id.ic_delete);
         }
     }
 }
