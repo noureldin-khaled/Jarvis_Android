@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:paddingBottom="@dimen/activity_vertical_margin"
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
@@ -19,7 +17,6 @@
         android:transcriptMode="alwaysScroll"
         android:stackFromBottom="true"/>
 
-
     <EditText android:id="@+id/ChatFragment_EditText_Message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -31,10 +28,11 @@
 
     <android.support.design.widget.FloatingActionButton
         android:id="@+id/ChatFragment_FloatingActionButton_Send"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        app:srcCompat="@android:drawable/ic_btn_speak_now"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/ic_mic"
         android:tint="#FFFFFF"
+        android:theme="@style/DefaultFab"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"/>
 

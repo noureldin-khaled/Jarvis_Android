@@ -1,182 +1,60 @@
 package com.iot.guc.jarvis.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseExpandableListAdapter;
-import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.Switch;
+import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.iot.guc.jarvis.R;
-import com.iot.guc.jarvis.Shared;
-import com.iot.guc.jarvis.fragments.RoomFragment;
-import com.iot.guc.jarvis.models.Device;
-import com.iot.guc.jarvis.models.Room;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
-public class RoomAdapter extends BaseExpandableListAdapter {
-    private Activity activity;
-    private RoomFragment fragment;
+public class RoomAdapter extends BaseAdapter {
     private Context context;
-    private ArrayList<String> roomsList;
-    private HashMap<String, ArrayList<Device>> devicesList;
+    private ArrayList<String> rooms;
 
-    public RoomAdapter(Context context, Activity activity, RoomFragment fragment) {
-        this.activity = activity;
+    public RoomAdapter(Context context, ArrayList<String> rooms) {
         this.context = context;
-        this.fragment = fragment;
-        roomsList = new ArrayList<>();
-        devicesList = new HashMap<>();
+        this.rooms = rooms;
     }
 
-    public void refresh(ArrayList<String> rooms, HashMap<String, ArrayList<Device>> devices) {
-        roomsList = rooms;
-        devicesList = devices;
+    @Override
+    public int getCount() {
+        return rooms.size();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return rooms.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public View getView(int position, View convertView, ViewGroup parent) {
+        String room = (String) getItem(position);
+
+        if (convertView == null)
+            convertView = LayoutInflater.from(context).inflate(R.layout.list_item_room, parent, false);
+
+        TextView RoomListItem_TextView_RoomName = (TextView) convertView.findViewById(R.id.RoomListItem_TextView_RoomName);
+        RoomListItem_TextView_RoomName.setText(room);
+
+        return convertView;
+    }
+
+    public void add(String room) {
+        rooms.add(room);
         notifyDataSetChanged();
     }
 
-    @Override
-    public Object getChild(int groupPosition, int childPosition) {
-        return this.devicesList.get(this.roomsList.get(groupPosition)).get(childPosition);
-    }
-
-    @Override
-    public long getChildId(int groupPosition, int childPosition) {
-        return childPosition;
-    }
-
-    @Override
-    public View getChildView(final int groupPosition, final int childPosition, boolean isLastChild, View convertView, ViewGroup parent) {
-        if(isLastChild){
-            convertView = LayoutInflater.from(context).inflate(R.layout.button_add_device, parent, false);
-            Button DeviceButton_Button_addDevice = (Button) convertView.findViewById(R.id.DeviceButton_Button_addDevice);
-            DeviceButton_Button_addDevice.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                fragment.scanDevices(groupPosition);
-                }
-            });
-
-            if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
-                DeviceButton_Button_addDevice.setVisibility(View.GONE);
-        }
-        else {
-            final Device device = (Device) getChild(groupPosition, childPosition);
-
-            convertView = LayoutInflater.from(context).inflate(R.layout.list_item_rooms, parent, false);
-            TextView RoomsListItem_TextView_DeviceName = (TextView) convertView.findViewById(R.id.RoomsListItem_TextView_DeviceName);
-
-            RoomsListItem_TextView_DeviceName.setText(device.getName());
-
-            Switch RoomsListItem_Switch_DeviceStatus = (Switch) convertView.findViewById(R.id.RoomsListItem_Switch_DeviceStatus);
-            RoomsListItem_Switch_DeviceStatus.setChecked(device.isStatus());
-            RoomsListItem_Switch_DeviceStatus.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-                @Override
-                public void onCheckedChanged(CompoundButton sw, boolean isChecked) {
-                    if (isChecked) {
-                        Shared.turnOnDevice(device.getId());
-                    } else Shared.turnOffDevice(device.getId());
-                }
-            });
-            TextView RoomsListItem_TextView_DeviceType = (TextView) convertView.findViewById(R.id.RoomsListItem_TextView_DeviceType);
-            RoomsListItem_TextView_DeviceType.setText(device.getType().toString());
-
-            TextView RoomsListItem_TextView_DeleteDevice = (TextView) convertView.findViewById(R.id.RoomsListItem_TextView_DeleteDevice);
-            RoomsListItem_TextView_DeleteDevice.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    fragment.deleteDevice((Device)getChild(groupPosition,childPosition));
-                }
-            });
-
-            Button RoomsListItem_Button_Edit = (Button) convertView.findViewById(R.id.RoomsListItem_Button_Edit);
-            RoomsListItem_Button_Edit.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    fragment.editDevice((Device)getChild(groupPosition,childPosition));
-                }
-            });
-
-            if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
-            {
-                RoomsListItem_Button_Edit.setVisibility(View.GONE);
-                RoomsListItem_TextView_DeleteDevice.setVisibility(View.GONE);
-            }
-        }
-
-        return convertView;
-    }
-
-    @Override
-    public int getChildrenCount(int groupPosition) {
-        return this.devicesList.get(this.roomsList.get(groupPosition)).size()+1;
-    }
-
-    @Override
-    public Object getGroup(int groupPosition) {
-        return this.roomsList.get(groupPosition);
-    }
-
-    @Override
-    public int getGroupCount() {
-        return this.roomsList.size();
-    }
-
-    @Override
-    public long getGroupId(int groupPosition) {
-        return groupPosition;
-    }
-
-    @Override
-    public View getGroupView(final int groupPosition, boolean isExpanded, View convertView, ViewGroup parent) {
-        String headerTitle = (String) getGroup(groupPosition);
-        if (convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.list_group_rooms, parent,false);
-        }
-
-        Button RoomsListGroup_Button_DeleteRoom  = (Button) convertView.findViewById(R.id.RoomsListGroup_Button_DeleteRoom);
-        RoomsListGroup_Button_DeleteRoom.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fragment.deleteRoom(groupPosition);
-            }
-        });
-
-        Button RoomsListGroup_Button_EditRoom = (Button) convertView.findViewById(R.id.RoomsListGroup_Button_EditRoom);
-        RoomsListGroup_Button_EditRoom.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                fragment.editRoom(groupPosition);
-            }
-        });
-
-        if (Shared.getAuth().getType().equalsIgnoreCase("Normal"))
-        {
-            RoomsListGroup_Button_DeleteRoom.setVisibility(View.GONE);
-            RoomsListGroup_Button_EditRoom.setVisibility(View.GONE);
-        }
-
-        TextView RoomsListGroup_TextView_RoomName = (TextView) convertView.findViewById(R.id.RoomsListGroup_TextView_RoomName);
-        RoomsListGroup_TextView_RoomName.setText(headerTitle);
-
-        return convertView;
-    }
-
-    @Override
-    public boolean hasStableIds() {
-        return false;
-    }
-
-    @Override
-    public boolean isChildSelectable(int groupPosition, int childPosition) {
-        return true;
+    public void remove(int index) {
+        rooms.remove(index);
+        notifyDataSetChanged();
     }
 }

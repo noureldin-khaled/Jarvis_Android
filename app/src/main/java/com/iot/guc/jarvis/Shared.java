@@ -2,26 +2,32 @@ package com.iot.guc.jarvis;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.Volley;
 import com.iot.guc.jarvis.fragments.ChatFragment;
+import com.iot.guc.jarvis.fragments.DeviceFragment;
 import com.iot.guc.jarvis.fragments.RoomFragment;
 import com.iot.guc.jarvis.models.Device;
+import com.iot.guc.jarvis.models.Event;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Server;
 import com.iot.guc.jarvis.models.User;
+import com.iot.guc.jarvis.requests.CustomJsonRequest;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.ServerResponse;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -41,6 +47,8 @@ public class Shared {
     private static User auth;
     private static ArrayList<Room> rooms = new ArrayList<>();
     private static ArrayList<Device> devices = new ArrayList<>();
+    private static ArrayList<ArrayList<Event>> Patterns = new ArrayList<>();
+    private static int selectedRoom = -1;
 
     public static String getCurrentTime() {
         Date today = Calendar.getInstance().getTime();
@@ -50,6 +58,14 @@ public class Shared {
     public static String getCurrentDate() {
         Date today = Calendar.getInstance().getTime();
         return dateFormat.format(today);
+    }
+
+    public static ArrayList<ArrayList<Event>> getPatterns(){
+        return Patterns;
+    }
+
+    public static void setPatterns(ArrayList<ArrayList<Event>> p){
+        Shared.Patterns = p;
     }
 
     public static Server getServer() {
@@ -68,6 +84,14 @@ public class Shared {
         Shared.auth = auth;
     }
 
+    public static int getSelectedRoom() {
+        return selectedRoom;
+    }
+
+    public static void setSelectedRoom(int selectedRoom) {
+        Shared.selectedRoom = selectedRoom;
+    }
+
     public static ArrayList<Room> getRooms() {
         return rooms;
     }
@@ -76,7 +100,16 @@ public class Shared {
         return devices;
     }
 
-    public static  Device getDevice(int deviceId){
+    public static ArrayList<Device> getDevices(int room_id) {
+        ArrayList<Device> res = new ArrayList<>();
+        for (Device d : devices)
+            if (d.getRoom_id() == room_id)
+                res.add(d);
+
+        return res;
+    }
+
+    public static Device getDevice(int deviceId){
         for(int i=0; i <Shared.getDevices().size();i++){
             Device d = devices.get(i);
             if(d.getId()==deviceId)
@@ -84,9 +117,46 @@ public class Shared {
         }
         return null;
     }
+    public static void addRoomAPIAI(Room r, Context context){
+        String entityUrl = "https://api.api.ai/v1/entities/9088204c-b4bf-4330-bb41-771b99af06ca/entries?v=20150910";
+        RequestQueue requestQueue = Volley.newRequestQueue(context);
 
-    public static void addRoom(Room r) {
+        final String jsonString = "[\n" +
+                " {\n" +
+                "  \"value\": \""+r.getName()+"\",\n" +
+                "  \"synonyms\": [\""+r.getName()+"\"]\n"+
+                " }\n" +
+                "]";
+        try {
+            JSONArray jsonArray = new JSONArray(jsonString);
+            CustomJsonRequest jsonArrayRequest = new CustomJsonRequest(Request.Method.POST, entityUrl, jsonArray, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject response) {
+                    Log.d("resp", response.toString());
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    Log.d("error",error.toString());
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Authorization", "Bearer fe2437e5a86740a78ccdfac19d283494");
+                    headers.put("Content-Type", "application/json");
+                    return headers;
+                }
+            };
+            requestQueue.add(jsonArrayRequest);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void addRoom(Room r, Context context) {
         rooms.add(r);
+        addRoomAPIAI(r,context);
     }
 
     public static void removeRoom(int index) {
@@ -114,11 +184,13 @@ public class Shared {
         devices.remove(index);
     }
 
-    public static  void  removeDevice(Device d){
-        for(int i =0;i<devices.size();i++){
-            if(d.getId()==devices.get(i).getId())
-                devices.remove(i);
-        }
+    public static void removeDevice(Device d){
+        int idx = -1;
+        for(int i = 0; i < devices.size() && idx == -1; i++)
+            if(d.getId() == devices.get(i).getId())
+                idx = i;
+
+        removeDevice(idx);
     }
 
     public static void clearDevices() {
@@ -142,6 +214,10 @@ public class Shared {
     }
 
     public static void collapseKeyBoard(RoomFragment fragment) {
+        fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+    }
+
+    public static void collapseKeyBoard(DeviceFragment fragment) {
         fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
@@ -224,6 +300,11 @@ public class Shared {
                 queue.add(request);
             }
         }).start();
+    }
+
+    public static int dpToPx(int dp, Context context) {
+        DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
+        return Math.round(dp * (displayMetrics.xdpi / DisplayMetrics.DENSITY_DEFAULT));
     }
 
     //API REQUESTS

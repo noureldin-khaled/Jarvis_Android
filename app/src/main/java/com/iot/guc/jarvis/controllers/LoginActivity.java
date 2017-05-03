@@ -13,7 +13,9 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.android.volley.Request;
 import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.models.Event;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.responses.ServerResponse;
@@ -26,6 +28,8 @@ import com.iot.guc.jarvis.models.User;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText LoginActivity_EditText_Username, LoginActivity_EditText_Password;
@@ -350,7 +354,7 @@ public class LoginActivity extends AppCompatActivity {
                     JSONArray rooms = body.getJSONArray("rooms");
                     for (int i = 0; i < rooms.length(); i++) {
                         JSONObject current = rooms.getJSONObject(i);
-                        Shared.addRoom(new Room(current.getInt("id"), current.getString("name")));
+                        Shared.addRoom(new Room(current.getInt("id"), current.getString("name")),getApplicationContext());
                     }
 
                     fetchDevices(fromForm);
@@ -427,8 +431,8 @@ public class LoginActivity extends AppCompatActivity {
                                 current.getString("type").equals("Light Bulb") ? Device.TYPE.LIGHT_BULB : Device.TYPE.LOCK,
                                 current.getBoolean("status"), current.getString("mac"), current.getString("ip"), current.getInt("room_id")));
                     }
-
                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
+//                    fetchPatterns();
                 } catch (JSONException e) {
                     showProgress(false);
                     if (fromForm) {
@@ -486,6 +490,57 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     }
                 }
+            }
+        });
+    }
+
+
+    public void fetchPatterns(){
+        Shared.request(this, Request.Method.GET, "/api/patterns", null, true, new HTTPResponse() {
+            @Override
+            public void onSuccess(int statusCode, JSONObject body) {
+                try {
+                    JSONArray patterns = body.getJSONArray("patterns");
+                    ArrayList<ArrayList<Event>> p = new ArrayList<ArrayList<Event>>();
+                    for (int i =0; i<patterns.length();i++){
+                        JSONArray sequence = patterns.getJSONArray(i);
+                        ArrayList<Event> s = new ArrayList<Event>();
+                        for (int j =0; j<sequence.length();j++){
+                            JSONObject event = sequence.getJSONObject(j);
+                            Event e = new Event();
+                            e.setTime(event.getString("time"));
+                            e.setDevice(event.getString("device"));
+                            e.setDevice_id(event.getInt("device_id"));
+                            e.setStatus(event.getBoolean("status"));
+                            s.add(e);
+                        }
+                        p.add(s);
+                    }
+
+                    Shared.setPatterns(p);
+                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+
+                } catch (JSONException e) {
+                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView,"Something Went Wrong!",Snackbar.LENGTH_SHORT).setAction("RETRY",new  View.OnClickListener(){
+
+                        @Override
+                        public void onClick(View view) {
+                            fetchPatterns();
+                        }
+                    }).show();
+                    e.printStackTrace();
+                }
+
+            }
+
+            @Override
+            public void onFailure(int statusCode, JSONObject body) {
+                Snackbar.make(LoginActivity_RelativeLayout_MainContentView,"Something Went Wrong!",Snackbar.LENGTH_SHORT).setAction("RETRY",new  View.OnClickListener(){
+                    @Override
+                    public void onClick(View view) {
+                        fetchPatterns();
+                    }
+                }).show();
             }
         });
     }

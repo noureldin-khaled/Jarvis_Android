@@ -39,7 +39,8 @@ import com.iot.guc.jarvis.Popup;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.fragments.ChatFragment;
-import com.iot.guc.jarvis.fragments.RoomFragment;
+import com.iot.guc.jarvis.fragments.ContainerFragment;
+import com.iot.guc.jarvis.fragments.PatternsFragment;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.PopupResponse;
 
@@ -77,6 +78,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         MainActivity_ViewPager_Container = (ViewPager) findViewById(R.id.MainActivity_ViewPager_Container);
         MainActivity_ViewPager_Container.setAdapter(mSectionsPagerAdapter);
         MainActivity_ViewPager_Container.setCurrentItem(1);
+        getSupportActionBar().setTitle("Chat");
 
         NavigationDrawer_NavigationView_View = (NavigationView) findViewById(R.id.NavigationDrawer_NavigationView_View);
         NavigationDrawer_NavigationView_View.setNavigationItemSelectedListener(this);
@@ -109,9 +111,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onTabSelected(TabLayout.Tab tab) {
                 int index = tab.getPosition();
                 switch (index){
-                    case 0:tab.setIcon(R.drawable.ic_current_patterns);return;
-                    case 1: tab.setIcon(R.drawable.ic_current_chat);return;
-                    case 2: tab.setIcon(R.drawable.ic_current_devices);return;
+                    case 0: tab.setIcon(R.drawable.ic_current_patterns); getSupportActionBar().setTitle("Patterns"); return;
+                    case 1: tab.setIcon(R.drawable.ic_current_chat); getSupportActionBar().setTitle("Chat"); return;
+                    case 2: tab.setIcon(R.drawable.ic_current_devices); getSupportActionBar().setTitle("Devices"); return;
                 }
 
             }
@@ -120,10 +122,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onTabUnselected(TabLayout.Tab tab) {
                 int index = tab.getPosition();
                 switch (index){
-                    case 0: tab.setIcon(R.drawable.ic_patterns);return;
-                    case 1: tab.setIcon(R.drawable.ic_chat);
-                        Shared.collapseKeyBoard(MainActivity.this);return;
-                    case 2: tab.setIcon(R.drawable.ic_devices);return;
+                    case 0: tab.setIcon(R.drawable.ic_patterns); return;
+                    case 1: tab.setIcon(R.drawable.ic_chat); Shared.collapseKeyBoard(MainActivity.this); return;
+                    case 2: tab.setIcon(R.drawable.ic_devices); return;
                 }
             }
 
@@ -139,90 +140,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (NavigationDrawer_DrawerLayout_MainLayout.isDrawerOpen(GravityCompat.START)) {
             NavigationDrawer_DrawerLayout_MainLayout.closeDrawer(GravityCompat.START);
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(final MenuItem item) {
-        int id = item.getItemId();
-
-        switch (id) {
-            case R.id.action_settings: {
-                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
-                startActivity(intent);
-                return true;
-            }
-            case R.id.action_logout: {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                builder.setMessage("Are you sure you want to logout?")
-                        .setTitle("Confirmation")
-                        .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                showProgress(true);
-                                Shared.getAuth().logout(getApplicationContext(), new HTTPResponse() {
-                                    @Override
-                                    public void onSuccess(int statusCode, JSONObject body) {
-                                        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
-                                        SharedPreferences.Editor editor = sharedPreferences.edit();
-                                        editor.remove("auth");
-                                        editor.commit();
-                                        Shared.setAuth(null);
-                                        Shared.clearRooms();
-                                        Shared.clearDevices();
-
-                                        Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
-                                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                                        startActivity(intent);
-                                    }
-
-                                    @Override
-                                    public void onFailure(int statusCode, JSONObject body) {
-                                        showProgress(false);
-                                        switch (statusCode) {
-                                            case Constants.NO_INTERNET_CONNECTION: {
-                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_INDEFINITE).show();
-                                            }
-                                            break;
-                                            case Constants.SERVER_NOT_REACHED: {
-                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_INDEFINITE)
-                                                        .setAction("RETRY", new View.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(View v) {
-                                                                onOptionsItemSelected(item);
-                                                            }
-                                                        }).show();
-                                            }
-                                            break;
-                                            default: {
-                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
-                                                        .setAction("RETRY", new View.OnClickListener() {
-                                                            @Override
-                                                            public void onClick(View v) {
-                                                                onOptionsItemSelected(item);
-                                                            }
-                                                        }).show();
-                                            }
-                                        }
-                                    }
-                                });
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {}
-                        }).create().show();
-
-                return true;
-            }
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -391,6 +308,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         Shared.setAuth(null);
                                         Shared.clearRooms();
                                         Shared.clearDevices();
+                                        Shared.setSelectedRoom(-1);
 
                                         Intent intent = new Intent(getApplicationContext(), LoginActivity.class);
                                         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -456,39 +374,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         super.onPostResume();
     }
 
-    /**
-     * A placeholder fragment containing a simple view.
-     */
-    public static class PlaceholderFragment extends Fragment {
-        /**
-         * The fragment argument representing the section number for this
-         * fragment.
-         */
-        private static final String ARG_SECTION_NUMBER = "section_number";
-
-        public PlaceholderFragment() {
-        }
-
-        /**
-         * Returns a new instance of this fragment for the given section
-         * number.
-         */
-        public static PlaceholderFragment newInstance(int sectionNumber) {
-            PlaceholderFragment fragment = new PlaceholderFragment();
-            Bundle args = new Bundle();
-            args.putInt(ARG_SECTION_NUMBER, sectionNumber);
-            fragment.setArguments(args);
-            return fragment;
-        }
-
-        @Override
-        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
-            TextView textView = (TextView) rootView.findViewById(R.id.section_label);
-            textView.setText(getString(R.string.section_format, getArguments().getInt(ARG_SECTION_NUMBER)));
-            return rootView;
-        }
-    }
 
     public class SectionsPagerAdapter extends FragmentPagerAdapter {
 
@@ -500,11 +385,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public Fragment getItem(int position) {
             switch (position) {
                 case 0:
-                    return PlaceholderFragment.newInstance(position+1);
+                    return new PatternsFragment();
                 case 1:
                     return new ChatFragment();
                 case 2:
-                    return new RoomFragment();
+                    return new ContainerFragment();
             }
             return null;
         }
