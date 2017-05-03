@@ -28,11 +28,14 @@ import com.iot.guc.jarvis.models.Params;
 import com.iot.guc.jarvis.ChatAPI;
 import org.json.JSONObject;
 import java.util.ArrayList;
+import java.util.Locale;
+
 import ai.api.android.AIConfiguration;
 import ai.api.android.AIDataService;
 import ai.api.android.AIService;
 import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
+import android.speech.tts.TextToSpeech;
 
 public class ChatFragment extends Fragment {
 
@@ -191,10 +194,6 @@ public class ChatFragment extends Fragment {
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Params result) {
-//            handleChat(result);
-        }
     }
 
 }

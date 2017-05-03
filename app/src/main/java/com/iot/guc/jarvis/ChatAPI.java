@@ -100,11 +100,9 @@ public class ChatAPI extends AppCompatActivity {
             if (!incompleteLightMessage.isEmpty()) {
                 aiRequest.setQuery(incompleteLightMessage + requestMessage);
                 incompleteLightMessage = "";
-                Log.d("QUERY", incompleteLightMessage);
             } else if (!incompleteWeatherMessage.isEmpty()) {
                 aiRequest.setQuery(incompleteWeatherMessage + requestMessage);
                 incompleteWeatherMessage = "";
-                Log.d("QUERY", incompleteWeatherMessage);
             } else {
                 aiRequest.setQuery(requestMessage);
             }
@@ -115,7 +113,6 @@ public class ChatAPI extends AppCompatActivity {
             String action = aiResponse.getResult().getAction();
 
             String roomName = "";
-            Log.i("Action", aiResponse.getResult().getParameters().toString());
 
             if(!appointmentDescription.isEmpty() && appointmentLocation.isEmpty()){
                 appointmentDescription = requestMessage;
@@ -123,7 +120,6 @@ public class ChatAPI extends AppCompatActivity {
                 chatResponse.onSuccess(new Params(d, status, "Well, what about the location ?"));
             }
             else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty()){
-
                 appointmentLocation = requestMessage;
 
                 eventValues = new ContentValues();
@@ -286,9 +282,7 @@ public class ChatAPI extends AppCompatActivity {
                 }
 
             } else if(action.equals("appointment")){
-
                 String dateTime = aiResponse.getResult().getStringParameter("date-time");
-                Log.d("CURRENT",cal.getTime().toString());
 
                 if(dateTime.length() > 8){
 
@@ -337,16 +331,20 @@ public class ChatAPI extends AppCompatActivity {
                 appointmentDescription = "description";
 
             }
-
-            else if(action.startsWith("smalltalk") || action.equals("input.welcome") || action.equals("input.thanks") || action.equals("input.bye")){
-                message = aiResponse.getResult().getFulfillment().getSpeech();
-                chatResponse.onSuccess(new Params(d, status, message));
-            }
-            else{
+            else if(action.equals("input.unknown")){
                 Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
                 intent.putExtra(SearchManager.QUERY, requestMessage); // query contains search string
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 context.startActivity(intent);
+            }
+            else{
+                if(aiResponse.getResult().getFulfillment().getSpeech().isEmpty()){
+                    message = "Sorry, that didn't make sense to me.";
+                }
+                else{
+                    message = aiResponse.getResult().getFulfillment().getSpeech();
+                }
+                chatResponse.onSuccess(new Params(d, status, message));
             }
 
         } catch (AIServiceException e) {
