@@ -17,7 +17,6 @@
         android:transcriptMode="alwaysScroll"
         android:stackFromBottom="true"/>
 
-
     <EditText android:id="@+id/ChatFragment_EditText_Message"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

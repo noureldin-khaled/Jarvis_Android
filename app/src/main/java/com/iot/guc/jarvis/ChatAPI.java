@@ -331,7 +331,7 @@ public class ChatAPI extends AppCompatActivity {
                 appointmentDescription = "description";
 
             }
-            else if(action.equals("input.unknown")){
+            else if(action.equals("input.unknown") || action.equals("search")){
                 Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
                 intent.putExtra(SearchManager.QUERY, requestMessage); // query contains search string
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

@@ -19,6 +19,7 @@ import com.iot.guc.jarvis.fragments.ChatFragment;
 import com.iot.guc.jarvis.fragments.DeviceFragment;
 import com.iot.guc.jarvis.fragments.RoomFragment;
 import com.iot.guc.jarvis.models.Device;
+import com.iot.guc.jarvis.models.Event;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Server;
 import com.iot.guc.jarvis.models.User;
@@ -46,6 +47,7 @@ public class Shared {
     private static User auth;
     private static ArrayList<Room> rooms = new ArrayList<>();
     private static ArrayList<Device> devices = new ArrayList<>();
+    private static ArrayList<ArrayList<Event>> Patterns = new ArrayList<>();
     private static int selectedRoom = -1;
 
     public static String getCurrentTime() {
@@ -56,6 +58,14 @@ public class Shared {
     public static String getCurrentDate() {
         Date today = Calendar.getInstance().getTime();
         return dateFormat.format(today);
+    }
+
+    public static ArrayList<ArrayList<Event>> getPatterns(){
+        return Patterns;
+    }
+
+    public static void setPatterns(ArrayList<ArrayList<Event>> p){
+        Shared.Patterns = p;
     }
 
     public static Server getServer() {
