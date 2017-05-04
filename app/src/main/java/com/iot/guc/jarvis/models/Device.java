@@ -49,7 +49,7 @@ public class Device {
         }
 
         String url = "/api/device";
-        Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
+        Shared.request(context, Request.Method.GET, url, null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, true, httpResponse);
     }
 
     public static void scanDevices(Context context, final HTTPResponse httpResponse) {
@@ -64,7 +64,7 @@ public class Device {
         }
 
         String url = "/api/device/scan";
-        Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
+        Shared.request(context, Request.Method.GET, url, null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
     }
 
     public void handle(Context context, boolean status, final HTTPResponse httpResponse) {
@@ -82,7 +82,7 @@ public class Device {
             String url = "/api/device/" + getId();
             JSONObject body = new JSONObject();
             body.put("status", status);
-            Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
+            Shared.request(context, Request.Method.POST, url, body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
         } catch (JSONException e) {
             // The app failed
             httpResponse.onFailure(Constants.APP_FAILURE, null);
@@ -110,7 +110,7 @@ public class Device {
             body.put("ip", ip);
             body.put("room_id", room_id);
 
-            Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
+            Shared.request(context, Request.Method.POST, url, body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
         } catch (JSONException e) {
             // The app failed
             httpResponse.onFailure(Constants.APP_FAILURE, null);
@@ -130,7 +130,7 @@ public class Device {
         }
 
         String url = "/api/device/" + getId();
-        Shared.request(context, Request.Method.DELETE, url, null, true, httpResponse);
+        Shared.request(context, Request.Method.DELETE, url, null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
     }
 
     public void editDevice(Context context, String name, HTTPResponse httpResponse){
@@ -148,7 +148,7 @@ public class Device {
             String url = "/api/device/" + getId();
             JSONObject body = new JSONObject();
             body.put("name",name);
-            Shared.request(context, Request.Method.PUT, url, body, true, httpResponse);
+            Shared.request(context, Request.Method.PUT, url, body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
         } catch (JSONException e){
             // The app failed
             httpResponse.onFailure(Constants.APP_FAILURE,null);
@@ -168,7 +168,7 @@ public class Device {
         }
 
         String url = "/api/user/" + userId + "/" + getId();
-        Shared.request(context, Request.Method.POST, url, null, true, httpResponse);
+        Shared.request(context, Request.Method.POST, url, null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
     }
 
     public int getId() {

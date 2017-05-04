@@ -56,14 +56,13 @@ public class Room {
         }
 
         String url = "/api/room";
-        Shared.request(context, Request.Method.GET, url, null, true, httpResponse);
+        Shared.request(context, Request.Method.GET, url, null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, true, httpResponse);
     }
 
     public static void addRoom(Context context, String name, final HTTPResponse httpResponse) {
         ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
         boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
-
 
         if (!isConnected) {
             // No Internet Connection
@@ -76,7 +75,7 @@ public class Room {
             JSONObject body = new JSONObject();
             body.put("name", name);
 
-            Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
+            Shared.request(context, Request.Method.POST, url, body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
 
         } catch (JSONException e) {
             // The app failed
@@ -98,7 +97,7 @@ public class Room {
         }
 
         String url = "/api/room/" + getId();
-        Shared.request(context, Request.Method.DELETE, url, null, true, httpResponse);
+        Shared.request(context, Request.Method.DELETE, url, null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
     }
 
     public void editRoom(Context context,String name, final HTTPResponse httpResponse){
@@ -116,7 +115,7 @@ public class Room {
             JSONObject body = new JSONObject();
             body.put("name", name);
 
-            Shared.request(context, Request.Method.PUT, url, body, true, httpResponse);
+            Shared.request(context, Request.Method.PUT, url, body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, httpResponse);
         } catch (JSONException e){
             httpResponse.onFailure(Constants.APP_FAILURE,null);
             e.printStackTrace();

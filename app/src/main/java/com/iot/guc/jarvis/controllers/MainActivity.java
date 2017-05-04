@@ -304,8 +304,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                                         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                                         SharedPreferences.Editor editor = sharedPreferences.edit();
                                         editor.remove("auth");
+                                        editor.remove("sharedKey");
                                         editor.commit();
                                         Shared.setAuth(null);
+                                        Shared.setSharedKey(null);
                                         Shared.clearRooms();
                                         Shared.clearDevices();
                                         Shared.setSelectedRoom(-1);

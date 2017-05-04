@@ -39,7 +39,7 @@ public class AlertService extends Service {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Shared.request(getApplicationContext(), Request.Method.GET, "/api/device/" + event.getDevice_id(), body, true, new HTTPResponse() {
+        Shared.request(getApplicationContext(), Request.Method.GET, "/api/device/" + event.getDevice_id(), body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
                 Log.v("Service","Device handeled");
