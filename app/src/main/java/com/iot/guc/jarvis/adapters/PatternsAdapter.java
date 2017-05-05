@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.iot.guc.jarvis.AlertService;
 import com.iot.guc.jarvis.R;
@@ -22,9 +23,14 @@ import java.util.ArrayList;
 import java.util.Calendar;
 
 
+
+
+
+
 public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHolder> {
 
     private ArrayList<ArrayList<Event>> sequences;
+    private ArrayList<Boolean> auto = new ArrayList<>();
     private Context context;
     private PatternsFragment fragment;
     private AlarmManager alarmManager;
@@ -34,6 +40,9 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
         this.context = context;
         this.fragment = fragment;
         alarmManager = (AlarmManager) fragment.getContext().getSystemService(Context.ALARM_SERVICE);
+        for (int i = 0; i < Data.size();i++){
+            auto.add(false);
+        }
 
     }
 
@@ -50,6 +59,7 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
         final SequenceAdapter sequenceAdapter = new SequenceAdapter(sequences.get(position),fragment,position);
         holder.recyclerView.setLayoutManager(new LinearLayoutManager(context));
         holder.recyclerView.setAdapter(sequenceAdapter);
+        holder.checkBox.setChecked(auto.get(position));
         holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
@@ -69,10 +79,15 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
 
                     PendingIntent pendingIntent = PendingIntent.getService(fragment.getContext(), position+i, intent, PendingIntent.FLAG_UPDATE_CURRENT);
                     if(b){
+
                         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+                        Toast.makeText(context,"Created at "+calendar.getTime(),Toast.LENGTH_LONG);
+                        auto.set(position,true);
                     } else {
                         alarmManager.cancel(pendingIntent);
                         pendingIntent.cancel();
+                        Toast.makeText(context,"Cancelled",Toast.LENGTH_LONG);
+                        auto.set(position,false);
                     }
                 }
 

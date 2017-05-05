@@ -99,7 +99,7 @@ public class PatternsFragment extends Fragment {
         Shared.setPatterns(Patterns);
         patternsAdapter.notifyDataSetChanged();
 
-        Shared.request(getContext(), Request.Method.DELETE, "api/patterns/" + sequence, null, true, new HTTPResponse() {
+        Shared.request(getContext(), Request.Method.DELETE, "/api/patterns/" + sequence, null, true, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
 
@@ -109,7 +109,7 @@ public class PatternsFragment extends Fragment {
 
             @Override
             public void onFailure(int statusCode, JSONObject body) {
-                Snackbar.make(Patterns_LinearLayout,"Something went wrong",Snackbar.LENGTH_SHORT);
+                Snackbar.make(Patterns_LinearLayout,"Something went wrong",Snackbar.LENGTH_LONG);
             }
         });
     }
@@ -167,7 +167,7 @@ public class PatternsFragment extends Fragment {
 
                     @Override
                     public void onFailure(int statusCode, JSONObject body) {
-                        Snackbar.make(Patterns_LinearLayout,"Something Went Wrong!",Snackbar.LENGTH_SHORT);
+                        Snackbar.make(Patterns_LinearLayout,"Something Went Wrong!",Snackbar.LENGTH_LONG);
                     }
                 });
 

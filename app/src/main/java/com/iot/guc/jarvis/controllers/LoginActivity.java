@@ -432,7 +432,7 @@ public class LoginActivity extends AppCompatActivity {
                                 current.getBoolean("status"), current.getString("mac"), current.getString("ip"), current.getInt("room_id")));
                     }
                     startActivity(new Intent(getApplicationContext(), MainActivity.class));
-//                    fetchPatterns();
+                    fetchPatterns();
                 } catch (JSONException e) {
                     showProgress(false);
                     if (fromForm) {
