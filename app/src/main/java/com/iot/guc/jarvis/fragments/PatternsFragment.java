@@ -136,7 +136,7 @@ public class PatternsFragment extends Fragment {
                     Snackbar.make(Patterns_LinearLayout,"Something Went Wrong!",Snackbar.LENGTH_SHORT);
                     e.printStackTrace();
                 }
-                Shared.request(getContext(), Request.Method.PUT, "/api/patterns/" + sequence + "/" + event, body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, new HTTPResponse() {
+                Shared.request(getContext(), Request.Method.PUT, "/api/patterns/" + sequence + "/" + event, body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, false, new HTTPResponse() {
                     @Override
                     public void onSuccess(int statusCode, JSONObject body) {
                         PatternsFragment.this.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);

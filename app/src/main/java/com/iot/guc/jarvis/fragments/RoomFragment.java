@@ -59,44 +59,46 @@ public class RoomFragment extends Fragment {
         RoomFragment_TextView_NoRoomsFound = (TextView) view.findViewById(R.id.RoomFragment_TextView_NoRoomsFound);
         RoomFragment_ListView_Rooms = (ListView) view.findViewById(R.id.RoomFragment_ListView_Rooms);
 
-        RoomFragment_ListView_Rooms.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-            @Override
-            public boolean onItemLongClick(AdapterView<?> parent, View v, final int position, long id) {
-                Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
-                vibrator.vibrate(250);
+        if (Shared.getAuth().getType().equalsIgnoreCase("Admin")) {
+            RoomFragment_ListView_Rooms.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+                @Override
+                public boolean onItemLongClick(AdapterView<?> parent, View v, final int position, long id) {
+                    Vibrator vibrator = (Vibrator) getContext().getSystemService(Context.VIBRATOR_SERVICE);
+                    vibrator.vibrate(250);
 
-                LayoutInflater inflater = getActivity().getLayoutInflater();
-                View contentView = inflater.inflate(R.layout.dialog_options, null);
-                FloatingActionButton OptionDialog_FloatingActionButton_Privilege = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Privilege);
-                OptionDialog_FloatingActionButton_Privilege.setVisibility(View.GONE);
+                    LayoutInflater inflater = getActivity().getLayoutInflater();
+                    View contentView = inflater.inflate(R.layout.dialog_options, null);
+                    FloatingActionButton OptionDialog_FloatingActionButton_Privilege = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Privilege);
+                    OptionDialog_FloatingActionButton_Privilege.setVisibility(View.GONE);
 
-                final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView).create();
-                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-                dialog.show();
-                dialog.getWindow().setLayout(Shared.dpToPx(240, getContext()), ViewGroup.LayoutParams.WRAP_CONTENT);
+                    final AlertDialog dialog = new AlertDialog.Builder(getActivity()).setView(contentView).create();
+                    dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+                    dialog.show();
+                    dialog.getWindow().setLayout(Shared.dpToPx(240, getContext()), ViewGroup.LayoutParams.WRAP_CONTENT);
 
-                final FloatingActionButton OptionDialog_FloatingActionButton_Edit = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Edit);
-                final FloatingActionButton OptionDialog_FloatingActionButton_Delete = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Delete);
+                    final FloatingActionButton OptionDialog_FloatingActionButton_Edit = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Edit);
+                    final FloatingActionButton OptionDialog_FloatingActionButton_Delete = (FloatingActionButton) contentView.findViewById(R.id.OptionDialog_FloatingActionButton_Delete);
 
-                OptionDialog_FloatingActionButton_Edit.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                        editRoom(position);
-                    }
-                });
+                    OptionDialog_FloatingActionButton_Edit.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                            editRoom(position);
+                        }
+                    });
 
-                OptionDialog_FloatingActionButton_Delete.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        dialog.dismiss();
-                        deleteRoom(position);
-                    }
-                });
+                    OptionDialog_FloatingActionButton_Delete.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            dialog.dismiss();
+                            deleteRoom(position);
+                        }
+                    });
 
-                return true;
-            }
-        });
+                    return true;
+                }
+            });
+        }
 
         RoomFragment_ListView_Rooms.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override

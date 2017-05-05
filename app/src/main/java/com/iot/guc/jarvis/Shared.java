@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -41,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class Shared {
@@ -218,6 +220,19 @@ public class Shared {
         devices.set(index, device);
     }
 
+    public static String toString(JSONObject obj) throws JSONException {
+        String s = "{";
+        for(Iterator<String> iter = obj.keys(); iter.hasNext(); ) {
+            String key = iter.next();
+            Object value = obj.get(key);
+            s += "\"" + key + "\":\"" + value + "\"";
+            if (iter.hasNext())
+                s += ",";
+        }
+        s += "}";
+        return s;
+    }
+
     public static void collapseKeyBoard(Activity activity) {
         View view = activity.getCurrentFocus();
         if (view != null) {
@@ -248,6 +263,10 @@ public class Shared {
 
     public static void AESDecrypt(Context context, String encrypted, final StringResponse stringResponse) {
         Stringcall(context, "/AesDecrypt/" + sharedKey + "/" + encrypted, stringResponse);
+    }
+
+    public static void getNonce(Context context, final StringResponse stringResponse) {
+        Stringcall(context, "/nonce", stringResponse);
     }
 
     public static void JSONcall(Context context, String url, final HTTPResponse httpResponse) {
@@ -293,7 +312,6 @@ public class Shared {
                 RequestQueue queue = Volley.newRequestQueue(context);
                 JsonObjectRequest request;
                 final String URL = server.URL() + url;
-
                 if (headers == Constants.AUTH_HEADERS) {
                     request = new JsonObjectRequest(method, URL, body, new Response.Listener<JSONObject>() {
                         @Override
@@ -472,12 +490,13 @@ public class Shared {
                     });
                 }
 
+                request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
                 queue.add(request);
             }
         }).start();
     }
 
-    public static void request(final Context context, final int method, final String url, final JSONObject body, final int headers, final String username, int encryption, final boolean decrypt, final HTTPResponse httpResponse) {
+    public static void processEncryption(final Context context, final int method, final String url, final JSONObject body, final int headers, final String username, int encryption, final boolean decrypt, final HTTPResponse httpResponse) {
         if (encryption == Constants.RSA_ENCRYPTION) {
             RSAEncrypt(context, body.toString(), new StringResponse() {
                 @Override
@@ -523,6 +542,31 @@ public class Shared {
         else {
             makeRequest(context, method, url, body, headers, username, decrypt, httpResponse);
         }
+    }
+
+    public static void request(final Context context, final int method, final String url, final JSONObject body, final int headers, final String username, final int encryption, final boolean decrypt, final boolean attachNonce, final HTTPResponse httpResponse) {
+        if (attachNonce) {
+            getNonce(context, new StringResponse() {
+                @Override
+                public void onSuccess(int statusCode, String response) {
+                    try {
+                        body.put("nonce", response);
+                        processEncryption(context, method, url, body, headers, username, encryption, decrypt, httpResponse);
+                    } catch (JSONException e) {
+                        // The app failed
+                        httpResponse.onFailure(Constants.APP_FAILURE, null);
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, String response) {
+                    httpResponse.onFailure(500, null);
+                }
+            });
+        }
+        else
+            processEncryption(context, method, url, body, headers, username, encryption, decrypt, httpResponse);
     }
 
     public static int dpToPx(int dp, Context context) {

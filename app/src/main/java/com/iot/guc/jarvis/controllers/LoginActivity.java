@@ -13,8 +13,16 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
 import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.ServerTask;
 import com.iot.guc.jarvis.models.Event;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
@@ -22,13 +30,17 @@ import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.User;
+import com.iot.guc.jarvis.responses.ServerResponse;
 import com.iot.guc.jarvis.responses.StringResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText LoginActivity_EditText_Username, LoginActivity_EditText_Password;
@@ -67,7 +79,7 @@ public class LoginActivity extends AppCompatActivity {
         if (!auth.isEmpty()) {
             try {
                 JSONObject user = new JSONObject(auth);
-                Shared.setAuth(new User(user.getInt("id"), user.getString("username"), user.getString("token"), user.getString("type"), user.getString("aes_pu"), user.getString("aes_pr")));
+                Shared.setAuth(new User(user.getInt("id"), user.getString("username"), user.getString("token"), user.getString("type"), user.getString("aes_pu"), user.getString("aes_pr"), user.getString("salt")));
                 Shared.setSharedKey(sharedPreferences.getString("sharedKey", ""));
                 fetchRooms(false);
             } catch (JSONException e) {
@@ -86,10 +98,12 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void register(final String username, final String password, final String salt) {
+        Shared.collapseKeyBoard(LoginActivity.this);
+        showProgress(true);
         User.register(getApplicationContext(), username, password, salt, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
-                preLogin(username, password, true);
+                preLogin(username, password, salt);
             }
 
             @Override
@@ -122,6 +136,10 @@ public class LoginActivity extends AppCompatActivity {
                                     if (field.equals("username")) {
                                         LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
                                         LoginActivity_TextInputLayout_UsernameLayout.setError("Please Enter a Username");
+                                    }
+                                    else if (field.equals("username")) {
+                                        LoginActivity_TextInputLayout_PasswordLayout.setErrorEnabled(true);
+                                        LoginActivity_TextInputLayout_PasswordLayout.setError("Please Enter a Password");
                                     }
                                     else {
                                         Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
@@ -241,81 +259,12 @@ public class LoginActivity extends AppCompatActivity {
                             }).show();
                 }
             });
-
-//            User.getKeys(getApplicationContext(), new HTTPResponse() {
-//                @Override
-//                public void onSuccess(int statusCode, JSONObject body) {
-//                    try {
-//                        String aes_pu = body.getString("AesPublicKey");
-//                        String aes_pr = body.getString("AesPrivateKey");
-//                        String sharedKey = body.getString("AesSharedKey");
-//                        Shared.setSharedKey(sharedKey);
-//
-//                        register(LoginActivity_EditText_Username.getText().toString(), LoginActivity_EditText_Password.getText().toString(), aes_pu, aes_pr);
-//                    } catch (JSONException e) {
-//                        showProgress(false);
-//                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
-//                                .setAction("RETRY", new View.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(View v) {
-//                                        registerClicked(view);
-//                                    }
-//                                }).show();
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(int statusCode, JSONObject body) {
-//                    showProgress(false);
-//                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
-//                            .setAction("RETRY", new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View v) {
-//                                    registerClicked(view);
-//                                }
-//                            }).show();
-//                }
-//            });
-//            String url = "/register/" + LoginActivity_EditText_Password.getText().toString();
-//            Shared.JSONcall(getApplicationContext(), Request.Method.GET, url, new HTTPResponse() {
-//                @Override
-//                public void onSuccess(int statusCode, JSONObject body) {
-//                    try {
-//                        String salt = body.getString("salt");
-//                        String hash = body.getString("hash");
-//                        String public_key = body.getJSONObject("publicKey").toString();
-//                        private_key = body.getJSONObject("privateKey").toString();
-//
-//                        register(LoginActivity_EditText_Username.getText().toString(), hash, public_key, salt);
-//                    } catch (JSONException e) {
-//                        showProgress(false);
-//                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
-//                                .setAction("RETRY", new View.OnClickListener() {
-//                                    @Override
-//                                    public void onClick(View v) {
-//                                        registerClicked(view);
-//                                    }
-//                                }).show();
-//                    }
-//                }
-//
-//                @Override
-//                public void onFailure(int statusCode, JSONObject body) {
-//                    showProgress(false);
-//                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_INDEFINITE)
-//                            .setAction("RETRY", new View.OnClickListener() {
-//                                @Override
-//                                public void onClick(View v) {
-//                                    registerClicked(view);
-//                                }
-//                            }).show();
-//                }
-//            });
         }
     }
 
-    public void login(final String username, final String password, final String aes_pu, final String aes_pr) {
+    public void login(final String username, final String password, final String aes_pu, final String aes_pr, final String salt) {
+        Shared.collapseKeyBoard(LoginActivity.this);
+        showProgress(true);
         User.login(getApplicationContext(), username, password, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
@@ -323,7 +272,8 @@ public class LoginActivity extends AppCompatActivity {
                     JSONObject user = body.getJSONObject("user");
                     user.put("aes_pu", aes_pu);
                     user.put("aes_pr", aes_pr);
-                    Shared.setAuth(new User(user.getInt("id"), user.getString("username"), user.getString("token"), user.getString("type"), aes_pu, aes_pr));
+                    user.put("salt", salt);
+                    Shared.setAuth(new User(user.getInt("id"), user.getString("username"), user.getString("token"), user.getString("type"), aes_pu, aes_pr, salt));
                     SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
                     SharedPreferences.Editor editor = sharedPreferences.edit();
                     editor.putString("auth", user.toString());
@@ -336,7 +286,7 @@ public class LoginActivity extends AppCompatActivity {
                             .setAction("RETRY", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    login(username, password, aes_pu, aes_pr);
+                                    login(username, password, aes_pu, aes_pr, salt);
                                 }
                             }).show();
                     e.printStackTrace();
@@ -356,7 +306,7 @@ public class LoginActivity extends AppCompatActivity {
                                 .setAction("RETRY", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        login(username, password, aes_pu, aes_pr);
+                                        login(username, password, aes_pu, aes_pr, salt);
                                     }
                                 }).show();
                     }
@@ -383,7 +333,7 @@ public class LoginActivity extends AppCompatActivity {
                                                 .setAction("RETRY", new View.OnClickListener() {
                                                     @Override
                                                     public void onClick(View v) {
-                                                        login(username, password, aes_pu, aes_pr);
+                                                        login(username, password, aes_pu, aes_pr, salt);
                                                     }
                                                 }).show();
                                         break;
@@ -394,7 +344,7 @@ public class LoginActivity extends AppCompatActivity {
                                             .setAction("RETRY", new View.OnClickListener() {
                                                 @Override
                                                 public void onClick(View v) {
-                                                    login(username, password, aes_pu, aes_pr);
+                                                    login(username, password, aes_pu, aes_pr, salt);
                                                 }
                                             }).show();
                                     break;
@@ -406,7 +356,7 @@ public class LoginActivity extends AppCompatActivity {
                                     .setAction("RETRY", new View.OnClickListener() {
                                         @Override
                                         public void onClick(View v) {
-                                            login(username, password, aes_pu, aes_pr);
+                                            login(username, password, aes_pu, aes_pr, salt);
                                         }
                                     }).show();
                             e.printStackTrace();
@@ -423,7 +373,7 @@ public class LoginActivity extends AppCompatActivity {
                                 .setAction("RETRY", new View.OnClickListener() {
                                     @Override
                                     public void onClick(View v) {
-                                        login(username, password, aes_pu, aes_pr);
+                                        login(username, password, aes_pu, aes_pr, salt);
                                     }
                                 }).show();
                     }
@@ -433,28 +383,38 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void hashPassword(final String username, final String password, final String aes_pu, final String aes_pr) {
+        Shared.collapseKeyBoard(LoginActivity.this);
+        showProgress(true);
         User.getSalt(getApplicationContext(), username, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
                 try {
-                    String salt = body.getString("salt");
+                    final String salt = body.getString("salt");
 
                     User.hashPassword(getApplicationContext(), password, salt, new StringResponse() {
                         @Override
                         public void onSuccess(int statusCode, String hash) {
-                            login(username, hash, aes_pu, aes_pr);
+                            login(username, hash, aes_pu, aes_pr, salt);
                         }
 
                         @Override
                         public void onFailure(int statusCode, String response) {
                             showProgress(false);
-                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
-                                    .setAction("RETRY", new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            hashPassword(username, password, aes_pu, aes_pr);
-                                        }
-                                    }).show();
+                            switch (statusCode) {
+                                case Constants.NO_INTERNET_CONNECTION: {
+                                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                }
+                                break;
+                                default: {
+                                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                            .setAction("RETRY", new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    hashPassword(username, password, aes_pu, aes_pr);
+                                                }
+                                            }).show();
+                                }
+                            }
                         }
                     });
 
@@ -473,18 +433,28 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onFailure(int statusCode, JSONObject body) {
                 showProgress(false);
-                Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
-                        .setAction("RETRY", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                hashPassword(username, password, aes_pu, aes_pr);
-                            }
-                        }).show();
+                switch (statusCode) {
+                    case Constants.NO_INTERNET_CONNECTION: {
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                    }
+                    break;
+                    default: {
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                .setAction("RETRY", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        hashPassword(username, password, aes_pu, aes_pr);
+                                    }
+                                }).show();
+                    }
+                }
             }
         });
     }
 
-    public void preLogin(final String username, final String password, final boolean skipHashing) {
+    public void preLogin(final String username, final String password, final String salt) {
+        Shared.collapseKeyBoard(LoginActivity.this);
+        showProgress(true);
         User.getKeys(getApplicationContext(), new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
@@ -493,12 +463,11 @@ public class LoginActivity extends AppCompatActivity {
                     final String aes_pr = body.getString("AesPrivateKey");
                     String sharedKey = body.getString("AesSharedKey");
                     Shared.setSharedKey(sharedKey);
-
                     User.exchange(getApplicationContext(), username, aes_pu, new HTTPResponse() {
                         @Override
                         public void onSuccess(int statusCode, JSONObject body) {
-                            if (skipHashing)
-                                login(username, password, aes_pu, aes_pr);
+                            if (salt != null)
+                                login(username, password, aes_pu, aes_pr, salt);
                             else
                                 hashPassword(username, password, aes_pu, aes_pr);
                         }
@@ -506,13 +475,84 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onFailure(int statusCode, JSONObject body) {
                             showProgress(false);
-                            Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
-                                    .setAction("RETRY", new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View v) {
-                                            preLogin(username, password, skipHashing);
+                            switch (statusCode) {
+                                case Constants.NO_INTERNET_CONNECTION: {
+                                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                }
+                                break;
+                                case Constants.SERVER_NOT_REACHED: {
+                                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG)
+                                            .setAction("RETRY", new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    preLogin(username, password, salt);
+                                                }
+                                            }).show();
+                                }
+                                break;
+                                case 400: {
+                                    try {
+                                        JSONArray arr = body.getJSONArray("errors");
+                                        for (int i = 0; i < arr.length(); i++) {
+                                            JSONObject current = arr.getJSONObject(i);
+                                            String type = current.getString("msg");
+                                            String field = current.getString("param");
+
+                                            if (type.equals("required")) {
+                                                if (field.equals("username")) {
+                                                    LoginActivity_TextInputLayout_UsernameLayout.setErrorEnabled(true);
+                                                    LoginActivity_TextInputLayout_UsernameLayout.setError("Please Enter a Username");
+                                                }
+                                                else {
+                                                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                            .setAction("RETRY", new View.OnClickListener() {
+                                                                @Override
+                                                                public void onClick(View v) {
+                                                                    preLogin(username, password, salt);
+                                                                }
+                                                            }).show();
+                                                    break;
+                                                }
+                                            }
+                                            else {
+                                                Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                        .setAction("RETRY", new View.OnClickListener() {
+                                                            @Override
+                                                            public void onClick(View v) {
+                                                                preLogin(username, password, salt);
+                                                            }
+                                                        }).show();
+                                                break;
+                                            }
                                         }
-                                    }).show();
+
+                                    } catch (JSONException e) {
+                                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                                .setAction("RETRY", new View.OnClickListener() {
+                                                    @Override
+                                                    public void onClick(View v) {
+                                                        preLogin(username, password, salt);
+                                                    }
+                                                }).show();
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                                break;
+                                case 404: {
+                                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Either The Username or Password is incorrect.", Snackbar.LENGTH_LONG).show();
+                                }
+                                break;
+                                default: {
+                                    Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                            .setAction("RETRY", new View.OnClickListener() {
+                                                @Override
+                                                public void onClick(View v) {
+                                                    preLogin(username, password, salt);
+                                                }
+                                            }).show();
+                                }
+                            }
                         }
                     });
                 } catch (JSONException e) {
@@ -521,7 +561,7 @@ public class LoginActivity extends AppCompatActivity {
                             .setAction("RETRY", new View.OnClickListener() {
                                 @Override
                                 public void onClick(View v) {
-                                    preLogin(username, password, skipHashing);
+                                    preLogin(username, password, salt);
                                 }
                             }).show();
                 }
@@ -529,15 +569,22 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(int statusCode, JSONObject body) {
-                Log.i(getLocalClassName(), "onFailure: " + body.toString());
                 showProgress(false);
-                Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
-                        .setAction("RETRY", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                preLogin(username, password, skipHashing);
-                            }
-                        }).show();
+                switch (statusCode) {
+                    case Constants.NO_INTERNET_CONNECTION: {
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                    }
+                    break;
+                    default: {
+                        Snackbar.make(LoginActivity_RelativeLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG)
+                                .setAction("RETRY", new View.OnClickListener() {
+                                    @Override
+                                    public void onClick(View v) {
+                                        preLogin(username, password, salt);
+                                    }
+                                }).show();
+                    }
+                }
             }
         });
     }
@@ -562,11 +609,13 @@ public class LoginActivity extends AppCompatActivity {
             Shared.collapseKeyBoard(LoginActivity.this);
             showProgress(true);
 
-            preLogin(LoginActivity_EditText_Username.getText().toString(), LoginActivity_EditText_Password.getText().toString(), false);
+            preLogin(LoginActivity_EditText_Username.getText().toString(), LoginActivity_EditText_Password.getText().toString(), null);
         }
     }
 
     public void fetchRooms(final boolean fromForm) {
+        Shared.collapseKeyBoard(LoginActivity.this);
+        showProgress(true);
         Room.getRooms(getApplicationContext(), new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
@@ -640,6 +689,8 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void fetchDevices(final boolean fromForm) {
+        Shared.collapseKeyBoard(LoginActivity.this);
+        showProgress(true);
         Device.getDevices(getApplicationContext(), new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
@@ -715,7 +766,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void fetchPatterns(){
-        Shared.request(this, Request.Method.GET, "/api/patterns", null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, new HTTPResponse() {
+        Shared.request(this, Request.Method.GET, "/api/patterns", null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, false, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
                 try {
