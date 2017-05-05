@@ -24,7 +24,6 @@ import com.iot.guc.jarvis.responses.ChatResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -37,7 +36,6 @@ import ai.api.model.AIResponse;
 import java.util.Date;
 import java.util.Calendar;
 import java.text.SimpleDateFormat;
-
 import android.content.ContentValues;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -52,7 +50,6 @@ public class ChatAPI extends AppCompatActivity {
     public static RequestQueue queue;
     static boolean incompleteLight = false;
     static String incompleteLightMessage = "";
-    static boolean incompleteWeather = false;
     static String incompleteWeatherMessage = "";
     static String countryCode = "";
     static String message;
@@ -66,7 +63,9 @@ public class ChatAPI extends AppCompatActivity {
     static ChatResponse response;
     static String appointmentDescription = "";
     static String appointmentLocation = "";
+    static boolean needReminder = false;
     static Calendar cal = Calendar.getInstance();
+    static long eventId;
 
     public static String parseResponse(JSONObject response) throws JSONException {
         int count = response.getInt("cnt");
@@ -79,7 +78,9 @@ public class ChatAPI extends AppCompatActivity {
             Date date = new Date(unixSeconds * 1000L);
             result += date.toString().substring(0, 10) + ", ";
             int temp = (int) Math.ceil(((day.getJSONObject("temp").getDouble("min") + day.getJSONObject("temp").getDouble("max")) / 2) - 273.15);
-            result += temp + "°C, " + day.getJSONArray("weather").getJSONObject(0).getString("description") + "\n";
+            result += temp + "°C, " + day.getJSONArray("weather").getJSONObject(0).getString("description");
+            if(i < count-1)
+                result += "\n";
         }
         return result;
     }
@@ -100,6 +101,8 @@ public class ChatAPI extends AppCompatActivity {
             if (!incompleteLightMessage.isEmpty()) {
                 aiRequest.setQuery(incompleteLightMessage + requestMessage);
                 incompleteLightMessage = "";
+                incompleteLight = false;
+
             } else if (!incompleteWeatherMessage.isEmpty()) {
                 aiRequest.setQuery(incompleteWeatherMessage + requestMessage);
                 incompleteWeatherMessage = "";
@@ -111,6 +114,7 @@ public class ChatAPI extends AppCompatActivity {
             AIResponse aiResponse = aiDataService.request(aiRequest);
 
             String action = aiResponse.getResult().getAction();
+            Log.d("Action",action);
 
             String roomName = "";
 
@@ -152,13 +156,8 @@ public class ChatAPI extends AppCompatActivity {
                 if (action.equals("smarthome.lights_on")) {
                     if (aiResponse.getResult().isActionIncomplete()) {
                         message = aiResponse.getResult().getFulfillment().getSpeech();
-                        if (incompleteLight) {
-                            incompleteLight = false;
-                        } else {
-                            incompleteLightMessage = "turn on the light in the ";
-                            incompleteLight = true;
-                        }
-
+                        incompleteLightMessage = "turn on the light in the ";
+                        incompleteLight = true;
                     } else {
                         roomName = aiResponse.getResult().getStringParameter("Location");
                         status = true;
@@ -166,13 +165,10 @@ public class ChatAPI extends AppCompatActivity {
                 } else if (action.equals("smarthome.lights_off")) {
                     if (aiResponse.getResult().isActionIncomplete()) {
                         message = aiResponse.getResult().getFulfillment().getSpeech();
-                        if (incompleteLight) {
-                            incompleteLight = false;
-                        } else {
-                            incompleteLightMessage = "turn off the light in the ";
-                            incompleteLight = true;
+                        incompleteLightMessage = "turn off the light in the ";
+                        incompleteLight = true;
                         }
-                    } else {
+                    else {
                         roomName = aiResponse.getResult().getStringParameter("Location");
                         status = false;
                     }
@@ -198,9 +194,18 @@ public class ChatAPI extends AppCompatActivity {
             } else if (action.equals("weatherForeCast")) {
                 String cityName = aiResponse.getResult().getStringParameter("geo-city");
                 if (aiResponse.getResult().isActionIncomplete()) {
-                    message = aiResponse.getResult().getFulfillment().getSpeech();
-                    incompleteWeatherMessage = "weather in " + cityName + " ";
-                    chatResponse.onSuccess(new Params(d, status, message));
+                    if(aiResponse.getResult().getFulfillment().getSpeech().equals("What is the geo-city?")){
+                        Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
+                        intent.putExtra(SearchManager.QUERY, requestMessage);
+                        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        context.startActivity(intent);
+                    }
+                    else{
+                        message = aiResponse.getResult().getFulfillment().getSpeech();
+                        incompleteWeatherMessage = "weather in " + cityName + " ";
+                        chatResponse.onSuccess(new Params(d, status, message));
+                    }
+
                 } else {
 
                     final int duration = Integer.parseInt(aiResponse.getResult().getStringParameter("duration"));
@@ -333,7 +338,7 @@ public class ChatAPI extends AppCompatActivity {
             }
             else if(action.equals("input.unknown") || action.equals("search")){
                 Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
-                intent.putExtra(SearchManager.QUERY, requestMessage); // query contains search string
+                intent.putExtra(SearchManager.QUERY, requestMessage);
                 intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 context.startActivity(intent);
             }
