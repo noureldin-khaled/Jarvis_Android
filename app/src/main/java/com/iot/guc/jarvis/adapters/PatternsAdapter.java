@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,24 +23,17 @@ import com.iot.guc.jarvis.models.Event;
 import java.util.ArrayList;
 import java.util.Calendar;
 
-
-
-
-
-
 public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHolder> {
 
     private ArrayList<ArrayList<Event>> sequences;
     private ArrayList<Boolean> auto = new ArrayList<>();
     private Context context;
     private PatternsFragment fragment;
-    private AlarmManager alarmManager;
 
     public PatternsAdapter(ArrayList<ArrayList<Event>>Data, Context context, PatternsFragment fragment){
         sequences = Data;
         this.context = context;
         this.fragment = fragment;
-        alarmManager = (AlarmManager) fragment.getContext().getSystemService(Context.ALARM_SERVICE);
         for (int i = 0; i < Data.size();i++){
             auto.add(false);
         }
@@ -64,6 +58,7 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
 
+
                 for(int i = 0; i<sequences.get(position).size();i++) {
 
                     String time = sequences.get(position).get(i).getTime();
@@ -76,17 +71,18 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
 
                     Intent intent = new Intent(fragment.getContext(), AlertService.class);
                     intent.putExtra("event",sequences.get(position).get(i));
-
-                    PendingIntent pendingIntent = PendingIntent.getService(fragment.getContext(), position+i, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+                    Log.i("here", "onCheckedChanged: Event: "+ time+ " Intent Created");
+                    PendingIntent pendingIntent = PendingIntent.getService(fragment.getContext(), 0, intent, 0);
+                    AlarmManager alarmManager = (AlarmManager) fragment.getContext().getSystemService(Context.ALARM_SERVICE);
                     if(b){
 
                         alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-                        Toast.makeText(context,"Created at "+calendar.getTime(),Toast.LENGTH_LONG);
+                        Toast.makeText(context,"Created at "+calendar.getTime(),Toast.LENGTH_LONG).show();
                         auto.set(position,true);
                     } else {
                         alarmManager.cancel(pendingIntent);
                         pendingIntent.cancel();
-                        Toast.makeText(context,"Cancelled",Toast.LENGTH_LONG);
+                        Toast.makeText(context,"Cancelled",Toast.LENGTH_LONG).show();
                         auto.set(position,false);
                     }
                 }

@@ -103,13 +103,13 @@ public class PatternsFragment extends Fragment {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
 
-                Snackbar.make(Patterns_LinearLayout,"Deleted Successfully!",Snackbar.LENGTH_LONG);
+                Snackbar.make(Patterns_LinearLayout,"Deleted Successfully!",Snackbar.LENGTH_LONG).show();
 
             }
 
             @Override
             public void onFailure(int statusCode, JSONObject body) {
-                Snackbar.make(Patterns_LinearLayout,"Something went wrong",Snackbar.LENGTH_LONG);
+                Snackbar.make(Patterns_LinearLayout,"Something went wrong",Snackbar.LENGTH_LONG).show();
             }
         });
     }
@@ -152,7 +152,7 @@ public class PatternsFragment extends Fragment {
                 try {
                     body.put("time",AddRoomDialog_EditText_RoomName.getText().toString());
                 } catch (JSONException e) {
-                    Snackbar.make(Patterns_LinearLayout,"Something Went Wrong!",Snackbar.LENGTH_SHORT);
+                    Snackbar.make(Patterns_LinearLayout,"Something Went Wrong!",Snackbar.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
                 Shared.request(getContext(), Request.Method.PUT, "/api/patterns/" + sequence + "/" + event, body, true, new HTTPResponse() {
@@ -161,7 +161,7 @@ public class PatternsFragment extends Fragment {
                         PatternsFragment.this.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
                         dialog.dismiss();
                         if(statusCode==200){
-                            Snackbar.make(Patterns_LinearLayout,"Edited Successfully!",Snackbar.LENGTH_LONG);
+                            Snackbar.make(Patterns_LinearLayout,"Edited Successfully!",Snackbar.LENGTH_LONG).show();
                         }
                     }
 

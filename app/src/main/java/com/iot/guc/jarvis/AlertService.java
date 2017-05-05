@@ -36,6 +36,7 @@ public class AlertService extends Service {
 
         try {
             JSONObject body = new JSONObject();
+            Log.i("Alert", "onStartCommand: Creating Service");
             body.put("status", event.getStatus());
             Shared.request(getApplicationContext(), Request.Method.POST, "/api/device/" + event.getDevice_id(), body, true, new HTTPResponse() {
                 @Override
