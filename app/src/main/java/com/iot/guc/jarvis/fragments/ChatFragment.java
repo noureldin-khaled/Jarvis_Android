@@ -18,7 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
-
 import com.android.volley.Request;
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.responses.ChatResponse;
@@ -31,18 +30,13 @@ import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.models.ChatMessage;
 import com.iot.guc.jarvis.models.Params;
 import com.iot.guc.jarvis.ChatAPI;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
-import java.util.Locale;
-
 import ai.api.android.AIConfiguration;
 import ai.api.android.AIDataService;
 import ai.api.android.AIService;
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
-import android.speech.tts.TextToSpeech;
 
 public class ChatFragment extends Fragment {
 
