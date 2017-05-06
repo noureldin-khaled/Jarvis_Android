@@ -72,6 +72,7 @@ public class ChatAPI extends AppCompatActivity {
     static int duration;
     static String cityName;
     static boolean chosenCountry = false;
+    static boolean incompleteMusic = false;
 
     public static String parseResponse(JSONObject response) throws JSONException {
         int count = response.getInt("cnt");
@@ -128,7 +129,12 @@ public class ChatAPI extends AppCompatActivity {
             } else if (!incompleteWeatherMessage.isEmpty()) {
                 aiRequest.setQuery(incompleteWeatherMessage + requestMessage);
                 incompleteWeatherMessage = "";
-            } else {
+            }
+            else if(incompleteMusic){
+                incompleteMusic = false;
+                aiRequest.setQuery("play " + requestMessage);
+            }
+            else {
                 aiRequest.setQuery(requestMessage);
             }
 
@@ -147,12 +153,12 @@ public class ChatAPI extends AppCompatActivity {
             else if(!appointmentDescription.isEmpty() && appointmentLocation.isEmpty() && needReminder.isEmpty()){
                 appointmentDescription = requestMessage;
                 appointmentLocation = "location";
-                chatResponse.onSuccess(new Params(d, status, "Well, what about the location ?"));
+                chatResponse.onSuccess(new Params(d, status, "Well, what about the location ?",""));
             }
             else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty() && needReminder.isEmpty()) {
                 appointmentLocation = requestMessage;
                 needReminder = "no";
-                chatResponse.onSuccess(new Params(d, status, "Well, do u want me to set any reminders ?"));
+                chatResponse.onSuccess(new Params(d, status, "Well, do u want me to set any reminders ?",""));
             }
             else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty() && !needReminder.isEmpty()){
                 needReminder = requestMessage;
@@ -189,7 +195,16 @@ public class ChatAPI extends AppCompatActivity {
                         Uri reminderUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(reminderUriString), reminderValues);
                     }
                     needReminder = "";
-                    chatResponse.onSuccess(new Params(d, status, "Appointment set !"));
+                    chatResponse.onSuccess(new Params(d, status, "Appointment set !",""));
+                }
+            }
+            else if(action.equals("music")){
+                if(aiResponse.getResult().getStringParameter("song-name").isEmpty()){
+                    incompleteMusic = true;
+                    chatResponse.onSuccess(new Params(d, status, "Sure, what song do you want to listen to ?",""));
+                }
+                else{
+                    chatResponse.onSuccess(new Params(d, status, message,aiResponse.getResult().getStringParameter("song-name")));
                 }
             }
             else if (action.startsWith("smarthome")) {
@@ -230,7 +245,7 @@ public class ChatAPI extends AppCompatActivity {
                         message = "Device does not exist in the room";
                     }
                 }
-                chatResponse.onSuccess(new Params(d, status, message));
+                chatResponse.onSuccess(new Params(d, status, message,""));
             } else if (action.equals("weatherForeCast")) {
                 cityName = aiResponse.getResult().getStringParameter("geo-city");
                 if (aiResponse.getResult().isActionIncomplete()) {
@@ -243,7 +258,7 @@ public class ChatAPI extends AppCompatActivity {
                     else{
                         message = aiResponse.getResult().getFulfillment().getSpeech();
                         incompleteWeatherMessage = "weather in " + cityName + " ";
-                        chatResponse.onSuccess(new Params(d, status, message));
+                        chatResponse.onSuccess(new Params(d, status, message,""));
                     }
 
                 } else {
@@ -266,9 +281,9 @@ public class ChatAPI extends AppCompatActivity {
                                         try {
                                             chosenCountry = true;
                                             message = "Please choose one of the following country codes \n" + getCountriesList(countries);
-                                            chatResponse.onSuccess(new Params(d,status,message));
+                                            chatResponse.onSuccess(new Params(d,status,message,""));
                                         } catch (IOException e) {
-                                            chatResponse.onSuccess(new Params(d,status,"Something went wrong"));
+                                            chatResponse.onSuccess(new Params(d,status,"Something went wrong",""));
                                             e.printStackTrace();
                                         }
                                     }
@@ -285,7 +300,7 @@ public class ChatAPI extends AppCompatActivity {
                             public void onErrorResponse(VolleyError error) {
                                 Log.d("error", error.toString());
                                 message = "Something went wrong here again";
-                                chatResponse.onSuccess(new Params(d, status, message));
+                                chatResponse.onSuccess(new Params(d, status, message,""));
                             }
                         }) {
                             @Override
@@ -349,7 +364,7 @@ public class ChatAPI extends AppCompatActivity {
                 }
 
 
-                chatResponse.onSuccess(new Params(d, status, "Well, what's the appointment's description ? "));
+                chatResponse.onSuccess(new Params(d, status, "Well, what's the appointment's description ? ",""));
                 appointmentDescription = "description";
 
             }
@@ -366,12 +381,12 @@ public class ChatAPI extends AppCompatActivity {
                 else{
                     message = aiResponse.getResult().getFulfillment().getSpeech();
                 }
-                chatResponse.onSuccess(new Params(d, status, message));
+                chatResponse.onSuccess(new Params(d, status, message,""));
             }
 
         } catch (AIServiceException e) {
             message = "Something Went Wrong!";
-            chatResponse.onSuccess(new Params(d, status, message));
+            chatResponse.onSuccess(new Params(d, status, message,""));
             e.printStackTrace();
         }
 
@@ -386,9 +401,9 @@ public class ChatAPI extends AppCompatActivity {
                 public void onResponse(JSONObject resp) {
                     try {
                         message = parseResponse(resp);
-                        response.onSuccess(new Params(d, status, message));
+                        response.onSuccess(new Params(d, status, message,""));
                     } catch (JSONException e) {
-                        response.onSuccess(new Params(d, status, "Something went wrong"));
+                        response.onSuccess(new Params(d, status, "Something went wrong",""));
                         e.printStackTrace();
                     }
 
@@ -397,7 +412,7 @@ public class ChatAPI extends AppCompatActivity {
                 @Override
                 public void onErrorResponse(VolleyError error) {
                     message = "Something went wrong here";
-                    response.onSuccess(new Params(d, status, message));
+                    response.onSuccess(new Params(d, status, message,""));
                 }
             }) {
                 @Override
@@ -409,7 +424,7 @@ public class ChatAPI extends AppCompatActivity {
             };
             queue.add(weatherForeCastrequest);
         } catch (Exception e) {
-            response.onSuccess(new Params(d, status, "Something went wrong"));
+            response.onSuccess(new Params(d, status, "Something went wrong",""));
             e.printStackTrace();
         }
 
@@ -430,7 +445,7 @@ public class ChatAPI extends AppCompatActivity {
                         Uri reminderUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(reminderUriString), reminderValues);
                     }
                     needReminder = "";
-                    response.onSuccess(new Params(d,status,"Appointment set !"));
+                    response.onSuccess(new Params(d,status,"Appointment set !",""));
                 }
             }
         }
