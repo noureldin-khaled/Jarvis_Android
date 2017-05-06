@@ -24,9 +24,11 @@ import com.iot.guc.jarvis.responses.ChatResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import ai.api.AIServiceException;
 import ai.api.android.AIDataService;
@@ -60,12 +62,16 @@ public class ChatAPI extends AppCompatActivity {
     static Activity activity;
     static ContentValues eventValues;
     static String eventUriString = "content://com.android.calendar/events";
+    static String reminderUriString = "content://com.android.calendar/reminders";
     static ChatResponse response;
     static String appointmentDescription = "";
     static String appointmentLocation = "";
-    static boolean needReminder = false;
+    static String needReminder = "";
     static Calendar cal = Calendar.getInstance();
-    static long eventId;
+    static long eventID;
+    static int duration;
+    static String cityName;
+    static boolean chosenCountry = false;
 
     public static String parseResponse(JSONObject response) throws JSONException {
         int count = response.getInt("cnt");
@@ -81,6 +87,22 @@ public class ChatAPI extends AppCompatActivity {
             result += temp + "°C, " + day.getJSONArray("weather").getJSONObject(0).getString("description");
             if(i < count-1)
                 result += "\n";
+        }
+        return result;
+    }
+
+    public static String getCountriesList(JSONArray countries) throws IOException, JSONException {
+        String result = "";
+        HashSet<String> countryCodes = new HashSet<String>();
+        for(int i = 0; i < countries.length(); i++){
+            String code = countries.getJSONObject(i).getString("country");
+            if(!countryCodes.contains(code)){
+                countryCodes.add(code);
+                result += countries.getJSONObject(i).getString("country");
+                if(i < countries.length()-1)
+                    result += "\n";
+            }
+
         }
         return result;
     }
@@ -118,13 +140,22 @@ public class ChatAPI extends AppCompatActivity {
 
             String roomName = "";
 
-            if(!appointmentDescription.isEmpty() && appointmentLocation.isEmpty()){
+            if(chosenCountry){
+                chosenCountry = false;
+                weatherForecast(requestMessage.toUpperCase());
+            }
+            else if(!appointmentDescription.isEmpty() && appointmentLocation.isEmpty() && needReminder.isEmpty()){
                 appointmentDescription = requestMessage;
                 appointmentLocation = "location";
                 chatResponse.onSuccess(new Params(d, status, "Well, what about the location ?"));
             }
-            else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty()){
+            else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty() && needReminder.isEmpty()) {
                 appointmentLocation = requestMessage;
+                needReminder = "no";
+                chatResponse.onSuccess(new Params(d, status, "Well, do u want me to set any reminders ?"));
+            }
+            else if(!appointmentDescription.isEmpty() && !appointmentLocation.isEmpty() && !needReminder.isEmpty()){
+                needReminder = requestMessage;
 
                 eventValues = new ContentValues();
                 eventValues.put("calendar_id", 1);
@@ -149,6 +180,15 @@ public class ChatAPI extends AppCompatActivity {
                     ActivityCompat.requestPermissions(activity,new String[]{Manifest.permission.READ_CALENDAR,Manifest.permission.WRITE_CALENDAR}, 4);
                 else {
                     eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
+                    eventID = Long.parseLong(eventUri.getLastPathSegment());
+                    if(needReminder.toLowerCase().startsWith("y")){
+                        ContentValues reminderValues = new ContentValues();
+                        reminderValues.put("event_id", eventID);
+                        reminderValues.put("minutes", 5);
+                        reminderValues.put("method", 1);
+                        Uri reminderUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(reminderUriString), reminderValues);
+                    }
+                    needReminder = "";
                     chatResponse.onSuccess(new Params(d, status, "Appointment set !"));
                 }
             }
@@ -192,7 +232,7 @@ public class ChatAPI extends AppCompatActivity {
                 }
                 chatResponse.onSuccess(new Params(d, status, message));
             } else if (action.equals("weatherForeCast")) {
-                String cityName = aiResponse.getResult().getStringParameter("geo-city");
+                cityName = aiResponse.getResult().getStringParameter("geo-city");
                 if (aiResponse.getResult().isActionIncomplete()) {
                     if(aiResponse.getResult().getFulfillment().getSpeech().equals("What is the geo-city?")){
                         Intent intent = new Intent(Intent.ACTION_WEB_SEARCH);
@@ -207,8 +247,7 @@ public class ChatAPI extends AppCompatActivity {
                     }
 
                 } else {
-
-                    final int duration = Integer.parseInt(aiResponse.getResult().getStringParameter("duration"));
+                    duration = Integer.parseInt(aiResponse.getResult().getStringParameter("duration"));
                     final String URL = Shared.getServer().URL() + "/api/country/";
                     JSONObject body = new JSONObject();
                     try {
@@ -223,42 +262,20 @@ public class ChatAPI extends AppCompatActivity {
                             public void onResponse(JSONObject response) {
                                 try {
                                     JSONArray countries = response.getJSONArray("code");
-                                    if (countries.length() > 0) {
-                                        countryCode = countries.getJSONObject(0).getString("country");
-                                        String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q=" + countries.getJSONObject(0).getString("name").toLowerCase() + "," + countryCode + "&cnt=" + duration + "&id=524901&APPID=88704427a46ca5ed706fdcd943b95cb9";
+                                    if(countries.length() > 1){
                                         try {
-                                            final JsonObjectRequest weatherForeCastrequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                                                @Override
-                                                public void onResponse(JSONObject response) {
-                                                    try {
-                                                        message = parseResponse(response);
-                                                    } catch (JSONException e) {
-                                                        e.printStackTrace();
-                                                    }
-                                                    chatResponse.onSuccess(new Params(d, status, message));
-                                                }
-                                            }, new Response.ErrorListener() {
-                                                @Override
-                                                public void onErrorResponse(VolleyError error) {
-                                                    message = "Something went wrong here";
-                                                    chatResponse.onSuccess(new Params(d, status, message));
-                                                }
-                                            }) {
-                                                @Override
-                                                public Map<String, String> getHeaders() throws AuthFailureError {
-                                                    Map<String, String> headers = new HashMap<>();
-                                                    headers.put("Content-Type", "application/json");
-                                                    return headers;
-                                                }
-                                            };
-                                            queue.add(weatherForeCastrequest);
-                                        } catch (Exception e) {
+                                            chosenCountry = true;
+                                            message = "Please choose one of the following country codes \n" + getCountriesList(countries);
+                                            chatResponse.onSuccess(new Params(d,status,message));
+                                        } catch (IOException e) {
+                                            chatResponse.onSuccess(new Params(d,status,"Something went wrong"));
                                             e.printStackTrace();
                                         }
-                                    } else {
-                                        message = "Please enter a valid city name";
-                                        chatResponse.onSuccess(new Params(d, status, message));
                                     }
+                                    else{
+                                        weatherForecast(countries.getJSONObject(0).getString("country"));
+                                    }
+
                                 } catch (JSONException e) {
                                     e.printStackTrace();
                                 }
@@ -361,12 +378,58 @@ public class ChatAPI extends AppCompatActivity {
     }
 
 
+    public static void weatherForecast(String countryCode){
+        String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q=" + cityName.toLowerCase() + "," + countryCode + "&cnt=" + duration + "&id=524901&APPID=88704427a46ca5ed706fdcd943b95cb9";
+        try {
+            final JsonObjectRequest weatherForeCastrequest = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+                @Override
+                public void onResponse(JSONObject resp) {
+                    try {
+                        message = parseResponse(resp);
+                        response.onSuccess(new Params(d, status, message));
+                    } catch (JSONException e) {
+                        response.onSuccess(new Params(d, status, "Something went wrong"));
+                        e.printStackTrace();
+                    }
+
+                }
+            }, new Response.ErrorListener() {
+                @Override
+                public void onErrorResponse(VolleyError error) {
+                    message = "Something went wrong here";
+                    response.onSuccess(new Params(d, status, message));
+                }
+            }) {
+                @Override
+                public Map<String, String> getHeaders() throws AuthFailureError {
+                    Map<String, String> headers = new HashMap<>();
+                    headers.put("Content-Type", "application/json");
+                    return headers;
+                }
+            };
+            queue.add(weatherForeCastrequest);
+        } catch (Exception e) {
+            response.onSuccess(new Params(d, status, "Something went wrong"));
+            e.printStackTrace();
+        }
+
+    }
+
+
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch(requestCode) {
             case 4: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     Uri eventUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(eventUriString), eventValues);
+                    if(needReminder.toLowerCase().startsWith("y")){
+                        ContentValues reminderValues = new ContentValues();
+                        reminderValues.put("event_id", eventID);
+                        reminderValues.put("minutes", 5);
+                        reminderValues.put("method", 1);
+                        Uri reminderUri = activity.getApplicationContext().getContentResolver().insert(Uri.parse(reminderUriString), reminderValues);
+                    }
+                    needReminder = "";
                     response.onSuccess(new Params(d,status,"Appointment set !"));
                 }
             }
