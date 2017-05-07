@@ -9,6 +9,8 @@ import android.app.Activity;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import com.android.volley.AuthFailureError;
@@ -21,6 +23,7 @@ import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.Params;
 import com.iot.guc.jarvis.responses.ChatResponse;
+import com.iot.guc.jarvis.responses.HTTPResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -53,11 +56,9 @@ public class ChatAPI extends AppCompatActivity {
     static boolean incompleteLight = false;
     static String incompleteLightMessage = "";
     static String incompleteWeatherMessage = "";
-    static String countryCode = "";
     static String message;
     static boolean status;
     static Device d;
-    static boolean done = false;
     static Context context;
     static Activity activity;
     static ContentValues eventValues;
@@ -263,59 +264,37 @@ public class ChatAPI extends AppCompatActivity {
 
                 } else {
                     duration = Integer.parseInt(aiResponse.getResult().getStringParameter("duration"));
-                    final String URL = Shared.getServer().URL() + "/api/country/";
-                    JSONObject body = new JSONObject();
-                    try {
-                        body.put("cityName", cityName);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                    try {
-                        JsonObjectRequest cityCountryrequest = new JsonObjectRequest(Request.Method.POST, URL, body, new Response.Listener<JSONObject>() {
-                            @Override
-                            public void onResponse(JSONObject response) {
-                                try {
-                                    JSONArray countries = response.getJSONArray("code");
-                                    if(countries.length() > 1){
-                                        try {
-                                            chosenCountry = true;
-                                            message = "Please choose one of the following country codes \n" + getCountriesList(countries);
-                                            chatResponse.onSuccess(new Params(d,status,message,""));
-                                        } catch (IOException e) {
-                                            chatResponse.onSuccess(new Params(d,status,"Something went wrong",""));
-                                            e.printStackTrace();
-                                        }
+                    handleWeather(context, cityName, new HTTPResponse() {
+                        @Override
+                        public void onSuccess(int statusCode, JSONObject body) {
+                            try {
+                                Log.d("BODYYY",body.toString());
+                                JSONArray countries = body.getJSONArray("code");
+                                if(countries.length() > 1){
+                                    try {
+                                        chosenCountry = true;
+                                        message = "Please choose one of the following country codes \n" + getCountriesList(countries);
+                                        chatResponse.onSuccess(new Params(d,status,message,""));
+                                    } catch (IOException e) {
+                                        chatResponse.onSuccess(new Params(d,status,"Something went wrong",""));
+                                        e.printStackTrace();
                                     }
-                                    else{
-                                        weatherForecast(countries.getJSONObject(0).getString("country"));
-                                    }
-
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
                                 }
-                            }
-                        }, new Response.ErrorListener() {
-                            @Override
-                            public void onErrorResponse(VolleyError error) {
-                                Log.d("error", error.toString());
-                                message = "Something went wrong here again";
-                                chatResponse.onSuccess(new Params(d, status, message,""));
-                            }
-                        }) {
-                            @Override
-                            public Map<String, String> getHeaders() throws AuthFailureError {
-                                Map<String, String> headers = new HashMap<>();
-                                headers.put("Authorization", Shared.getAuth().getToken());
-                                headers.put("Content-Type", "application/json");
-                                return headers;
-                            }
-                        };
-                        queue.add(cityCountryrequest);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
+                                else{
+                                    weatherForecast(countries.getJSONObject(0).getString("country"));
+                                }
 
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onFailure(int statusCode, JSONObject body) {
+                            chatResponse.onSuccess(new Params(d,status,"Something went wrong",""));
+
+                        }
+                    });
                 }
 
             } else if(action.equals("appointment")){
@@ -392,6 +371,30 @@ public class ChatAPI extends AppCompatActivity {
 
     }
 
+    public static void handleWeather(Context context, String name, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        try {
+            String url = "/api/country";
+            JSONObject body = new JSONObject();
+            body.put("cityName", name);
+            Log.e("BODY",body.toString());
+            Shared.request(context, Request.Method.POST, url, body, Constants.AUTH_HEADERS, null, Constants.AES_ENCRYPTION, true, true, httpResponse);
+        } catch (JSONException e) {
+            // The app failed
+            httpResponse.onFailure(Constants.APP_FAILURE, null);
+            e.printStackTrace();
+        }
+    }
+
 
     public static void weatherForecast(String countryCode){
         String url = "http://api.openweathermap.org/data/2.5/forecast/daily?q=" + cityName.toLowerCase() + "," + countryCode + "&cnt=" + duration + "&id=524901&APPID=88704427a46ca5ed706fdcd943b95cb9";
@@ -411,7 +414,7 @@ public class ChatAPI extends AppCompatActivity {
             }, new Response.ErrorListener() {
                 @Override
                 public void onErrorResponse(VolleyError error) {
-                    message = "Something went wrong here";
+                    message = "Something went wrong";
                     response.onSuccess(new Params(d, status, message,""));
                 }
             }) {
