@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import com.iot.guc.jarvis.AlertService;
 import com.iot.guc.jarvis.R;
+import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.fragments.PatternsFragment;
 import com.iot.guc.jarvis.models.Event;
 
@@ -62,35 +63,19 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
                 for(int i = 0; i<sequences.get(position).size();i++) {
 
                     String time = sequences.get(position).get(i).getTime();
-                    String[] t = time.split(":");
-                    int hours = Integer.parseInt(t[0]);
-                    int minutes = Integer.parseInt(t[1]);
-                    Calendar calendar = Calendar.getInstance();
-                    calendar.set(Calendar.HOUR_OF_DAY, hours);
-                    calendar.set(Calendar.MINUTE, minutes);
-
-                    Intent intent = new Intent(fragment.getContext(), AlertService.class);
-                    intent.putExtra("event",sequences.get(position).get(i));
-                    Log.i("here", "onCheckedChanged: Event: "+ time+ " Intent Created");
-                    PendingIntent pendingIntent = PendingIntent.getService(fragment.getContext(), 0, intent, 0);
-                    AlarmManager alarmManager = (AlarmManager) fragment.getContext().getSystemService(Context.ALARM_SERVICE);
+                    Event e = sequences.get(position).get(i);
+                    Shared.setServiceEvents(sequences.get(position));
+                    Shared.setServiceCount(0);
+                    fragment.setAlarm(time, e, b);
                     if(b){
-
-                        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
-                        Toast.makeText(context,"Created at "+calendar.getTime(),Toast.LENGTH_LONG).show();
                         auto.set(position,true);
                     } else {
-                        alarmManager.cancel(pendingIntent);
-                        pendingIntent.cancel();
-                        Toast.makeText(context,"Cancelled",Toast.LENGTH_LONG).show();
                         auto.set(position,false);
                     }
                 }
 
-
-
-                }
-            });
+            }
+        });
         holder.delete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {

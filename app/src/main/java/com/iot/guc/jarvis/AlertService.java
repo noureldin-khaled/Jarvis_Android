@@ -30,13 +30,17 @@ public class AlertService extends Service {
 
         if(intent==null){
             Log.e("SERVICE","Intent was null");
-            return START_REDELIVER_INTENT;
+            return START_STICKY;
         }
-        Event event = (Event) intent.getSerializableExtra("event");
+        int count = Shared.getServiceCount();
+        Event event = Shared.getServiceEvents().get(count);
+        count++;
+        Shared.setServiceCount(count);
 
         try {
             JSONObject body = new JSONObject();
-            Log.i("Alert", "onStartCommand: Creating Service");
+            Log.i("Alert", "onStartCommand: Started Service " );
+
             body.put("status", event.getStatus());
             Shared.request(getApplicationContext(), Request.Method.POST, "/api/device/" + event.getDevice_id(), body, true, new HTTPResponse() {
                 @Override
@@ -55,6 +59,6 @@ public class AlertService extends Service {
         }
 
 
-        return START_REDELIVER_INTENT;
+        return START_STICKY;
     }
 }

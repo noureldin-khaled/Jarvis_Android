@@ -1,7 +1,11 @@
 package com.iot.guc.jarvis.fragments;
 
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputLayout;
 import android.support.v4.app.Fragment;
@@ -10,6 +14,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,8 +23,11 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.android.volley.Request;
+import com.iot.guc.jarvis.AlertService;
+import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.Popup;
 import com.iot.guc.jarvis.R;
 import com.iot.guc.jarvis.Shared;
@@ -33,6 +41,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+
+import static android.content.Context.ALARM_SERVICE;
 
 public class PatternsFragment extends Fragment {
 
@@ -55,7 +66,7 @@ public class PatternsFragment extends Fragment {
         recyclerView.setLayoutManager(linearLayoutManager);
 
         fillData();
-        patternsAdapter = new PatternsAdapter(Patterns,getActivity(),this);
+        patternsAdapter = new PatternsAdapter(Patterns,getContext(),this);
         recyclerView.setAdapter(patternsAdapter);
 
         return view;
@@ -68,6 +79,24 @@ public class PatternsFragment extends Fragment {
         if (Patterns.isEmpty()){
             noPatterns.setVisibility(View.VISIBLE);
         }
+//        String time = "20:13";
+//        String[] t = time.split(":");
+//        Intent intent = new Intent(getContext(), AlertService.class);
+//
+//        Log.i("here", "onCheckedChanged: Event: "+ time+ " Intent Created");
+//        Event e = new Event();
+//        e.setDevice_id(1);
+//        e.setDevice("lOL");
+//        e.setTime(time);
+//        e.setStatus(true);
+//        intent.putExtra("event",e);
+//        PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, intent, 0);
+//
+//        Calendar c = Calendar.getInstance();
+//        c.set(Calendar.HOUR_OF_DAY,Integer.parseInt(t[0]));
+//        c.set(Calendar.MINUTE,Integer.parseInt(t[1]));
+//        AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(ALARM_SERVICE);
+//        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
 
 //        Event ev1 = new Event();
 //        ev1.setDevice("D1");
@@ -90,8 +119,30 @@ public class PatternsFragment extends Fragment {
 //        Patterns.add(s);
 
 
+    }
 
+    public void setAlarm(String time, Event e, boolean b){
+        String[] t = time.split(":");
+        Intent intent = new Intent(getContext(), AlertService.class);
 
+        Log.i("here", "onCheckedChanged: Event: "+ time+ " Intent Created");
+        intent.putExtra("event",e);
+        PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, intent, 0);
+
+        Calendar c = Calendar.getInstance();
+        c.set(Calendar.HOUR_OF_DAY,Integer.parseInt(t[0]));
+        c.set(Calendar.MINUTE,Integer.parseInt(t[1]));
+        AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(ALARM_SERVICE);
+        if (b) {
+            alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+
+            Toast.makeText(getContext(),"Alarm created at "+ time,Toast.LENGTH_SHORT).show();
+        }
+        else {
+            alarmManager.cancel(pendingIntent);
+           pendingIntent.cancel();
+            Toast.makeText(getContext(),"Cancelled",Toast.LENGTH_SHORT).show();
+       }
     }
 
     public void deletePattern(final int sequence){

@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Shared {
+
     private static DateFormat dateFormat = new SimpleDateFormat("d MMM yyyy");
     private static DateFormat timeFormat = new SimpleDateFormat("K:mma");
     private static Server server;
@@ -49,6 +50,24 @@ public class Shared {
     private static ArrayList<Device> devices = new ArrayList<>();
     private static ArrayList<ArrayList<Event>> Patterns = new ArrayList<>();
     private static int selectedRoom = -1;
+    private static ArrayList<Event> serviceEvents;
+    private static int serviceCount;
+
+    public static ArrayList<Event> getServiceEvents() {
+        return serviceEvents;
+    }
+
+    public static void setServiceEvents(ArrayList<Event> serviceEvents) {
+        Shared.serviceEvents = serviceEvents;
+    }
+
+    public static int getServiceCount() {
+        return serviceCount;
+    }
+
+    public static void setServiceCount(int serviceCount) {
+        Shared.serviceCount = serviceCount;
+    }
 
     public static String getCurrentTime() {
         Date today = Calendar.getInstance().getTime();
