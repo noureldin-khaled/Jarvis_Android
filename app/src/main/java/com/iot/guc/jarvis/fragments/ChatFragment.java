@@ -1,7 +1,10 @@
 package com.iot.guc.jarvis.fragments;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -15,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.ListView;
+import com.android.volley.Request;
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.responses.ChatResponse;
 import com.iot.guc.jarvis.responses.HTTPResponse;
@@ -26,12 +30,12 @@ import com.iot.guc.jarvis.adapters.ChatAdapter;
 import com.iot.guc.jarvis.models.ChatMessage;
 import com.iot.guc.jarvis.models.Params;
 import com.iot.guc.jarvis.ChatAPI;
+import org.json.JSONException;
 import org.json.JSONObject;
 import java.util.ArrayList;
 import ai.api.android.AIConfiguration;
 import ai.api.android.AIDataService;
 import ai.api.android.AIService;
-import com.android.volley.RequestQueue;
 import com.android.volley.toolbox.Volley;
 
 public class ChatFragment extends Fragment {
@@ -128,8 +132,61 @@ public class ChatFragment extends Fragment {
         new ChatAsyncTask().execute(message);
     }
 
-    public void handleChat(Params result) {
-        if (result.getMessage().isEmpty()) {
+    public void playMusic(Context context, String name, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        try {
+            String url = "/api/play";
+            JSONObject body = new JSONObject();
+            body.put("name", name);
+            Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
+        } catch (JSONException e) {
+            // The app failed
+            httpResponse.onFailure(Constants.APP_FAILURE, null);
+            e.printStackTrace();
+        }
+    }
+
+    public void handleChat(final Params result) {
+        if(!result.getSongName().isEmpty()){
+            playMusic(getContext(), result.getSongName(), new HTTPResponse() {
+                @Override
+                public void onSuccess(int statusCode, JSONObject body) {
+                    chatAdapter.add(new ChatMessage("Playing "+result.getSongName(), false, Shared.getCurrentDate(), Shared.getCurrentTime()));
+                    chatAdapter.notifyDataSetChanged();
+                }
+
+                @Override
+                public void onFailure(int statusCode, JSONObject body) {
+                    String response;
+                    switch (statusCode) {
+                        case Constants.NO_INTERNET_CONNECTION: {
+                            response = "No Internet Connection!";
+                        }
+                        break;
+                        case Constants.SERVER_NOT_REACHED: {
+                            response = "Server Can\'t Be Reached!";
+                        }
+                        break;
+                        default: {
+                            response = "Something Went Wrong!";
+                        }
+                    }
+
+                    chatAdapter.add(new ChatMessage(response, false, Shared.getCurrentDate(), Shared.getCurrentTime()));
+                    chatAdapter.notifyDataSetChanged();
+                }
+            });
+        }
+        else if (result.getMessage().isEmpty()) {
             // Send Request
             result.getDevice().handle(getContext(), result.getStatus(), new HTTPResponse() {
                 @Override
@@ -183,7 +240,7 @@ public class ChatFragment extends Fragment {
         @Override
         protected Params doInBackground(String... params) {
 
-            ChatAPI.handleChat(params[0],new ChatResponse() {
+            ChatAPI.handleChat(params[0],getContext(),getActivity(),new ChatResponse() {
                 @Override
                 public void onSuccess(final Params param) {
                     getActivity().runOnUiThread(new Runnable() {
@@ -198,10 +255,6 @@ public class ChatFragment extends Fragment {
             return null;
         }
 
-        @Override
-        protected void onPostExecute(Params result) {
-//            handleChat(result);
-        }
     }
 
 }
