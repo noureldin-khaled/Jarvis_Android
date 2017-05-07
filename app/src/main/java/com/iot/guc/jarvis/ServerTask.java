@@ -37,7 +37,6 @@ public class ServerTask {
             Shared.setServer(new Server(ip, port));
         } catch (IOException e) {
             connectToServer();
-            e.printStackTrace();
         }
     }
 

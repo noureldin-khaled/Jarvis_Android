@@ -9,6 +9,7 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -28,6 +29,7 @@ import com.iot.guc.jarvis.requests.CustomJsonRequest;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.SecurityResponse;
 import com.iot.guc.jarvis.responses.ServerResponse;
+import com.iot.guc.jarvis.responses.StringResponse;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -40,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class Shared {
@@ -51,6 +54,7 @@ public class Shared {
     private static ArrayList<Device> devices = new ArrayList<>();
     private static ArrayList<ArrayList<Event>> Patterns = new ArrayList<>();
     private static int selectedRoom = -1;
+    private static String sharedKey;
 
     public static String getCurrentTime() {
         Date today = Calendar.getInstance().getTime();
@@ -72,6 +76,14 @@ public class Shared {
 
     public static Server getServer() {
         return server;
+    }
+
+    public static String getSharedKey() {
+        return sharedKey;
+    }
+
+    public static void setSharedKey(String sharedKey) {
+        Shared.sharedKey = sharedKey;
     }
 
     public static void setServer(Server server) {
@@ -119,6 +131,7 @@ public class Shared {
         }
         return null;
     }
+
     public static void addRoomAPIAI(Room r, Context context){
         String entityUrl = "https://api.api.ai/v1/entities/9088204c-b4bf-4330-bb41-771b99af06ca/entries?v=20150910";
         RequestQueue requestQueue = Volley.newRequestQueue(context);
@@ -207,6 +220,19 @@ public class Shared {
         devices.set(index, device);
     }
 
+    public static String toString(JSONObject obj) throws JSONException {
+        String s = "{";
+        for(Iterator<String> iter = obj.keys(); iter.hasNext(); ) {
+            String key = iter.next();
+            Object value = obj.get(key);
+            s += "\"" + key + "\":\"" + value + "\"";
+            if (iter.hasNext())
+                s += ",";
+        }
+        s += "}";
+        return s;
+    }
+
     public static void collapseKeyBoard(Activity activity) {
         View view = activity.getCurrentFocus();
         if (view != null) {
@@ -227,13 +253,29 @@ public class Shared {
         fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
-    public static void call(Context context, int method, String url, final HTTPResponse httpResponse) {
+    public static void RSAEncrypt(Context context, String body, final StringResponse stringResponse) {
+        Stringcall(context, "/rsaEncrypt/" + body, stringResponse);
+    }
+
+    public static void AESEncrypt(Context context, String body, final StringResponse stringResponse) {
+        Stringcall(context, "/AesEncrypt/" + sharedKey + "/" + body, stringResponse);
+    }
+
+    public static void AESDecrypt(Context context, String encrypted, final StringResponse stringResponse) {
+        Stringcall(context, "/AesDecrypt/" + sharedKey + "/" + encrypted, stringResponse);
+    }
+
+    public static void getNonce(Context context, final StringResponse stringResponse) {
+        Stringcall(context, "/nonce", stringResponse);
+    }
+
+    public static void JSONcall(Context context, String url, final HTTPResponse httpResponse) {
         RequestQueue queue = Volley.newRequestQueue(context);
         url = "https://mighty-savannah-17728.herokuapp.com" + url;
-        JsonObjectRequest request = new JsonObjectRequest(method, url, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
-                httpResponse.onFailure(200, response);
+                httpResponse.onSuccess(200, response);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -245,19 +287,62 @@ public class Shared {
         queue.add(request);
     }
 
-    public static void request(final Context context, final int method, final String url, final JSONObject body,final boolean includeAuth,final HTTPResponse httpResponse) {
+    public static void Stringcall(Context context, String url, final StringResponse stringResponse) {
+        RequestQueue queue = Volley.newRequestQueue(context);
+        url = "https://mighty-savannah-17728.herokuapp.com" + url;
+        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                stringResponse.onSuccess(200, response);
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                stringResponse.onFailure(500, null);
+            }
+        });
+
+        queue.add(request);
+    }
+
+    public static void makeRequest(final Context context, final int method, final String url, final JSONObject body, final int headers, final String username, final boolean decrypt, final HTTPResponse httpResponse) {
         new ServerTask(new ServerResponse() {
             @Override
             public void onFinish() {
                 RequestQueue queue = Volley.newRequestQueue(context);
                 JsonObjectRequest request;
                 final String URL = server.URL() + url;
-
-                if (includeAuth) {
+                if (headers == Constants.AUTH_HEADERS) {
                     request = new JsonObjectRequest(method, URL, body, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
-                            httpResponse.onSuccess(200, response);
+                            if (decrypt) {
+                                try {
+                                    AESDecrypt(context, response.getString("body"), new StringResponse() {
+                                        @Override
+                                        public void onSuccess(int statusCode, String response) {
+                                            try {
+                                                httpResponse.onSuccess(200, new JSONObject(response));
+                                            } catch (JSONException e) {
+                                                // The app failed
+                                                httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                                e.printStackTrace();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(int statusCode, String response) {
+                                            httpResponse.onFailure(500, null);
+                                        }
+                                    });
+                                } catch (JSONException e) {
+                                    // The app failed
+                                    httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                    e.printStackTrace();
+                                }
+                            }
+                            else
+                                httpResponse.onSuccess(200, response);
                         }
                     }, new Response.ErrorListener() {
                         @Override
@@ -289,11 +374,99 @@ public class Shared {
                         }
                     };
                 }
+                else if (headers == Constants.USERNAME_HEADERS) {
+                    request = new JsonObjectRequest(method, URL, body, new Response.Listener<JSONObject>() {
+                        @Override
+                        public void onResponse(JSONObject response) {
+                            if (decrypt) {
+                                try {
+                                    AESDecrypt(context, response.getString("body"), new StringResponse() {
+                                        @Override
+                                        public void onSuccess(int statusCode, String response) {
+                                            try {
+                                                httpResponse.onSuccess(200, new JSONObject(response));
+                                            } catch (JSONException e) {
+                                                // The app failed
+                                                httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                                e.printStackTrace();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(int statusCode, String response) {
+                                            httpResponse.onFailure(500, null);
+                                        }
+                                    });
+                                } catch (JSONException e) {
+                                    // The app failed
+                                    httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                    e.printStackTrace();
+                                }
+                            }
+                            else
+                                httpResponse.onSuccess(200, response);
+                        }
+                    }, new Response.ErrorListener() {
+                        @Override
+                        public void onErrorResponse(VolleyError error) {
+                            if (error.networkResponse == null) {
+                                // The server couldn't be reached
+                                server = null;
+                                httpResponse.onFailure(Constants.SERVER_NOT_REACHED, null);
+                            }
+                            else {
+                                try {
+                                    String err = new String(error.networkResponse.data, "UTF-8");
+                                    JSONObject json = new JSONObject(err);
+                                    httpResponse.onFailure(error.networkResponse.statusCode, json);
+                                } catch (UnsupportedEncodingException | JSONException e) {
+                                    // The app failed
+                                    httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    })
+                    {
+                        @Override
+                        public Map<String, String> getHeaders() throws AuthFailureError {
+                            HashMap<String, String> headers = new HashMap<>();
+                            headers.put("username", username);
+                            return headers;
+                        }
+                    };
+                }
                 else {
                     request = new JsonObjectRequest(method, URL, body, new Response.Listener<JSONObject>() {
                         @Override
                         public void onResponse(JSONObject response) {
-                            httpResponse.onSuccess(200, response);
+                            if (decrypt) {
+                                try {
+                                    AESDecrypt(context, response.getString("body"), new StringResponse() {
+                                        @Override
+                                        public void onSuccess(int statusCode, String response) {
+                                            try {
+                                                httpResponse.onSuccess(200, new JSONObject(response));
+                                            } catch (JSONException e) {
+                                                // The app failed
+                                                httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                                e.printStackTrace();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onFailure(int statusCode, String response) {
+                                            httpResponse.onFailure(500, null);
+                                        }
+                                    });
+                                } catch (JSONException e) {
+                                    // The app failed
+                                    httpResponse.onFailure(Constants.APP_FAILURE, null);
+                                    e.printStackTrace();
+                                }
+                            }
+                            else
+                                httpResponse.onSuccess(200, response);
                         }
                     }, new Response.ErrorListener() {
                         @Override
@@ -317,9 +490,83 @@ public class Shared {
                     });
                 }
 
+                request.setRetryPolicy(new DefaultRetryPolicy(DefaultRetryPolicy.DEFAULT_TIMEOUT_MS, 0, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
                 queue.add(request);
             }
         }).start();
+    }
+
+    public static void processEncryption(final Context context, final int method, final String url, final JSONObject body, final int headers, final String username, int encryption, final boolean decrypt, final HTTPResponse httpResponse) {
+        if (encryption == Constants.RSA_ENCRYPTION) {
+            RSAEncrypt(context, body.toString(), new StringResponse() {
+                @Override
+                public void onSuccess(int statusCode, String response) {
+                    try {
+                        JSONObject obj = new JSONObject();
+                        obj.put("body", response);
+                        makeRequest(context, method, url, obj, headers, username, decrypt, httpResponse);
+                    } catch (JSONException e) {
+                        // The app failed
+                        httpResponse.onFailure(Constants.APP_FAILURE, null);
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, String response) {
+                    httpResponse.onFailure(500, null);
+                }
+            });
+        }
+        else if (encryption == Constants.AES_ENCRYPTION) {
+            AESEncrypt(context, body.toString(), new StringResponse() {
+                @Override
+                public void onSuccess(int statusCode, String response) {
+                    try {
+                        JSONObject obj = new JSONObject();
+                        obj.put("body", response);
+                        makeRequest(context, method, url, obj, headers, username, decrypt, httpResponse);
+                    } catch (JSONException e) {
+                        // The app failed
+                        httpResponse.onFailure(Constants.APP_FAILURE, null);
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, String response) {
+                    httpResponse.onFailure(500, null);
+                }
+            });
+        }
+        else {
+            makeRequest(context, method, url, body, headers, username, decrypt, httpResponse);
+        }
+    }
+
+    public static void request(final Context context, final int method, final String url, final JSONObject body, final int headers, final String username, final int encryption, final boolean decrypt, final boolean attachNonce, final HTTPResponse httpResponse) {
+        if (attachNonce) {
+            getNonce(context, new StringResponse() {
+                @Override
+                public void onSuccess(int statusCode, String response) {
+                    try {
+                        body.put("nonce", response);
+                        processEncryption(context, method, url, body, headers, username, encryption, decrypt, httpResponse);
+                    } catch (JSONException e) {
+                        // The app failed
+                        httpResponse.onFailure(Constants.APP_FAILURE, null);
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, String response) {
+                    httpResponse.onFailure(500, null);
+                }
+            });
+        }
+        else
+            processEncryption(context, method, url, body, headers, username, encryption, decrypt, httpResponse);
     }
 
     public static int dpToPx(int dp, Context context) {
