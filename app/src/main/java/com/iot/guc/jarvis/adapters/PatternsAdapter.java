@@ -27,7 +27,7 @@ import java.util.Calendar;
 public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHolder> {
 
     private ArrayList<ArrayList<Event>> sequences;
-    private ArrayList<Boolean> auto = new ArrayList<>();
+    private ArrayList<Boolean> auto;
     private Context context;
     private PatternsFragment fragment;
 
@@ -35,10 +35,14 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
         sequences = Data;
         this.context = context;
         this.fragment = fragment;
-        for (int i = 0; i < Data.size();i++){
-            auto.add(false);
+        auto = Shared.getAutoPattern();
+        if(auto==null){
+            auto = new ArrayList<>();
+            for (int i =0; i< Data.size();i++){
+                auto.add(false);
+            }
+            Shared.setAutoPattern(auto);
         }
-
     }
 
 
@@ -69,8 +73,10 @@ public class PatternsAdapter extends RecyclerView.Adapter<PatternsAdapter.ViewHo
                     fragment.setAlarm(time, e, b);
                     if(b){
                         auto.set(position,true);
+                        Shared.setAutoPattern(auto);
                     } else {
                         auto.set(position,false);
+                        Shared.setAutoPattern(auto);
                     }
                 }
 

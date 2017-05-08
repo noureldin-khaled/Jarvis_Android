@@ -98,26 +98,6 @@ public class PatternsFragment extends Fragment {
 //        AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(ALARM_SERVICE);
 //        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
 
-//        Event ev1 = new Event();
-//        ev1.setDevice("D1");
-//        ev1.setTime("12:00");
-//        ev1.setStatus(false);
-//        Event ev2 = new Event();
-//        ev2.setDevice("D2");
-//        ev2.setTime("12:02");
-//        ev2.setStatus(true);
-//        Event ev3 = new Event();
-//        ev3.setDevice("D3");
-//        ev3.setTime("01:00");
-//        ev3.setStatus(false);
-//
-//        ArrayList<Event> s = new ArrayList<Event>();
-//        s.add(ev1);
-//        s.add(ev2);
-//        s.add(ev3);
-//
-//        Patterns.add(s);
-
 
     }
 
@@ -148,6 +128,9 @@ public class PatternsFragment extends Fragment {
     public void deletePattern(final int sequence){
         Patterns.remove(sequence);
         Shared.setPatterns(Patterns);
+        ArrayList auto = Shared.getAutoPattern();
+        auto.remove(sequence);
+        Shared.setAutoPattern(auto);
         patternsAdapter.notifyDataSetChanged();
 
         Shared.request(getContext(), Request.Method.DELETE, "/api/patterns/" + sequence, null, true, new HTTPResponse() {
@@ -165,18 +148,20 @@ public class PatternsFragment extends Fragment {
         });
     }
 
-    public void editPattern(final int sequence, final int event){
+    public void editPattern(final int sequence, final int event, String time){
 
         LayoutInflater inflater = getActivity().getLayoutInflater();
         View contentView = inflater.inflate(R.layout.dialog_add_room, null);
 
         final TextInputLayout AddRoomDialog_TextInputLayout_RoomNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddRoomDialog_TextInputLayout_RoomNameLayout);
         final EditText AddRoomDialog_EditText_RoomName = (EditText) contentView.findViewById(R.id.AddRoomDialog_EditText_RoomName);
-        AddRoomDialog_EditText_RoomName.setText("Enter Time (HH:MM)");
+        AddRoomDialog_EditText_RoomName.setText(time);
+        AddRoomDialog_TextInputLayout_RoomNameLayout.setHint("Time");
         final ProgressBar AddRoomDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.AddRoomDialog_ProgressBar_Progress);
         final LinearLayout AddRoomDialog_LinearLayout_AddRoomForm = (LinearLayout) contentView.findViewById(R.id.AddRoomDialog_LinearLayout_AddRoomForm);
         final TextView AddRoomDialog_TextView_Title = (TextView) contentView.findViewById(R.id.AddRoomDialog_TextView_Title);
         AddRoomDialog_TextView_Title.setText("Edit Event Time");
+
 
         new Popup().create(getActivity(), contentView, "Edit", new PopupResponse() {
             @Override

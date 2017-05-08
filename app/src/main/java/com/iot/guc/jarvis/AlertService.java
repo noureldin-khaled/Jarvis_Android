@@ -30,7 +30,6 @@ public class AlertService extends Service {
 
         if(intent==null){
             Log.e("SERVICE","Intent was null");
-            return START_STICKY;
         }
         int count = Shared.getServiceCount();
         Event event = Shared.getServiceEvents().get(count);

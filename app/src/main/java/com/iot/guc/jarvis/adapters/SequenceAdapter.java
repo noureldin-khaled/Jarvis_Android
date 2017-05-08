@@ -50,7 +50,7 @@ public class SequenceAdapter extends RecyclerView.Adapter<SequenceAdapter.ViewHo
             @Override
             public void onClick(View view) {
 
-                fragment.editPattern(sequence_number,position);
+                fragment.editPattern(sequence_number,position,Events.get(position).getTime());
 
             }
         });

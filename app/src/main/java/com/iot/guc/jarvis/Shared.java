@@ -52,6 +52,15 @@ public class Shared {
     private static int selectedRoom = -1;
     private static ArrayList<Event> serviceEvents;
     private static int serviceCount;
+    private static ArrayList<Boolean> autoPattern;
+
+    public static ArrayList<Boolean> getAutoPattern() {
+        return autoPattern;
+    }
+
+    public static void setAutoPattern(ArrayList<Boolean> autoPattern) {
+        Shared.autoPattern = autoPattern;
+    }
 
     public static ArrayList<Event> getServiceEvents() {
         return serviceEvents;
