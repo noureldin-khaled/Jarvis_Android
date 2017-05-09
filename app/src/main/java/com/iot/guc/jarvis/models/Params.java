@@ -8,6 +8,16 @@ public class Params {
     Device device;
     boolean status;
     String message;
+    String songName;
+
+
+    public String getSongName() {
+        return songName;
+    }
+
+    public void setSongName(String songName) {
+        this.songName = songName;
+    }
 
     public Device getDevice() {
         return device;
@@ -33,9 +43,10 @@ public class Params {
         this.message = message;
     }
 
-    public Params(Device device, boolean status, String message) {
+    public Params(Device device, boolean status, String message, String songName) {
         this.device = device;
         this.status = status;
         this.message = message;
+        this.songName = songName;
     }
 }
