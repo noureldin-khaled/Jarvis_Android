@@ -98,7 +98,7 @@ public class User {
         }
 
         String url = "/register/" + password;
-        Shared.JSONcall(context, url, httpResponse);
+        Shared.JSONcall(context, Request.Method.GET, url, null, httpResponse);
     }
 
     public static void getKeys(Context context, final HTTPResponse httpResponse) {
@@ -113,7 +113,7 @@ public class User {
         }
 
         String url = "/generateKeys";
-        Shared.JSONcall(context, url, httpResponse);
+        Shared.JSONcall(context, Request.Method.GET, url, null, httpResponse);
     }
 
     public void logout(Context context, final HTTPResponse httpResponse) {
@@ -212,7 +212,7 @@ public class User {
             body.put("username", username);
             body.put("aes_public_key", aes_pu);
 
-            Shared.request(context, Request.Method.POST, url, body, Constants.USERNAME_HEADERS, username, Constants.NO_ENCRYPTION, false, true, httpResponse);
+            Shared.request(context, Request.Method.POST, url, body, Constants.USERNAME_HEADERS, username, Constants.RSA_ENCRYPTION, false, true, httpResponse);
         } catch (JSONException e) {
             // The app failed
             httpResponse.onFailure(Constants.APP_FAILURE, null);
@@ -298,7 +298,7 @@ public class User {
         }
 
         String url = "/passwordHash/" + salt + "/" + password;
-        Shared.Stringcall(context, url, stringResponse);
+        Shared.Stringcall(context, Request.Method.GET, url, stringResponse);
     }
 
     public static void getUsers(Context context, final HTTPResponse httpResponse) {

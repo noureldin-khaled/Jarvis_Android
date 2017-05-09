@@ -253,26 +253,49 @@ public class Shared {
         fragment.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
-    public static void RSAEncrypt(Context context, String body, final StringResponse stringResponse) {
-        Stringcall(context, "/rsaEncrypt/" + body, stringResponse);
+    public static void RSAEncrypt(Context context, JSONObject body, final StringResponse stringResponse) {
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("text", body.toString());
+
+            JSONcall(context, Request.Method.POST, "/rsaEncrypt", obj, new HTTPResponse() {
+                @Override
+                public void onSuccess(int statusCode, JSONObject body) {
+                    try {
+                        stringResponse.onSuccess(200, body.getString("body"));
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        stringResponse.onFailure(500, null);
+                    }
+                }
+
+                @Override
+                public void onFailure(int statusCode, JSONObject body) {
+                    stringResponse.onFailure(500, null);
+                }
+            });
+        } catch (JSONException e) {
+            e.printStackTrace();
+            stringResponse.onFailure(500, null);
+        }
     }
 
     public static void AESEncrypt(Context context, String body, final StringResponse stringResponse) {
-        Stringcall(context, "/AesEncrypt/" + sharedKey + "/" + body, stringResponse);
+        Stringcall(context, Request.Method.GET, "/AesEncrypt/" + sharedKey + "/" + body, stringResponse);
     }
 
     public static void AESDecrypt(Context context, String encrypted, final StringResponse stringResponse) {
-        Stringcall(context, "/AesDecrypt/" + sharedKey + "/" + encrypted, stringResponse);
+        Stringcall(context, Request.Method.GET, "/AesDecrypt/" + sharedKey + "/" + encrypted, stringResponse);
     }
 
     public static void getNonce(Context context, final StringResponse stringResponse) {
-        Stringcall(context, "/nonce", stringResponse);
+        Stringcall(context, Request.Method.GET, "/nonce", stringResponse);
     }
 
-    public static void JSONcall(Context context, String url, final HTTPResponse httpResponse) {
+    public static void JSONcall(Context context, int method, String url, JSONObject body, final HTTPResponse httpResponse) {
         RequestQueue queue = Volley.newRequestQueue(context);
         url = "https://mighty-savannah-17728.herokuapp.com" + url;
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
+        JsonObjectRequest request = new JsonObjectRequest(method, url, body, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
                 httpResponse.onSuccess(200, response);
@@ -287,10 +310,10 @@ public class Shared {
         queue.add(request);
     }
 
-    public static void Stringcall(Context context, String url, final StringResponse stringResponse) {
+    public static void Stringcall(Context context, int method, String url, final StringResponse stringResponse) {
         RequestQueue queue = Volley.newRequestQueue(context);
         url = "https://mighty-savannah-17728.herokuapp.com" + url;
-        StringRequest request = new StringRequest(Request.Method.GET, url, new Response.Listener<String>() {
+        StringRequest request = new StringRequest(method, url, new Response.Listener<String>() {
             @Override
             public void onResponse(String response) {
                 stringResponse.onSuccess(200, response);
@@ -498,7 +521,7 @@ public class Shared {
 
     public static void processEncryption(final Context context, final int method, final String url, final JSONObject body, final int headers, final String username, int encryption, final boolean decrypt, final HTTPResponse httpResponse) {
         if (encryption == Constants.RSA_ENCRYPTION) {
-            RSAEncrypt(context, body.toString(), new StringResponse() {
+            RSAEncrypt(context, body, new StringResponse() {
                 @Override
                 public void onSuccess(int statusCode, String response) {
                     try {
