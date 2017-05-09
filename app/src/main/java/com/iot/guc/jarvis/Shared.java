@@ -55,6 +55,33 @@ public class Shared {
     private static ArrayList<ArrayList<Event>> Patterns = new ArrayList<>();
     private static int selectedRoom = -1;
     private static String sharedKey;
+    private static ArrayList<Event> serviceEvents;
+    private static int serviceCount;
+    private static ArrayList<Boolean> autoPattern;
+
+    public static ArrayList<Boolean> getAutoPattern() {
+        return autoPattern;
+    }
+
+    public static void setAutoPattern(ArrayList<Boolean> autoPattern) {
+        Shared.autoPattern = autoPattern;
+    }
+
+    public static ArrayList<Event> getServiceEvents() {
+        return serviceEvents;
+    }
+
+    public static void setServiceEvents(ArrayList<Event> serviceEvents) {
+        Shared.serviceEvents = serviceEvents;
+    }
+
+    public static int getServiceCount() {
+        return serviceCount;
+    }
+
+    public static void setServiceCount(int serviceCount) {
+        Shared.serviceCount = serviceCount;
+    }
 
     public static String getCurrentTime() {
         Date today = Calendar.getInstance().getTime();
@@ -577,6 +604,7 @@ public class Shared {
     }
 
     public static void request(final Context context, final int method, final String url, final JSONObject body, final int headers, final String username, final int encryption, final boolean decrypt, final boolean attachNonce, final HTTPResponse httpResponse) {
+        Log.i("here", "request: " + url);
         if (attachNonce) {
             getNonce(context, new StringResponse() {
                 @Override

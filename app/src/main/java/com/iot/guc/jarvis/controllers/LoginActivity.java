@@ -26,6 +26,8 @@ import com.iot.guc.jarvis.ServerTask;
 import com.iot.guc.jarvis.models.Event;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
+import com.iot.guc.jarvis.responses.ServerResponse;
+import com.iot.guc.jarvis.ServerTask;
 import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.models.Room;
@@ -702,8 +704,8 @@ public class LoginActivity extends AppCompatActivity {
                                 current.getString("type").equals("Light Bulb") ? Device.TYPE.LIGHT_BULB : Device.TYPE.LOCK,
                                 current.getBoolean("status"), current.getString("mac"), current.getString("ip"), current.getInt("room_id")));
                     }
-//                    fetchPatterns();
-                    startActivity(new Intent(getApplicationContext(), MainActivity.class));
+
+                    fetchPatterns();
                 } catch (JSONException e) {
                     showProgress(false);
                     if (fromForm) {
@@ -766,7 +768,7 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     public void fetchPatterns(){
-        Shared.request(this, Request.Method.GET, "/api/patterns", null, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, false, new HTTPResponse() {
+        Shared.request(this, Request.Method.POST, "/api/patterns", new JSONObject(), Constants.AUTH_HEADERS, null, Constants.AES_ENCRYPTION, true, true, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
                 try {

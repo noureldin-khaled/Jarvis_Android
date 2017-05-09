@@ -30,30 +30,34 @@ public class AlertService extends Service {
 
         if(intent==null){
             Log.e("SERVICE","Intent was null");
-            return START_REDELIVER_INTENT;
         }
-        Event event = (Event) intent.getSerializableExtra("event");
-        JSONObject body = new JSONObject();
+        int count = Shared.getServiceCount();
+        Event event = Shared.getServiceEvents().get(count);
+        count++;
+        Shared.setServiceCount(count);
+
         try {
+            JSONObject body = new JSONObject();
+            Log.i("Alert", "onStartCommand: Started Service " );
+
             body.put("status", event.getStatus());
+            Shared.request(getApplicationContext(), Request.Method.POST, "/api/device/handle/" + event.getDevice_id(), body, Constants.AUTH_HEADERS, null, Constants.AES_ENCRYPTION, false, true, new HTTPResponse() {
+                @Override
+                public void onSuccess(int statusCode, JSONObject body) {
+                    Log.v("Service","Device handeled");
+
+                }
+
+                @Override
+                public void onFailure(int statusCode, JSONObject body) {
+                    Log.e("Service","Could not handle device");
+                }
+            });
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Shared.request(getApplicationContext(), Request.Method.GET, "/api/device/" + event.getDevice_id(), body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, false, new HTTPResponse() {
-            @Override
-            public void onSuccess(int statusCode, JSONObject body) {
-                Log.v("Service","Device handeled");
-
-            }
-
-            @Override
-            public void onFailure(int statusCode, JSONObject body) {
-                Log.e("Service","Could not handle device");
-            }
-        });
 
 
-
-        return START_REDELIVER_INTENT;
+        return START_STICKY;
     }
 }
