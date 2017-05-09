@@ -132,6 +132,15 @@ public class Shared {
         return null;
     }
 
+    public static int deviceIndexOf(int deviceId) {
+        for(int i=0; i <Shared.getDevices().size();i++){
+            Device d = devices.get(i);
+            if(d.getId()==deviceId)
+                return i;
+        }
+        return -1;
+    }
+
     public static void addRoomAPIAI(Room r, Context context){
         String entityUrl = "https://api.api.ai/v1/entities/9088204c-b4bf-4330-bb41-771b99af06ca/entries?v=20150910";
         RequestQueue requestQueue = Volley.newRequestQueue(context);

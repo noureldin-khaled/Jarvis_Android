@@ -88,8 +88,8 @@ public class DeviceFragment extends Fragment {
         TextView DeviceFragment_TextView_RoomName = (TextView) view.findViewById(R.id.DeviceFragment_TextView_RoomName);
         DeviceFragment_TextView_RoomName.setText(room.getName());
 
+        DeviceFragment_ListView_Devices = (ListView) view.findViewById(R.id.DeviceFragment_ListView_Devices);
         if (Shared.getAuth().getType().equalsIgnoreCase("Admin")) {
-            DeviceFragment_ListView_Devices = (ListView) view.findViewById(R.id.DeviceFragment_ListView_Devices);
             DeviceFragment_ListView_Devices.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -772,11 +772,12 @@ public class DeviceFragment extends Fragment {
                 }).create().show();
     }
 
-    public void handleDevice(int position, boolean status, final DeviceResponse response) {
-        Device device = (Device) adapter.getItem(position);
+    public void handleDevice(int position, final boolean status, final DeviceResponse response) {
+        final Device device = (Device) adapter.getItem(position);
         device.handle(getContext(), status, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
+                Shared.editDevice(Shared.deviceIndexOf(device.getId()), new Device(device.getId(), device.getName(), device.getType(), status, device.getMac(), device.getIp(), device.getRoom_id()));
                 response.onSuccess();
             }
 
