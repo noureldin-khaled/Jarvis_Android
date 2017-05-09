@@ -20,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import com.android.volley.Request;
 import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.responses.ChatResponse;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.R;
@@ -147,7 +148,7 @@ public class ChatFragment extends Fragment {
             String url = "/api/play";
             JSONObject body = new JSONObject();
             body.put("name", name);
-            Shared.request(context, Request.Method.POST, url, body, true, httpResponse);
+            Shared.request(context, Request.Method.POST, url, body, Constants.AUTH_HEADERS, null, Constants.AES_ENCRYPTION, true, true, httpResponse);
         } catch (JSONException e) {
             // The app failed
             httpResponse.onFailure(Constants.APP_FAILURE, null);
@@ -191,6 +192,7 @@ public class ChatFragment extends Fragment {
             result.getDevice().handle(getContext(), result.getStatus(), new HTTPResponse() {
                 @Override
                 public void onSuccess(int statusCode, JSONObject body) {
+                    Shared.editDevice(Shared.deviceIndexOf(result.getDevice().getId()), new Device(result.getDevice().getId(), result.getDevice().getName(), result.getDevice().getType(), result.getStatus(), result.getDevice().getMac(), result.getDevice().getIp(), result.getDevice().getRoom_id()));
                     chatAdapter.add(new ChatMessage("Done.", false, Shared.getCurrentDate(), Shared.getCurrentTime()));
                     chatAdapter.notifyDataSetChanged();
                 }

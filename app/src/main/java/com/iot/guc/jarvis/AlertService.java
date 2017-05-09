@@ -41,7 +41,7 @@ public class AlertService extends Service {
             Log.i("Alert", "onStartCommand: Started Service " );
 
             body.put("status", event.getStatus());
-            Shared.request(getApplicationContext(), Request.Method.POST, "/api/device/" + event.getDevice_id(), body, true, new HTTPResponse() {
+            Shared.request(getApplicationContext(), Request.Method.POST, "/api/device/handle/" + event.getDevice_id(), body, Constants.AUTH_HEADERS, null, Constants.AES_ENCRYPTION, false, true, new HTTPResponse() {
                 @Override
                 public void onSuccess(int statusCode, JSONObject body) {
                     Log.v("Service","Device handeled");

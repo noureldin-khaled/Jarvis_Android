@@ -3,7 +3,6 @@ package com.iot.guc.jarvis.fragments;
 
 import android.app.AlarmManager;
 import android.app.PendingIntent;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.design.widget.Snackbar;
@@ -27,6 +26,7 @@ import android.widget.Toast;
 
 import com.android.volley.Request;
 import com.iot.guc.jarvis.AlertService;
+import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.Constants;
 import com.iot.guc.jarvis.Popup;
 import com.iot.guc.jarvis.R;
@@ -79,24 +79,26 @@ public class PatternsFragment extends Fragment {
         if (Patterns.isEmpty()){
             noPatterns.setVisibility(View.VISIBLE);
         }
-//        String time = "20:13";
-//        String[] t = time.split(":");
-//        Intent intent = new Intent(getContext(), AlertService.class);
+
+//        Event ev1 = new Event();
+//        ev1.setDevice("D1");
+//        ev1.setTime("12:00");
+//        ev1.setStatus(false);
+//        Event ev2 = new Event();
+//        ev2.setDevice("D2");
+//        ev2.setTime("12:02");
+//        ev2.setStatus(true);
+//        Event ev3 = new Event();
+//        ev3.setDevice("D3");
+//        ev3.setTime("01:00");
+//        ev3.setStatus(false);
 //
-//        Log.i("here", "onCheckedChanged: Event: "+ time+ " Intent Created");
-//        Event e = new Event();
-//        e.setDevice_id(1);
-//        e.setDevice("lOL");
-//        e.setTime(time);
-//        e.setStatus(true);
-//        intent.putExtra("event",e);
-//        PendingIntent pendingIntent = PendingIntent.getService(getContext(), 0, intent, 0);
+//        ArrayList<Event> s = new ArrayList<Event>();
+//        s.add(ev1);
+//        s.add(ev2);
+//        s.add(ev3);
 //
-//        Calendar c = Calendar.getInstance();
-//        c.set(Calendar.HOUR_OF_DAY,Integer.parseInt(t[0]));
-//        c.set(Calendar.MINUTE,Integer.parseInt(t[1]));
-//        AlarmManager alarmManager = (AlarmManager) getContext().getSystemService(ALARM_SERVICE);
-//        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, c.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pendingIntent);
+//        Patterns.add(s);
 
 
     }
@@ -120,9 +122,9 @@ public class PatternsFragment extends Fragment {
         }
         else {
             alarmManager.cancel(pendingIntent);
-           pendingIntent.cancel();
+            pendingIntent.cancel();
             Toast.makeText(getContext(),"Cancelled",Toast.LENGTH_SHORT).show();
-       }
+        }
     }
 
     public void deletePattern(final int sequence){
@@ -133,7 +135,7 @@ public class PatternsFragment extends Fragment {
         Shared.setAutoPattern(auto);
         patternsAdapter.notifyDataSetChanged();
 
-        Shared.request(getContext(), Request.Method.DELETE, "/api/patterns/" + sequence, null, true, new HTTPResponse() {
+        Shared.request(getContext(), Request.Method.POST, "/api/patterns/" + sequence, new JSONObject(), Constants.AUTH_HEADERS, null, Constants.AES_ENCRYPTION, false, true, new HTTPResponse() {
             @Override
             public void onSuccess(int statusCode, JSONObject body) {
 
@@ -180,18 +182,18 @@ public class PatternsFragment extends Fragment {
                     dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
                     dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);
 
-            }
-            Patterns.get(sequence).get(event).setTime(AddRoomDialog_EditText_RoomName.getText().toString());
-            Shared.setPatterns(Patterns);
-            patternsAdapter.notifyDataSetChanged();
-            JSONObject body = new JSONObject();
+                }
+                Patterns.get(sequence).get(event).setTime(AddRoomDialog_EditText_RoomName.getText().toString());
+                Shared.setPatterns(Patterns);
+                patternsAdapter.notifyDataSetChanged();
+                JSONObject body = new JSONObject();
                 try {
                     body.put("time",AddRoomDialog_EditText_RoomName.getText().toString());
                 } catch (JSONException e) {
                     Snackbar.make(Patterns_LinearLayout,"Something Went Wrong!",Snackbar.LENGTH_SHORT).show();
                     e.printStackTrace();
                 }
-                Shared.request(getContext(), Request.Method.PUT, "/api/patterns/" + sequence + "/" + event, body, true, new HTTPResponse() {
+                Shared.request(getContext(), Request.Method.PUT, "/api/patterns/" + sequence + "/" + event, body, Constants.AUTH_HEADERS, null, Constants.AES_ENCRYPTION, false, true, new HTTPResponse() {
                     @Override
                     public void onSuccess(int statusCode, JSONObject body) {
                         PatternsFragment.this.getActivity().getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
@@ -207,7 +209,7 @@ public class PatternsFragment extends Fragment {
                     }
                 });
 
-        }
+            }
 
             @Override
             public void onNegative(AlertDialog dialog) {
