@@ -88,9 +88,8 @@ public class DeviceFragment extends Fragment {
         TextView DeviceFragment_TextView_RoomName = (TextView) view.findViewById(R.id.DeviceFragment_TextView_RoomName);
         DeviceFragment_TextView_RoomName.setText(room.getName());
 
-        DeviceFragment_ListView_Devices = (ListView) view.findViewById(R.id.DeviceFragment_ListView_Devices);
-
         if (Shared.getAuth().getType().equalsIgnoreCase("Admin")) {
+            DeviceFragment_ListView_Devices = (ListView) view.findViewById(R.id.DeviceFragment_ListView_Devices);
             DeviceFragment_ListView_Devices.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
                 @Override
                 public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
@@ -136,6 +135,7 @@ public class DeviceFragment extends Fragment {
                 }
             });
         }
+
         reload();
         return view;
     }
