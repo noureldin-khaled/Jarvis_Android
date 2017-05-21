@@ -20,6 +20,7 @@ import android.widget.EditText;
 import android.widget.ListView;
 import com.android.volley.Request;
 import com.iot.guc.jarvis.Constants;
+import com.iot.guc.jarvis.Speaker;
 import com.iot.guc.jarvis.models.Device;
 import com.iot.guc.jarvis.responses.ChatResponse;
 import com.iot.guc.jarvis.responses.HTTPResponse;
@@ -47,7 +48,7 @@ public class ChatFragment extends Fragment {
     private ChatAdapter chatAdapter;
     private ListView ChatFragment_ListView_MessageList;
     private VoiceRecognition voiceRecognition;
-
+    private Speaker speaker;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -70,7 +71,7 @@ public class ChatFragment extends Fragment {
                 }
                 else {
                     // Text
-                    sendMessage(ChatFragment_EditText_Message.getEditableText().toString());
+                    sendMessage(ChatFragment_EditText_Message.getEditableText().toString(), false);
                     ChatFragment_EditText_Message.setText("");
                 }
             }
@@ -104,17 +105,21 @@ public class ChatFragment extends Fragment {
             public void onSuccess(String result) {
                 ChatFragment_EditText_Message.setEnabled(true);
                 ChatFragment_EditText_Message.setHint("Write Something...");
-                sendMessage(result);
+                sendMessage(result, true);
             }
 
             @Override
             public void onError(int error) {
                 ChatFragment_EditText_Message.setEnabled(true);
                 ChatFragment_EditText_Message.setHint("Write Something...");
-                chatAdapter.add(new ChatMessage("I Can\'t hear you!", false, Shared.getCurrentDate(), Shared.getCurrentTime()));
+                String res = "I Can\'t hear you!";
+                chatAdapter.add(new ChatMessage(res, false, Shared.getCurrentDate(), Shared.getCurrentTime()));
                 chatAdapter.notifyDataSetChanged();
+                speaker.speak(res);
             }
         });
+
+        speaker = new Speaker(getActivity().getApplicationContext());
 
         ChatAPI.aiService = AIService.getService(getContext(), config);
         ChatAPI.aiDataService = new AIDataService(getContext(), config);
@@ -124,13 +129,13 @@ public class ChatFragment extends Fragment {
     }
 
 
-    public void sendMessage(String message) {
+    public void sendMessage(String message, boolean speak) {
         if (message.isEmpty()) return;
 
         chatAdapter.add(new ChatMessage(message, true, Shared.getCurrentDate(), Shared.getCurrentTime()));
         chatAdapter.notifyDataSetChanged();
 
-        new ChatAsyncTask().execute(message);
+        new ChatAsyncTask().execute(message, speak ? "speak" : null);
     }
 
     public void playMusic(Context context, String name, final HTTPResponse httpResponse) {
@@ -156,13 +161,25 @@ public class ChatFragment extends Fragment {
         }
     }
 
-    public void handleChat(final Params result) {
+    @Override
+    public void onPause() {
+        if(speaker != null){
+            speaker.stop();
+        }
+
+        super.onPause();
+    }
+
+    public void handleChat(final Params result, final boolean speak) {
         if(!result.getSongName().isEmpty()){
             playMusic(getContext(), result.getSongName(), new HTTPResponse() {
                 @Override
                 public void onSuccess(int statusCode, JSONObject body) {
-                    chatAdapter.add(new ChatMessage("Playing "+result.getSongName(), false, Shared.getCurrentDate(), Shared.getCurrentTime()));
+                    String res = "Playing "+result.getSongName();
+                    chatAdapter.add(new ChatMessage(res, false, Shared.getCurrentDate(), Shared.getCurrentTime()));
                     chatAdapter.notifyDataSetChanged();
+                    if (speak)
+                        speaker.speak(res);
                 }
 
                 @Override
@@ -184,6 +201,8 @@ public class ChatFragment extends Fragment {
 
                     chatAdapter.add(new ChatMessage(response, false, Shared.getCurrentDate(), Shared.getCurrentTime()));
                     chatAdapter.notifyDataSetChanged();
+                    if (speak)
+                        speaker.speak(response);
                 }
             });
         }
@@ -192,9 +211,12 @@ public class ChatFragment extends Fragment {
             result.getDevice().handle(getContext(), result.getStatus(), new HTTPResponse() {
                 @Override
                 public void onSuccess(int statusCode, JSONObject body) {
+                    String res = "Done";
                     Shared.editDevice(Shared.deviceIndexOf(result.getDevice().getId()), new Device(result.getDevice().getId(), result.getDevice().getName(), result.getDevice().getType(), result.getStatus(), result.getDevice().getMac(), result.getDevice().getIp(), result.getDevice().getRoom_id()));
-                    chatAdapter.add(new ChatMessage("Done.", false, Shared.getCurrentDate(), Shared.getCurrentTime()));
+                    chatAdapter.add(new ChatMessage(res, false, Shared.getCurrentDate(), Shared.getCurrentTime()));
                     chatAdapter.notifyDataSetChanged();
+                    if (speak)
+                        speaker.speak(res);
                 }
 
                 @Override
@@ -216,6 +238,8 @@ public class ChatFragment extends Fragment {
 
                     chatAdapter.add(new ChatMessage(response, false, Shared.getCurrentDate(), Shared.getCurrentTime()));
                     chatAdapter.notifyDataSetChanged();
+                    if (speak)
+                        speaker.speak(response);
                 }
             });
         }
@@ -223,6 +247,8 @@ public class ChatFragment extends Fragment {
             // Not a command or got an error
             chatAdapter.add(new ChatMessage(result.getMessage(), false, Shared.getCurrentDate(), Shared.getCurrentTime()));
             chatAdapter.notifyDataSetChanged();
+            if (speak)
+                speaker.speak(result.getMessage());
         }
     }
 
@@ -240,7 +266,7 @@ public class ChatFragment extends Fragment {
     private class ChatAsyncTask extends AsyncTask<String, Void, Params> {
 
         @Override
-        protected Params doInBackground(String... params) {
+        protected Params doInBackground(final String... params) {
 
             ChatAPI.handleChat(params[0],getContext(),getActivity(),new ChatResponse() {
                 @Override
@@ -248,7 +274,7 @@ public class ChatFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            handleChat(param);
+                            handleChat(param, params[0] != null ? true : false);
                         }
                     });
 
