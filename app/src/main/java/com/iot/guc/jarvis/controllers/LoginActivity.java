@@ -650,6 +650,7 @@ public class LoginActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(int statusCode, JSONObject body) {
+                Log.i(getLocalClassName(), "onFailure: " + body);
                 showProgress(false);
                 switch (statusCode) {
                     case Constants.NO_INTERNET_CONNECTION: {

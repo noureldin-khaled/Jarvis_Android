@@ -274,7 +274,7 @@ public class ChatFragment extends Fragment {
                     getActivity().runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            handleChat(param, params[0] != null ? true : false);
+                            handleChat(param, params[1] != null ? true : false);
                         }
                     });
 

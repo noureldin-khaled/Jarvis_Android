@@ -4,8 +4,12 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.hardware.camera2.params.Face;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.NavigationView;
@@ -21,6 +25,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -41,6 +46,8 @@ import com.iot.guc.jarvis.Shared;
 import com.iot.guc.jarvis.fragments.ChatFragment;
 import com.iot.guc.jarvis.fragments.ContainerFragment;
 import com.iot.guc.jarvis.fragments.PatternsFragment;
+import com.iot.guc.jarvis.fragments.RoomFragment;
+import com.iot.guc.jarvis.models.Room;
 import com.iot.guc.jarvis.models.User;
 import com.iot.guc.jarvis.responses.HTTPResponse;
 import com.iot.guc.jarvis.responses.PopupResponse;
@@ -49,6 +56,9 @@ import com.iot.guc.jarvis.responses.StringResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
     private SectionsPagerAdapter mSectionsPagerAdapter;
@@ -88,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         View header = NavigationDrawer_NavigationView_View.getHeaderView(0);
         Menu menu = NavigationDrawer_NavigationView_View.getMenu();
         MenuItem DrawerMenu_Item_People = menu.findItem(R.id.DrawerMenu_Item_People);
+        MenuItem DrawerMenu_Item_Train = menu.findItem(R.id.DrawerMenu_Item_Train);
         TextView NavigationDrawerHeader_TextView_Username = (TextView) header.findViewById(R.id.NavigationDrawerHeader_TextView_Username);
         NavigationDrawerHeader_TextView_Username.setText(Shared.getAuth().getUsername());
 
@@ -95,10 +106,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (Shared.getAuth().getType().equals("Admin")) {
             NavigationDrawerHeader_ImageView_Type.setImageResource(R.drawable.admin);
             DrawerMenu_Item_People.setVisible(true);
+            DrawerMenu_Item_Train.setVisible(true);
         }
         else {
             NavigationDrawerHeader_ImageView_Type.setImageResource(R.drawable.normal);
             DrawerMenu_Item_People.setVisible(false);
+            DrawerMenu_Item_Train.setVisible(false);
         }
 
         TabLayout tabLayout = (TabLayout) findViewById(R.id.MainActivity_TabLayout_Tabs);
@@ -144,82 +157,164 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    public void onActivityResult(int requestCode, int resultCode, final Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (data != null) {
+            View contentView = getLayoutInflater().inflate(R.layout.dialog_add_room, null);
+            final TextInputLayout AddRoomDialog_TextInputLayout_RoomNameLayout = (TextInputLayout) contentView.findViewById(R.id.AddRoomDialog_TextInputLayout_RoomNameLayout);
+            final EditText AddRoomDialog_EditText_RoomName = (EditText) contentView.findViewById(R.id.AddRoomDialog_EditText_RoomName);
+            final ProgressBar AddRoomDialog_ProgressBar_Progress = (ProgressBar) contentView.findViewById(R.id.AddRoomDialog_ProgressBar_Progress);
+            final LinearLayout AddRoomDialog_LinearLayout_AddRoomForm = (LinearLayout) contentView.findViewById(R.id.AddRoomDialog_LinearLayout_AddRoomForm);
+            TextView AddRoomDialog_TextView_Title = (TextView) contentView.findViewById(R.id.AddRoomDialog_TextView_Title);
+            AddRoomDialog_TextView_Title.setVisibility(View.GONE);
+
+            new Popup().create(MainActivity.this, contentView, "Train", new PopupResponse() {
+                @Override
+                public void onPositive(final android.support.v7.app.AlertDialog dialog) {
+                    AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(false);
+                    AddRoomDialog_TextInputLayout_RoomNameLayout.setError(null);
+
+                    if (AddRoomDialog_EditText_RoomName.getText().toString().isEmpty()) {
+                        AddRoomDialog_TextInputLayout_RoomNameLayout.setErrorEnabled(true);
+                        AddRoomDialog_TextInputLayout_RoomNameLayout.setError("Please Enter a Name");
+                    }
+
+                    if (!AddRoomDialog_EditText_RoomName.getText().toString().isEmpty()) {
+                        AddRoomDialog_ProgressBar_Progress.setVisibility(View.VISIBLE);
+                        AddRoomDialog_LinearLayout_AddRoomForm.setVisibility(View.GONE);
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(false);
+                        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(false);
+
+                        new TrainingTask().execute(data, AddRoomDialog_EditText_RoomName.getText().toString(), new HTTPResponse() {
+                            @Override
+                            public void onSuccess(int statusCode, JSONObject body) {
+                                collapseKeyboard();
+                                dialog.dismiss();
+                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Trained Successfully", Snackbar.LENGTH_LONG).show();
+                            }
+
+                            @Override
+                            public void onFailure(int statusCode, JSONObject body) {
+                                collapseKeyboard();
+                                dialog.dismiss();
+                                switch (statusCode) {
+                                    case Constants.NO_INTERNET_CONNECTION: {
+                                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
+                                    }
+                                    break;
+                                    case Constants.SERVER_NOT_REACHED: {
+                                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
+                                    }
+                                    break;
+                                    case 400: {
+                                        try {
+                                            int code = body.getInt("code");
+                                            if (code == 5002)
+                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "No faces detected in the provided image", Snackbar.LENGTH_LONG).show();
+                                            else if (code == 5010)
+                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Too many faces detected in the provided image", Snackbar.LENGTH_LONG).show();
+                                            else
+                                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                        } catch (JSONException e) {
+                                            Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                    break;
+                                    default: {
+                                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                    }
+                                }
+                            }
+                        });
+                    }
+                }
+
+                @Override
+                public void onNegative(android.support.v7.app.AlertDialog dialog) {
+                    collapseKeyboard();
+                    dialog.dismiss();
+                }
+            });
+        }
+    }
+
     public void changePassword(String old_password, String new_password,
                                final android.support.v7.app.AlertDialog dialog,
                                final ProgressBar ChangePasswordDialog_ProgressBar_Progress,
                                final LinearLayout ChangePasswordDialog_LinearLayout_ChangePasswordForm,
                                final TextInputLayout ChangePasswordDialog_TextInputLayout_OldPasswordLayout) {
         Shared.getAuth().changePassword(getApplicationContext(), old_password, new_password, new HTTPResponse() {
-                    @Override
-                    public void onSuccess(int statusCode, JSONObject body) {
-                        collapseKeyboard();
+            @Override
+            public void onSuccess(int statusCode, JSONObject body) {
+                collapseKeyboard();
+                dialog.dismiss();
+                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Password Changed Successfully", Snackbar.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onFailure(int statusCode, JSONObject body) {
+                ChangePasswordDialog_ProgressBar_Progress.setVisibility(View.GONE);
+                ChangePasswordDialog_LinearLayout_ChangePasswordForm.setVisibility(View.VISIBLE);
+
+                switch (statusCode) {
+                    case Constants.NO_INTERNET_CONNECTION: {
                         dialog.dismiss();
-                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Password Changed Successfully", Snackbar.LENGTH_LONG).show();
+                        collapseKeyboard();
+                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
                     }
+                    break;
+                    case Constants.SERVER_NOT_REACHED: {
+                        dialog.dismiss();
+                        collapseKeyboard();
+                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
+                    }
+                    break;
+                    case 403: {
+                        ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setErrorEnabled(true);
+                        ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setError("The Password is incorrect");
+                        dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
+                        dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
+                    }
+                    break;
+                    case 400: {
+                        try {
+                            JSONArray arr = body.getJSONArray("errors");
+                            for (int i = 0; i < arr.length(); i++) {
+                                JSONObject current = arr.getJSONObject(i);
+                                String type = current.getString("msg");
+                                String field = current.getString("param");
 
-                    @Override
-                    public void onFailure(int statusCode, JSONObject body) {
-                        ChangePasswordDialog_ProgressBar_Progress.setVisibility(View.GONE);
-                        ChangePasswordDialog_LinearLayout_ChangePasswordForm.setVisibility(View.VISIBLE);
-
-                        switch (statusCode) {
-                            case Constants.NO_INTERNET_CONNECTION: {
-                                dialog.dismiss();
-                                collapseKeyboard();
-                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "No Internet Connection!", Snackbar.LENGTH_LONG).show();
-                            }
-                            break;
-                            case Constants.SERVER_NOT_REACHED: {
-                                dialog.dismiss();
-                                collapseKeyboard();
-                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Server Can\'t Be Reached!", Snackbar.LENGTH_LONG).show();
-                            }
-                            break;
-                            case 403: {
-                                ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setErrorEnabled(true);
-                                ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setError("The Password is incorrect");
-                                dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
-                                dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
-                            }
-                            break;
-                            case 400: {
-                                try {
-                                    JSONArray arr = body.getJSONArray("errors");
-                                    for (int i = 0; i < arr.length(); i++) {
-                                        JSONObject current = arr.getJSONObject(i);
-                                        String type = current.getString("msg");
-                                        String field = current.getString("param");
-
-                                        if (type.equals("required") && field.equals("old_password")) {
-                                            ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setErrorEnabled(true);
-                                            ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setError("Please Enter Your Password");
-                                        }
-                                        else {
-                                            dialog.dismiss();
-                                            Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
-                                            break;
-                                        }
-                                    }
-
-                                    dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
-                                    dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
-                                } catch (JSONException e) {
-                                    dialog.dismiss();
-                                    collapseKeyboard();
-                                    Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
-                                    e.printStackTrace();
+                                if (type.equals("required") && field.equals("old_password")) {
+                                    ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setErrorEnabled(true);
+                                    ChangePasswordDialog_TextInputLayout_OldPasswordLayout.setError("Please Enter Your Password");
                                 }
+                                else {
+                                    dialog.dismiss();
+                                    Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                                    break;
+                                }
+                            }
 
-                            }
-                            break;
-                            default: {
-                                dialog.dismiss();
-                                collapseKeyboard();
-                                Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
-                            }
+                            dialog.getButton(DialogInterface.BUTTON_POSITIVE).setEnabled(true);
+                            dialog.getButton(DialogInterface.BUTTON_NEGATIVE).setEnabled(true);
+                        } catch (JSONException e) {
+                            dialog.dismiss();
+                            collapseKeyboard();
+                            Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                            e.printStackTrace();
                         }
+
                     }
-                });
+                    break;
+                    default: {
+                        dialog.dismiss();
+                        collapseKeyboard();
+                        Snackbar.make(MainActivity_CoordinatorLayout_MainContentView, "Something Went Wrong!", Snackbar.LENGTH_LONG).show();
+                    }
+                }
+            }
+        });
     }
 
     @Override
@@ -337,6 +432,13 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 startActivity(intent);
             }
             break;
+            case R.id.DrawerMenu_Item_Train: {
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select File"), Constants.SELECT_FILE);
+            }
+            break;
             case R.id.DrawerMenu_Item_Logout: {
                 NavigationDrawer_DrawerLayout_MainLayout.closeDrawer(GravityCompat.START);
                 AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -451,6 +553,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         @Override
         public CharSequence getPageTitle(int position) {
+            return null;
+        }
+    }
+
+    private class TrainingTask extends AsyncTask<Object, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Object... params) {
+            Intent data = (Intent) params[0];
+            String subject_id = (String) params[1];
+            HTTPResponse httpResponse = (HTTPResponse) params[2];
+
+            try {
+                Bitmap bitmap = MediaStore.Images.Media.getBitmap(getApplicationContext().getContentResolver(), data.getData());
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                byte[] byteArray = byteArrayOutputStream .toByteArray();
+                String encoded = Base64.encodeToString(byteArray, Base64.DEFAULT);
+
+                User.train(getApplicationContext(), encoded, subject_id, httpResponse);
+            } catch (IOException e) {
+                // The app failed
+                httpResponse.onFailure(Constants.APP_FAILURE, null);
+                e.printStackTrace();
+            }
+
             return null;
         }
     }
