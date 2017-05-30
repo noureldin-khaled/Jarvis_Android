@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="28dp"
+    android:paddingRight="28dp"
+    android:paddingTop="@dimen/activity_vertical_margin">
+
+    <ProgressBar
+        android:id="@+id/ScanUserDialog_ProgressBar_Progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminateTint="@color/colorPrimary"
+        android:layout_centerInParent="true"
+        android:visibility="gone"/>
+
+    <LinearLayout android:id="@+id/ScanUserDialog_LinearLayout_UsersLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView android:id="@+id/ScanUserDialog_TextView_Title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Give Privilege To"
+            android:layout_gravity="center"
+            android:textSize="20dp"
+            android:fontFamily="serif-monospace"
+            android:textColor="@color/Black" />
+
+        <ListView android:id="@+id/ScanUserDialog_ListView_UserList"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="17dp">
+        </ListView>
+    </LinearLayout>
+</RelativeLayout>

@@ -1,8 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimary">#3f51b5</color>
     <color name="colorPrimaryDark">#303F9F</color>
-    <color name="colorAccent">#FF4081</color>
-    <color name="passwordVisible">#000000</color>
-    <color name="passwordHidden">#7c7c7c</color>
+    <color name="colorAccent">#ff4081</color>
+    <color name="passwordVisible">#e0e0e0</color>
+    <color name="passwordHidden">#afafaf</color>
+    <color name="Admin">#ffd700</color>
+    <color name="Normal">#595959</color>
+    <color name="White">#e0e0e0</color>
+    <color name="Black">#323232</color>
+    <color name="Red">#f93f25</color>
+    <color name="Green">#46c92c</color>
+    <color name="Purple">#c03ffc</color>
 </resources>

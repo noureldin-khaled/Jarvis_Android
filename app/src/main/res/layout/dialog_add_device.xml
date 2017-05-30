@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingLeft="28dp"
+    android:paddingRight="28dp"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:focusableInTouchMode="true"
+    android:id="@+id/AddDeviceDialog_RelativeLayout_MainContentView">
+
+    <ProgressBar android:id="@+id/AddDeviceDialog_ProgressBar_Progress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:indeterminateTint="@color/colorPrimary"
+        android:visibility="gone"/>
+
+    <LinearLayout android:id="@+id/AddDeviceDialog_LinearLayout_AddDeviceForm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/AddDeviceDialog_TextView_DeviceMac"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Device Mac"
+            android:layout_gravity="center"
+            android:textSize="18sp"
+            android:fontFamily="serif-monospace"
+            android:textColor="@color/Black" />
+
+        <android.support.design.widget.TextInputLayout
+            android:id="@+id/AddDeviceDialog_TextInputLayout_DeviceNameLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColorHint="@color/Black"
+            app:theme="@style/ChangePasswordStyle">
+
+            <EditText android:id="@+id/AddDeviceDialog_EditText_DeviceName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif"
+                android:layout_marginTop="8dp"
+                android:hint="Name"
+                android:textColor="@color/Black"
+                android:backgroundTint="@color/Black"
+                android:textSize="15dp"/>
+        </android.support.design.widget.TextInputLayout>
+    </LinearLayout>
+
+</RelativeLayout>
