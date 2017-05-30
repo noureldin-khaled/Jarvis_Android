@@ -330,4 +330,28 @@ public class User {
         String url = "/api/user/" + device_id;
         Shared.request(context, Request.Method.POST, url, new JSONObject(), Constants.AUTH_HEADERS, null, Constants.AES_ENCRYPTION, true, true, httpResponse);
     }
+
+    public static void train(Context context, String image, String subject_id, final HTTPResponse httpResponse) {
+        ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+        boolean isConnected = activeNetwork != null && activeNetwork.isConnected();
+
+        if (!isConnected) {
+            // No Internet Connection
+            httpResponse.onFailure(Constants.NO_INTERNET_CONNECTION, null);
+            return;
+        }
+
+        try {
+            String url = "/api/face/train";
+            JSONObject body = new JSONObject();
+            body.put("image", image);
+            body.put("subject_id", subject_id);
+            Shared.request(context, Request.Method.POST, url, body, Constants.AUTH_HEADERS, null, Constants.NO_ENCRYPTION, false, false, httpResponse);
+        } catch (JSONException e) {
+            // The app failed
+            httpResponse.onFailure(Constants.APP_FAILURE, null);
+            e.printStackTrace();
+        }
+    }
 }
